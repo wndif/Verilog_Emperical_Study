@@ -1,0 +1,1237 @@
+CommitId: 7df8e0f3a9306ee5423216abea29baf7d140206c
+Fixed DPLL alignment in the rx_phy and bit stuffing errors in the tx_phy (if last bit bit was a stuff bit in a packet it was omitted).
+--- a/rtl/verilog/usb_rx_phy.v
++++ b/rtl/verilog/usb_rx_phy.v
+@@ -122,6 +125,7 @@ reg		rx_valid_r;
+ reg		sync_err_d, sync_err;
+ reg		bit_stuff_err;
+ reg		se0_r, byte_err;
++reg		se0_s;
+ 
+ ///////////////////////////////////////////////////////////////////
+ //
+
+ParseResult:
+INS HdlIdDef@@se0_s to objs
+HdlIdDef: se0_s
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+
+CommitId: 7df8e0f3a9306ee5423216abea29baf7d140206c
+Fixed DPLL alignment in the rx_phy and bit stuffing errors in the tx_phy (if last bit bit was a stuff bit in a packet it was omitted).
+--- a/rtl/verilog/usb_rx_phy.v
++++ b/rtl/verilog/usb_rx_phy.v
+@@ -132,7 +136,7 @@ assign RxActive_o = rx_active;
+ assign RxValid_o = rx_valid;
+ assign RxError_o = sync_err | bit_stuff_err | byte_err;
+ assign DataIn_o = hold_reg;
+-assign LineState = {rxdp_s1, rxdn_s1};
++assign LineState = {rxdn_s1, rxdp_s1};
+ 
+ always @(posedge clk)	rx_en <= RxEn_i;
+ always @(posedge clk)	sync_err <= !rx_active & sync_err_d;
+
+ParseResult:
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: CONCAT
+        list: ops
+            HdlValueId: rxdn_s1
+            HdlValueId: rxdp_s1
+    HdlValueId: LineState
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlOp: CONCAT
+        list: ops
+            HdlValueId: rxdp_s1
+            HdlValueId: rxdn_s1
+    HdlValueId: LineState
+
+
+CommitId: 7df8e0f3a9306ee5423216abea29baf7d140206c
+Fixed DPLL alignment in the rx_phy and bit stuffing errors in the tx_phy (if last bit bit was a stuff bit in a packet it was omitted).
+--- a/rtl/verilog/usb_rx_phy.v
++++ b/rtl/verilog/usb_rx_phy.v
+@@ -168,6 +172,8 @@ assign k = !rxdp_s &  rxdn_s;
+ assign j =  rxdp_s & !rxdn_s;
+ assign se0 = !rxdp_s & !rxdn_s;
+ 
++always @(posedge clk)	if(fs_ce)	se0_s <= se0;
++
+ ///////////////////////////////////////////////////////////////////
+ //
+ // DPLL
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmIf: body
+        HdlValueId: fs_ce
+        HdlStmAssign: if_true
+            HdlValueId: se0
+            HdlValueId: se0_s
+        list: elifs
+
+
+CommitId: 7df8e0f3a9306ee5423216abea29baf7d140206c
+Fixed DPLL alignment in the rx_phy and bit stuffing errors in the tx_phy (if last bit bit was a stuff bit in a packet it was omitted).
+--- a/rtl/verilog/usb_rx_phy.v
++++ b/rtl/verilog/usb_rx_phy.v
+@@ -251,12 +257,12 @@ always @(posedge clk)
+ 	if(!rst)	fs_state <= FS_IDLE;
+ 	else		fs_state <= fs_next_state;
+ 
+-always @(fs_state or fs_ce or k or j or rx_en)
++always @(fs_state or fs_ce or k or j or rx_en or rx_active or se0 or se0_s)
+    begin
+ 	synced_d = 1'b0;
+ 	sync_err_d = 1'b0;
+ 	fs_next_state = fs_state;
+-	if(fs_ce)
++	if(fs_ce && !rx_active && !se0 && !se0_s)
+ 	   case(fs_state)	// synopsys full_case parallel_case
+ 		FS_IDLE:
+ 		     begin
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    MOV HdlValueId@@fs_ce to 
+    HdlValueId: fs_ce
+
+
+CommitId: 7df8e0f3a9306ee5423216abea29baf7d140206c
+Fixed DPLL alignment in the rx_phy and bit stuffing errors in the tx_phy (if last bit bit was a stuff bit in a packet it was omitted).
+--- a/rtl/verilog/usb_rx_phy.v
++++ b/rtl/verilog/usb_rx_phy.v
+@@ -302,7 +308,11 @@ always @(fs_state or fs_ce or k or j or rx_en)
+ 		     begin
+ 			if(j && rx_en)	fs_next_state = J3;
+ 			else
+-			if(k && rx_en)	fs_next_state = K4;	// Allow missing one J
++			if(k && rx_en)
++			   begin
++					fs_next_state = FS_IDLE;	// Allow missing first K-J
++					synced_d = 1'b1;
++			   end
+ 			else
+ 			   begin
+ 					sync_err_d = 1'b1;
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS HdlValueId@@rx_active to sensitivity
+    INS HdlValueId@@se0 to sensitivity
+    INS HdlValueId@@se0_s to sensitivity
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@AND_LOG to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        INS list@@ops to AND_LOG
+        INS HdlOp@@AND_LOG to ops
+        INS HdlOp@@NEG_LOG to ops
+        HdlOp: NEG_LOG
+            list: ops
+                HdlValueId: se0_s
+        UPD HdlOp@@AND_LOG to AND_LOG
+            INS list@@ops to AND_LOG
+            INS HdlOp@@AND_LOG to ops
+            INS HdlOp@@NEG_LOG to ops
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlValueId: se0
+            UPD HdlOp@@AND_LOG to AND_LOG
+                INS list@@ops to AND_LOG
+                INS HdlOp@@NEG_LOG to ops
+                HdlOp: NEG_LOG
+                    list: ops
+                        HdlValueId: rx_active
+
+UPD HdlStmIf@@ to 
+    MOV HdlValueId@@fs_ce to 
+    HdlValueId: fs_ce
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@ASSIGN to 
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: fs_next_state
+            HdlValueId: K4
+    UPD HdlOp@@ASSIGN to ASSIGN
+        UPD HdlValueId@@K4 to FS_IDLE
+
+
+CommitId: 7df8e0f3a9306ee5423216abea29baf7d140206c
+Fixed DPLL alignment in the rx_phy and bit stuffing errors in the tx_phy (if last bit bit was a stuff bit in a packet it was omitted).
+--- a/rtl/verilog/usb_rx_phy.v
++++ b/rtl/verilog/usb_rx_phy.v
+@@ -430,12 +439,11 @@ always @(posedge clk)
+ 	else
+ 	if(rx_valid1 && fs_ce && !drop_bit)		rx_valid1 <= 1'b0;
+ 
+-always @(posedge clk)
+-	rx_valid <= !drop_bit & rx_valid1 & fs_ce;
++always @(posedge clk)	rx_valid <= !drop_bit & rx_valid1 & fs_ce;
+ 
+ always @(posedge clk)	se0_r <= se0;
+ 
+-always @(posedge clk)	byte_err <= se0 & !se0_r & (|bit_cnt);
++always @(posedge clk)	byte_err <= se0 & !se0_r & (|bit_cnt[2:1]) & rx_active;
+ 
+ endmodule
+ 
+ParseResult:
+UPD HdlStmAssign@@body to body
+    MOV HdlOp@@AND to body
+    HdlOp: AND
+        list: ops
+            HdlOp: AND
+                list: ops
+                    HdlValueId: se0
+                    HdlOp: NEG_LOG
+                        list: ops
+                            HdlValueId: se0_r
+            HdlOp: OR_UNARY
+                list: ops
+                    HdlValueId: bit_cnt
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@OR_UNARY to OR_UNARY
+            MOV list@@ops to OR_UNARY
+            list: ops
+                HdlValueId: bit_cnt
+
+
+CommitId: 115a198c443d5387167409e51eca852c1fedcfd5
+- Fixed Sync Error to be only checked/generated during the sync phase
+--- a/rtl/verilog/usb_rx_phy.v
++++ b/rtl/verilog/usb_rx_phy.v
+@@ -125,7 +130,7 @@ assign DataIn_o = hold_reg;
+ assign LineState = {rxdp_s1, rxdn_s1};
+ 
+ always @(posedge clk)	rx_en <= RxEn_i;
+-always @(posedge clk)	sync_err <= sync_err_d;
++always @(posedge clk)	sync_err <= !rx_active & sync_err_d;
+ 
+ ///////////////////////////////////////////////////////////////////
+ //
+ParseResult:
+INS HdlStmProcess@@ to objs
+
+UPD HdlStmProcess@@ to 
+    MOV list@@sensitivity to 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+
+INS HdlStmAssign@@body to 
+HdlStmAssign: body
+    HdlOp: AND
+        list: ops
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlValueId: rx_active
+            HdlValueId: sync_err_d
+    HdlValueId: sync_err
+
+DEL HdlStmAssign@@body from 
+HdlStmAssign: body
+    HdlValueId: sync_err_d
+    HdlValueId: sync_err
+
+DEL HdlStmProcess@@ from objs
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_rx_phy.v
++++ b/rtl/verilog/usb_rx_phy.v
+@@ -84,9 +87,9 @@ output	[1:0]	LineState;
+ // Local Wires and Registers
+ //
+ 
+-reg		rxd_t1,  rxd_s1,  rxd_s;
+-reg		rxdp_t1, rxdp_s1, rxdp_s;
+-reg		rxdn_t1, rxdn_s1, rxdn_s;
++reg		rxd_t1,  rxd_s0, rxd_s1,  rxd_s;
++reg		rxdp_t1, rxdp_s0, rxdp_s1, rxdp_s, rxdp_s_r;
++reg		rxdn_t1, rxdn_s0, rxdn_s1, rxdn_s, rxdn_s_r;
+ reg		synced_d;
+ wire		k, j, se0;
+ reg		rx_en;
+
+ParseResult:
+INS HdlIdDef@@rxd_s0 to objs
+HdlIdDef: rxd_s0
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@rxdp_s0 to objs
+HdlIdDef: rxdp_s0
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@rxdp_s_r to objs
+HdlIdDef: rxdp_s_r
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@rxdn_s0 to objs
+HdlIdDef: rxdn_s0
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@rxdn_s_r to objs
+HdlIdDef: rxdn_s_r
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_rx_phy.v
++++ b/rtl/verilog/usb_rx_phy.v
+@@ -103,11 +106,12 @@ reg	[2:0]	one_cnt;
+ reg	[1:0]	dpll_state, dpll_next_state;
+ reg		fs_ce_d, fs_ce;
+ wire		change;
+-reg		rxdp_s1r, rxdn_s1r;
+ wire		lock_en;
+-reg		fs_ce_r1, fs_ce_r2, fs_ce_r3;
+ reg	[2:0]	fs_state, fs_next_state;
+ reg		rx_valid_r;
++reg		sync_err_d, sync_err;
++reg		bit_stuff_err;
++reg		se0_r, byte_err;
+ 
+ ///////////////////////////////////////////////////////////////////
+ //
+
+ParseResult:
+MOV HdlIdDef@@fs_ce_r3 to objs
+HdlIdDef: fs_ce_r3
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@fs_ce_r2 to objs
+HdlIdDef: fs_ce_r2
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@fs_ce_r1 to objs
+HdlIdDef: fs_ce_r1
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@rxdn_s1r to objs
+HdlIdDef: rxdn_s1r
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@rxdp_s1r to objs
+HdlIdDef: rxdp_s1r
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+UPD HdlIdDef@@fs_ce_r3 to sync_err_d
+
+UPD HdlIdDef@@fs_ce_r2 to sync_err
+
+UPD HdlIdDef@@fs_ce_r1 to bit_stuff_err
+
+UPD HdlIdDef@@rxdn_s1r to se0_r
+
+UPD HdlIdDef@@rxdp_s1r to byte_err
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_rx_phy.v
++++ b/rtl/verilog/usb_rx_phy.v
+@@ -116,12 +120,12 @@ reg		rx_valid_r;
+ 
+ assign RxActive_o = rx_active;
+ assign RxValid_o = rx_valid;
+-assign RxError_o = 0;
++assign RxError_o = sync_err | bit_stuff_err | byte_err;
+ assign DataIn_o = hold_reg;
+ assign LineState = {rxdp_s1, rxdn_s1};
+ 
+-always @(posedge clk)
+-	rx_en <= #1 RxEn_i;
++always @(posedge clk)	rx_en <= RxEn_i;
++always @(posedge clk)	sync_err <= sync_err_d;
+ 
+ ///////////////////////////////////////////////////////////////////
+ //
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@OR to 
+    HdlOp: OR
+        list: ops
+            HdlOp: OR
+                list: ops
+                    HdlValueId: sync_err
+                    HdlValueId: bit_stuff_err
+            HdlValueId: byte_err
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@0 from 
+
+UPD HdlStmAssign@@body to body
+    DEL HdlValueInt@@1 from body
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_rx_phy.v
++++ b/rtl/verilog/usb_rx_phy.v
+@@ -180,13 +179,7 @@ assign se0 = !rxdp_s & !rxdn_s;
+ assign	lock_en = rx_en;
+ 
+ // Edge detector
+-always @(posedge clk)
+-	rxdp_s1r <= #1 rxdp_s1;
+-
+-always @(posedge clk)
+-	rxdn_s1r <= #1 rxdn_s1;
+-
+-assign change = (rxdp_s1r != rxdp_s1) | (rxdn_s1r != rxdn_s1);
++assign change = (rxdp_s0 != rxdp_s1) | (rxdn_s0 != rxdn_s1);
+ 
+ // DPLL FSM
+ `ifdef USB_ASYNC_REST
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    MOV list@@sensitivity to 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+
+UPD HdlStmProcess@@ to 
+    MOV list@@sensitivity to 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+
+UPD HdlStmAssign@@body to body
+    INS HdlOp@@OR to body
+    UPD HdlOp@@OR to OR
+        INS list@@ops to OR
+        INS HdlOp@@AND to ops
+        INS HdlValueId@@rxdn_s_r to ops
+        UPD HdlOp@@AND to AND
+            INS list@@ops to AND
+            INS HdlValueId@@rxdn_s0 to ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@OR to OR
+        UPD HdlOp@@NE to NE
+            UPD HdlValueId@@rxdp_s1r to rxdp_s0
+        UPD HdlOp@@NE to NE
+            UPD HdlValueId@@rxdn_s1r to rxdn_s0
+
+DEL HdlStmAssign@@body from 
+HdlStmAssign: body
+    HdlValueId: rxdp_s1
+    HdlValueId: rxdp_s1r
+    HdlValueInt: 1
+
+DEL HdlStmProcess@@ from objs
+
+DEL HdlStmAssign@@body from 
+HdlStmAssign: body
+    HdlValueId: rxdn_s1
+    HdlValueId: rxdn_s1r
+    HdlValueInt: 1
+
+DEL HdlStmProcess@@ from objs
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_rx_phy.v
++++ b/rtl/verilog/usb_rx_phy.v
+@@ -315,16 +322,16 @@ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)		rx_active <= #1 1'b0;
++	if(!rst)		rx_active <= 1'b0;
+ 	else
+-	if(synced_d & rx_en)	rx_active <= #1 1'b1;
++	if(synced_d && rx_en)	rx_active <= 1'b1;
+ 	else
+-	if(se0 & rx_valid_r )	rx_active <= #1 1'b0;
++	if(se0 && rx_valid_r)	rx_active <= 1'b0;
+ 
+ always @(posedge clk)
+-	if(rx_valid)	rx_valid_r <= #1 1'b1;
++	if(rx_valid)	rx_valid_r <= 1'b1;
+ 	else
+-	if(fs_ce)	rx_valid_r <= #1 1'b0;
++	if(fs_ce)	rx_valid_r <= 1'b0;
+ 
+ ///////////////////////////////////////////////////////////////////
+ //
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    MOV list@@sensitivity to 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: sync_err_d
+                HdlValueInt: 0
+
+UPD HdlStmIf@@body to body
+    UPD HdlOp@@AND to AND_LOG
+    UPD HdlOp@@AND to AND_LOG
+
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: sync_err_d
+                HdlValueInt: 1
+
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: sync_err_d
+                HdlValueInt: 1
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_rx_phy.v
++++ b/rtl/verilog/usb_rx_phy.v
+@@ -332,16 +339,16 @@ always @(posedge clk)
+ //
+ 
+ always @(posedge clk)
+-	if(fs_ce)	sd_r <= #1 rxd_s;
++	if(fs_ce)	sd_r <= rxd_s;
+ 
+ `ifdef USB_ASYNC_REST
+ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)		sd_nrzi <= #1 1'b0;
++	if(!rst)		sd_nrzi <= 1'b0;
+ 	else
+-	if(rx_active & fs_ce)	sd_nrzi <= #1 !(rxd_s ^ sd_r);
++	if(rx_active && fs_ce)	sd_nrzi <= !(rxd_s ^ sd_r);
+ 
+ ///////////////////////////////////////////////////////////////////
+ //
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    MOV list@@sensitivity to 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: sync_err_d
+                HdlValueInt: 0
+
+UPD HdlStmIf@@body to body
+    UPD HdlOp@@AND to AND_LOG
+
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: sync_err_d
+                HdlValueInt: 1
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_rx_phy.v
++++ b/rtl/verilog/usb_rx_phy.v
+@@ -353,29 +360,32 @@ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)	one_cnt <= #1 3'h0;
++	if(!rst)	one_cnt <= 3'h0;
+ 	else
+-	if(!shift_en)	one_cnt <= #1 3'h0;
++	if(!shift_en)	one_cnt <= 3'h0;
+ 	else
+ 	if(fs_ce)
+ 	   begin
+-		if(!sd_nrzi | drop_bit)	one_cnt <= #1 3'h0;
+-		else			one_cnt <= #1 one_cnt + 3'h1;
++		if(!sd_nrzi || drop_bit)	one_cnt <= 3'h0;
++		else				one_cnt <= one_cnt + 3'h1;
+ 	   end
+ 
+ assign drop_bit = (one_cnt==3'h6);
+ 
++always @(posedge clk)	// Bit Stuff Error
++	bit_stuff_err <= drop_bit & sd_nrzi & fs_ce & !se0 & rx_active;
++
+ ///////////////////////////////////////////////////////////////////
+ //
+ // Serial => Parallel converter
+ //
+ 
+ always @(posedge clk)
+-	if(fs_ce)	shift_en <= #1 synced_d | rx_active;
++	if(fs_ce)	shift_en <= synced_d | rx_active;
+ 
+ always @(posedge clk)
+-	if(fs_ce & shift_en & !drop_bit)
+-		hold_reg <= #1 {sd_nrzi, hold_reg[7:1]};
++	if(fs_ce && shift_en && !drop_bit)
++		hold_reg <= {sd_nrzi, hold_reg[7:1]};
+ 
+ ///////////////////////////////////////////////////////////////////
+ //
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+
+INS HdlStmAssign@@body to 
+HdlStmAssign: body
+    HdlOp: AND
+        list: ops
+            HdlOp: AND
+                list: ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: AND
+                                list: ops
+                                    HdlValueId: drop_bit
+                                    HdlValueId: sd_nrzi
+                            HdlValueId: fs_ce
+                    HdlOp: NEG_LOG
+                        list: ops
+                            HdlValueId: se0
+            HdlValueId: rx_active
+    HdlValueId: bit_stuff_err
+
+UPD HdlStmIf@@body to body
+    UPD HdlOp@@AND to AND_LOG
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@AND to AND_LOG
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@OR to OR_LOG
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@if_false to if_false
+    DEL HdlValueInt@@1 from if_false
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_rx_phy.v
++++ b/rtl/verilog/usb_rx_phy.v
+@@ -387,25 +397,29 @@ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)		bit_cnt <= #1 3'b0;
++	if(!rst)		bit_cnt <= 3'b0;
+ 	else
+-	if(!shift_en)		bit_cnt <= #1 3'h0;
++	if(!shift_en)		bit_cnt <= 3'h0;
+ 	else
+-	if(fs_ce & !drop_bit)	bit_cnt <= #1 bit_cnt + 3'h1;
++	if(fs_ce && !drop_bit)	bit_cnt <= bit_cnt + 3'h1;
+ 
+ `ifdef USB_ASYNC_REST
+ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)				rx_valid1 <= #1 1'b0;
++	if(!rst)					rx_valid1 <= 1'b0;
+ 	else
+-	if(fs_ce & !drop_bit & (bit_cnt==3'h7))	rx_valid1 <= #1 1'b1;
++	if(fs_ce && !drop_bit && (bit_cnt==3'h7))	rx_valid1 <= 1'b1;
+ 	else
+-	if(rx_valid1 & fs_ce & !drop_bit)	rx_valid1 <= #1 1'b0;
++	if(rx_valid1 && fs_ce && !drop_bit)		rx_valid1 <= 1'b0;
+ 
+ always @(posedge clk)
+-	rx_valid <= #1 !drop_bit & rx_valid1 & fs_ce;
++	rx_valid <= !drop_bit & rx_valid1 & fs_ce;
++
++always @(posedge clk)	se0_r <= se0;
++
++always @(posedge clk)	byte_err <= se0 & !se0_r & (|bit_cnt);
+ 
+ endmodule
+ 
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmAssign: body
+        HdlValueId: se0
+        HdlValueId: se0_r
+
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmAssign: body
+        HdlOp: AND
+            list: ops
+                HdlOp: AND
+                    list: ops
+                        HdlValueId: se0
+                        HdlOp: NEG_LOG
+                            list: ops
+                                HdlValueId: se0_r
+                HdlOp: OR_UNARY
+                    list: ops
+                        HdlValueId: bit_cnt
+        HdlValueId: byte_err
+
+UPD HdlStmIf@@body to body
+    UPD HdlOp@@AND to AND_LOG
+
+UPD HdlStmIf@@body to body
+    UPD HdlOp@@AND to AND_LOG
+    UPD HdlOp@@AND to AND_LOG
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@AND to AND_LOG
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@AND to AND_LOG
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@body to body
+    DEL HdlValueInt@@1 from body
+
+
+CommitId: e15b5f22c4e2ff00960a62276d25db0ddd1f0c15
+Fixed a bug reported by Karl C. Posch from Graz University of Technology. Thanks Karl !
+--- a/rtl/verilog/usb_rx_phy.v
++++ b/rtl/verilog/usb_rx_phy.v
+@@ -92,11 +95,12 @@ output	[1:0]	LineState;
+ // Local Wires and Registers
+ //
+ 
+-reg		rxd_t1,  rxd_s0, rxd_s1,  rxd_s;
+-reg		rxdp_t1, rxdp_s0, rxdp_s1, rxdp_s, rxdp_s_r;
+-reg		rxdn_t1, rxdn_s0, rxdn_s1, rxdn_s, rxdn_s_r;
++reg		rxd_s0, rxd_s1,  rxd_s;
++reg		rxdp_s0, rxdp_s1, rxdp_s, rxdp_s_r;
++reg		rxdn_s0, rxdn_s1, rxdn_s, rxdn_s_r;
+ reg		synced_d;
+ wire		k, j, se0;
++reg		rxd_r;
+ reg		rx_en;
+ reg		rx_active;
+ reg	[2:0]	bit_cnt;
+
+ParseResult:
+MOV HdlIdDef@@rxdn_t1 to objs
+HdlIdDef: rxdn_t1
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@rxdp_t1 to objs
+HdlIdDef: rxdp_t1
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@rxd_t1 to objs
+HdlIdDef: rxd_t1
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+UPD HdlIdDef@@rxdn_t1 to rxd_r
+
+UPD HdlIdDef@@rxdp_t1 to fs_ce_r1
+
+UPD HdlIdDef@@rxd_t1 to fs_ce_r2
+
+
+CommitId: e15b5f22c4e2ff00960a62276d25db0ddd1f0c15
+Fixed a bug reported by Karl C. Posch from Graz University of Technology. Thanks Karl !
+--- a/rtl/verilog/usb_rx_phy.v
++++ b/rtl/verilog/usb_rx_phy.v
+@@ -142,22 +147,19 @@ always @(posedge clk)	sync_err <= !rx_active & sync_err_d;
+ // Then make sure we see the signal for at least two
+ // clock cycles stable to avoid glitches and noise
+ 
+-always @(posedge clk)	rxd_t1  <= rxd;
+-always @(posedge clk)	rxd_s0  <= rxd_t1;
++always @(posedge clk)	rxd_s0  <= rxd;
+ always @(posedge clk)	rxd_s1  <= rxd_s0;
+-always @(posedge clk)						// Avoid detecting Line Glitches and noise
++always @(posedge clk)							// Avoid detecting Line Glitches and noise
+ 	if(rxd_s0 && rxd_s1)	rxd_s <= 1'b1;
+ 	else
+ 	if(!rxd_s0 && !rxd_s1)	rxd_s <= 1'b0;
+ 
+-always @(posedge clk)	rxdp_t1  <= rxdp;
+-always @(posedge clk)	rxdp_s0  <= rxdp_t1;
++always @(posedge clk)	rxdp_s0  <= rxdp;
+ always @(posedge clk)	rxdp_s1  <= rxdp_s0;
+ always @(posedge clk)	rxdp_s_r <= rxdp_s0 & rxdp_s1;
+ always @(posedge clk)	rxdp_s   <= (rxdp_s0 & rxdp_s1) | rxdp_s_r;	// Avoid detecting Line Glitches and noise
+ 
+-always @(posedge clk)	rxdn_t1  <= rxdn;
+-always @(posedge clk)	rxdn_s0  <= rxdn_t1;
++always @(posedge clk)	rxdn_s0  <= rxdn;
+ always @(posedge clk)	rxdn_s1  <= rxdn_s0;
+ always @(posedge clk)	rxdn_s_r <= rxdn_s0 & rxdn_s1;
+ always @(posedge clk)	rxdn_s   <= (rxdn_s0 & rxdn_s1) | rxdn_s_r;	// Avoid detecting Line Glitches and noise
+
+ParseResult:
+MOV HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmAssign: body
+        HdlValueId: rxd_t1
+        HdlValueId: rxd_s0
+
+MOV HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmAssign: body
+        HdlValueId: rxdp_t1
+        HdlValueId: rxdp_s0
+
+MOV HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmAssign: body
+        HdlValueId: rxdn_t1
+        HdlValueId: rxdn_s0
+
+MOV HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmAssign: body
+        HdlValueId: rxdn
+        HdlValueId: rxdn_t1
+
+MOV HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmAssign: body
+        HdlValueId: rxdp
+        HdlValueId: rxdp_t1
+
+UPD HdlStmAssign@@body to body
+    UPD HdlValueId@@rxd_t1 to rxd_s0
+
+UPD HdlStmAssign@@body to body
+    UPD HdlValueId@@rxd_t1 to rxdp
+    UPD HdlValueId@@rxd_s0 to rxdp_s0
+
+UPD HdlStmAssign@@body to body
+    UPD HdlValueId@@rxdp_t1 to rxdn
+    UPD HdlValueId@@rxdp_s0 to rxdn_s0
+
+UPD HdlStmAssign@@body to body
+    UPD HdlValueId@@rxdn_t1 to rxd_s
+    UPD HdlValueId@@rxdn_s0 to rxd_r
+
+UPD HdlStmAssign@@body to body
+    UPD HdlValueId@@rxdn to fs_ce_d
+    UPD HdlValueId@@rxdn_t1 to fs_ce_r1
+
+UPD HdlStmAssign@@body to body
+    UPD HdlValueId@@rxdp to fs_ce_r1
+    UPD HdlValueId@@rxdp_t1 to fs_ce_r2
+
+
+CommitId: e15b5f22c4e2ff00960a62276d25db0ddd1f0c15
+Fixed a bug reported by Karl C. Posch from Graz University of Technology. Thanks Karl !
+--- a/rtl/verilog/usb_rx_phy.v
++++ b/rtl/verilog/usb_rx_phy.v
+@@ -183,8 +185,10 @@ assign se0 = !rxdp_s & !rxdn_s;
+ // Allow lockinf only when we are receiving
+ assign	lock_en = rx_en;
+ 
++always @(posedge clk)	rxd_r <= rxd_s;
++
+ // Edge detector
+-assign change = (rxdp_s0 != rxdp_s1) | (rxdn_s0 != rxdn_s1);
++assign change = rxd_r != rxd_s;
+ 
+ // DPLL FSM
+ `ifdef USB_ASYNC_REST
+
+ParseResult:
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: NE
+        list: ops
+            HdlValueId: rxd_r
+            HdlValueId: rxd_s
+    HdlValueId: change
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlOp: OR
+        list: ops
+            HdlOp: NE
+                list: ops
+                    HdlValueId: rxdp_s0
+                    HdlValueId: rxdp_s1
+            HdlOp: NE
+                list: ops
+                    HdlValueId: rxdn_s0
+                    HdlValueId: rxdn_s1
+    HdlValueId: change
+
+
+CommitId: e15b5f22c4e2ff00960a62276d25db0ddd1f0c15
+Fixed a bug reported by Karl C. Posch from Graz University of Technology. Thanks Karl !
+--- a/rtl/verilog/usb_rx_phy.v
++++ b/rtl/verilog/usb_rx_phy.v
+@@ -218,7 +222,12 @@ always @(dpll_state or lock_en or change)
+ 
+ // Compensate for sync registers at the input - allign full speed
+ // clock enable to be in the middle between two bit changes ...
+-always @(posedge clk)	fs_ce <= fs_ce_d;
++reg	fs_ce_r1, fs_ce_r2;
++
++always @(posedge clk)	fs_ce_r1 <= fs_ce_d;
++always @(posedge clk)	fs_ce_r2 <= fs_ce_r1;
++always @(posedge clk)	fs_ce <= fs_ce_r2;
++
+ 
+ ///////////////////////////////////////////////////////////////////
+ //
+
+ParseResult:
+UPD HdlStmAssign@@body to body
+    UPD HdlValueId@@fs_ce_d to fs_ce_r2
+
+
+CommitId: 7df8e0f3a9306ee5423216abea29baf7d140206c
+Fixed DPLL alignment in the rx_phy and bit stuffing errors in the tx_phy (if last bit bit was a stuff bit in a packet it was omitted).
+--- a/rtl/verilog/usb_tx_phy.v
++++ b/rtl/verilog/usb_tx_phy.v
+@@ -107,6 +112,8 @@ reg		tx_ip;
+ reg		tx_ip_sync;
+ reg	[2:0]	bit_cnt;
+ reg	[7:0]	hold_reg;
++reg	[7:0]	hold_reg_d;
++
+ reg		sd_raw_o;
+ wire		hold;
+ reg		data_done;
+
+ParseResult:
+INS HdlIdDef@@hold_reg_d to objs
+HdlIdDef: hold_reg_d
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 7
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+
+CommitId: 7df8e0f3a9306ee5423216abea29baf7d140206c
+Fixed DPLL alignment in the rx_phy and bit stuffing errors in the tx_phy (if last bit bit was a stuff bit in a packet it was omitted).
+--- a/rtl/verilog/usb_tx_phy.v
++++ b/rtl/verilog/usb_tx_phy.v
+@@ -123,6 +130,7 @@ reg		append_eop;
+ reg		append_eop_sync1;
+ reg		append_eop_sync2;
+ reg		append_eop_sync3;
++reg		append_eop_sync4;
+ reg		txdp, txdn;
+ reg		txoe_r1, txoe_r2;
+ reg		txoe;
+
+ParseResult:
+INS HdlIdDef@@append_eop_sync4 to objs
+HdlIdDef: append_eop_sync4
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+
+CommitId: 7df8e0f3a9306ee5423216abea29baf7d140206c
+Fixed DPLL alignment in the rx_phy and bit stuffing errors in the tx_phy (if last bit bit was a stuff bit in a packet it was omitted).
+--- a/rtl/verilog/usb_tx_phy.v
++++ b/rtl/verilog/usb_tx_phy.v
+@@ -205,14 +212,14 @@ always @(posedge clk)
+ 	if(!tx_ip_sync)		sd_raw_o <= 1'b0;
+ 	else
+ 	case(bit_cnt)	// synopsys full_case parallel_case
+-	   3'h0: sd_raw_o <= hold_reg[0];
+-	   3'h1: sd_raw_o <= hold_reg[1];
+-	   3'h2: sd_raw_o <= hold_reg[2];
+-	   3'h3: sd_raw_o <= hold_reg[3];
+-	   3'h4: sd_raw_o <= hold_reg[4];
+-	   3'h5: sd_raw_o <= hold_reg[5];
+-	   3'h6: sd_raw_o <= hold_reg[6];
+-	   3'h7: sd_raw_o <= hold_reg[7];
++	   3'h0: sd_raw_o <= hold_reg_d[0];
++	   3'h1: sd_raw_o <= hold_reg_d[1];
++	   3'h2: sd_raw_o <= hold_reg_d[2];
++	   3'h3: sd_raw_o <= hold_reg_d[3];
++	   3'h4: sd_raw_o <= hold_reg_d[4];
++	   3'h5: sd_raw_o <= hold_reg_d[5];
++	   3'h6: sd_raw_o <= hold_reg_d[6];
++	   3'h7: sd_raw_o <= hold_reg_d[7];
+ 	endcase
+ 
+ always @(posedge clk)
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlValueId@@hold_reg to hold_reg_d
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlValueId@@hold_reg to hold_reg_d
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlValueId@@hold_reg to hold_reg_d
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlValueId@@hold_reg to hold_reg_d
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlValueId@@hold_reg to hold_reg_d
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlValueId@@hold_reg to hold_reg_d
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlValueId@@hold_reg to hold_reg_d
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlValueId@@hold_reg to hold_reg_d
+
+
+CommitId: 7df8e0f3a9306ee5423216abea29baf7d140206c
+Fixed DPLL alignment in the rx_phy and bit stuffing errors in the tx_phy (if last bit bit was a stuff bit in a packet it was omitted).
+--- a/rtl/verilog/usb_tx_phy.v
++++ b/rtl/verilog/usb_tx_phy.v
+@@ -229,6 +236,8 @@ always @(posedge clk)
+ 	else
+ 	if(ld_data)	hold_reg <= DataOut_i;
+ 
++always @(posedge clk) hold_reg_d <= hold_reg;
++
+ ///////////////////////////////////////////////////////////////////
+ //
+ // Bit Stuffer
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmAssign: body
+        HdlValueId: hold_reg
+        HdlValueId: hold_reg_d
+
+
+CommitId: 7df8e0f3a9306ee5423216abea29baf7d140206c
+Fixed DPLL alignment in the rx_phy and bit stuffing errors in the tx_phy (if last bit bit was a stuff bit in a packet it was omitted).
+--- a/rtl/verilog/usb_tx_phy.v
++++ b/rtl/verilog/usb_tx_phy.v
+@@ -317,7 +326,17 @@ always @(posedge clk)
+ `endif
+ 	if(!rst)	append_eop_sync3 <= 1'b0;
+ 	else
+-	if(fs_ce)	append_eop_sync3 <= append_eop_sync2;
++	if(fs_ce)	append_eop_sync3 <= append_eop_sync2 |
++			(append_eop_sync3 & !append_eop_sync4);	// Make sure always 2 bit wide
++
++`ifdef USB_ASYNC_REST
++always @(posedge clk or negedge rst)
++`else
++always @(posedge clk)
++`endif
++	if(!rst)	append_eop_sync4 <= 1'b0;
++	else
++	if(fs_ce)	append_eop_sync4 <= append_eop_sync3;
+ 
+ assign eop_done = append_eop_sync3;
+ 
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmIf: body
+        HdlOp: NEG_LOG
+            list: ops
+                HdlValueId: rst
+        HdlStmAssign: if_true
+            HdlValueInt: 0
+            HdlValueId: append_eop_sync4
+        list: elifs
+            tuple
+                HdlValueId: fs_ce
+                HdlStmAssign
+                    HdlValueId: append_eop_sync3
+                    HdlValueId: append_eop_sync4
+
+UPD HdlStmAssign@@ to 
+    MOV HdlValueId@@append_eop_sync2 to 
+    HdlValueId: append_eop_sync2
+    MOV HdlValueId@@append_eop_sync3 to 
+    HdlValueId: append_eop_sync3
+
+

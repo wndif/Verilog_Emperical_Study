@@ -1,0 +1,4 @@
+,HdlIdDef,HdlStmAssign,HdlStmProcess,HdlStmIf,HdlModuleDef,HdlModuleDec
+update,5,1.0,2,3.0,4,4
+insert,4,1.0,1,,2,2
+delete,1,,1,1.0,2,2

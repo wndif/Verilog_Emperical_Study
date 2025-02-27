@@ -1,0 +1,17 @@
+,update,move,insert,delete
+HdlStmIf-HdlStmProcess,218,,,
+HdlStmCase-HdlStmIf,218,,,
+HdlStmCase-HdlStmCase,347,,,
+HdlOp-MemberAccessing-HdlStmCase,42,,,
+HdlStmAssign-HdlStmCase,100,2.0,2.0,3.0
+HdlOp-MemberAccessing-HdlStmAssign,52,4.0,4.0,
+HdlStmIf-HdlStmCase,21,1.0,1.0,
+HdlOp-MemberAccessing-HdlStmIf,18,,,
+HdlOp-MemberAccessing-HdlOp-MemberAccessing,20,,,
+HdlStmAssign-HdlStmIf,11,1.0,,
+HdlOp-InfixExpression-HdlStmIf,1,,,
+HdlOp-InfixExpression-HdlStmAssign,9,1.0,,
+HdlOp-TERNARY-HdlStmAssign,2,,2.0,
+HdlStmCase-HdlStmProcess,3,,,
+HdlOp-Assignment-HdlStmCase,5,,5.0,
+HdlOp-TERNARY-HdlOp-Assignment,5,,,

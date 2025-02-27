@@ -1,0 +1,140 @@
+CommitId: 1e2478eee1cf7e7b43a49f90cd1ccda4a514f61a
+Fix STATE value in fsm. Less slices
+--- a/group_size_is_911_bits/rtl/fsm.v
++++ b/group_size_is_911_bits/rtl/fsm.v
+@@ -28,8 +28,8 @@ module FSM(clk, reset, rom_addr, rom_q, ram_a_addr, ram_b_addr, ram_b_w, pe, don
+     output reg [10:0] pe;
+     output reg done;
+     
+-    reg [4:0] state;
+-	parameter START=0, READ_SRC1=1, READ_SRC2=2, CALC=4, WAIT=8, WRITE=16, DON=3;
++    reg [5:0] state;
++    parameter START=0, READ_SRC1=1, READ_SRC2=2, CALC=4, WAIT=8, WRITE=16, DON=32;
+ 	
+     wire [5:0] dest, src1, src2; wire [8:0] times; wire [1:0] op;
+     assign {dest, src1, op, times, src2} = rom_q;
+ParseResult:
+UPD HdlIdDef@@DON to DON
+    UPD HdlValueInt@@3 to 32
+
+UPD HdlIdDef@@state to state
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueInt@@4 to 5
+
+
+CommitId: 1e2478eee1cf7e7b43a49f90cd1ccda4a514f61a
+Fix STATE value in fsm. Less slices
+--- a/group_size_is_697_bits/rtl/fsm.v
++++ b/group_size_is_697_bits/rtl/fsm.v
+@@ -28,8 +28,8 @@ module FSM(clk, reset, rom_addr, rom_q, ram_a_addr, ram_b_addr, ram_b_w, pe, don
+     output reg [10:0] pe;
+     output reg done;
+     
+-    reg [4:0] state;
+-	parameter START=0, READ_SRC1=1, READ_SRC2=2, CALC=4, WAIT=8, WRITE=16, DON=3;
++    reg [5:0] state;
++    parameter START=0, READ_SRC1=1, READ_SRC2=2, CALC=4, WAIT=8, WRITE=16, DON=32;
+ 	
+     wire [5:0] dest, src1, src2; wire [7:0] times; wire [1:0] op;
+     assign {dest, src1, op, times, src2} = rom_q;
+ParseResult:
+UPD HdlIdDef@@DON to DON
+    UPD HdlValueInt@@3 to 32
+
+UPD HdlIdDef@@state to state
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueInt@@4 to 5
+
+
+CommitId: 1b9cc4fb249b3f424d4d761194edbba69bb4013b
+fix quartus warning
+--- a/rtl/ram.v
++++ b/rtl/ram.v
+@@ -47,18 +47,20 @@ module ram #(
+ 
+     // Port A
+     always @(posedge clk) begin
++        a_dout      <= mem[a_addr];
+         if(a_wr) begin
++            a_dout      <= a_din;
+             mem[a_addr] <= a_din;
+         end
+-        a_dout      <= mem[a_addr];
+     end
+ 
+     // Port B
+     always @(posedge clk) begin
++        b_dout      <= mem[b_addr];
+         if(b_wr) begin
++            b_dout      <= b_din;
+             mem[b_addr] <= b_din;
+         end
+-        b_dout      <= mem[b_addr];
+     end
+ 
+ endmodule
+ParseResult:
+MOV HdlStmIf@@ to body
+HdlStmIf
+    HdlValueId: a_wr
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueId: a_din
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: mem
+                        HdlValueId: a_addr
+    list: elifs
+
+MOV HdlStmIf@@ to body
+HdlStmIf
+    HdlValueId: b_wr
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueId: b_din
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: mem
+                        HdlValueId: b_addr
+    list: elifs
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueId: a_din
+    HdlValueId: a_dout
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueId: b_din
+    HdlValueId: b_dout
+
+
+CommitId: 1e2478eee1cf7e7b43a49f90cd1ccda4a514f61a
+Fix STATE value in fsm. Less slices
+--- a/group_size_is_151_bits/rtl/fsm.v
++++ b/group_size_is_151_bits/rtl/fsm.v
+@@ -28,8 +28,8 @@ module FSM(clk, reset, rom_addr, rom_q, ram_a_addr, ram_b_addr, ram_b_w, pe, don
+     output reg [10:0] pe;
+     output reg done;
+     
+-    reg [4:0] state;
+-	parameter START=0, READ_SRC1=1, READ_SRC2=2, CALC=4, WAIT=8, WRITE=16, DON=3;
++    reg [5:0] state;
++    parameter START=0, READ_SRC1=1, READ_SRC2=2, CALC=4, WAIT=8, WRITE=16, DON=32;
+ 	
+     wire [5:0] dest, src1, src2, times; wire [1:0] op;
+     assign {dest, src1, op, times, src2} = rom_q;
+ParseResult:
+UPD HdlIdDef@@DON to DON
+    UPD HdlValueInt@@3 to 32
+
+UPD HdlIdDef@@state to state
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueInt@@4 to 5
+
+

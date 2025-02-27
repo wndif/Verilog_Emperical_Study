@@ -1,0 +1,270 @@
+CommitId: ac914096f4aa7d1b81853726a4a1424ef3e9180d
+Bugfix
+--- a/os2wb/l1dir.v
++++ b/os2wb/l1dir.v
+@@ -172,7 +172,7 @@ assign inval_vect0[90:88]={wayval0,cpu0_dhit0[2] && (address_d[5:4]==2'b11)};
+ assign inval_vect0[93:91]={wayval0,cpu1_dhit0[2] && (address_d[5:4]==2'b11)};
+ assign inval_vect0[111:94]=0;
+ 
+-assign inval_vect1[3:0]={wayval1,cpu0_dhit1[2] && (address_d[5:4]==2'b00)};
++/*assign inval_vect1[3:0]={wayval1,cpu0_dhit1[2] && (address_d[5:4]==2'b00)};
+ assign inval_vect1[7:4]={wayval1,cpu1_dhit1[2] && (address_d[5:4]==2'b00)};
+ assign inval_vect1[31:8]=0;
+ assign inval_vect1[34:32]={wayval1,cpu0_dhit1[2] && (address_d[5:4]==2'b01)};
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@INDEX to 
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: inval_vect1
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 3
+                    HdlValueInt: 0
+    DEL HdlOp@@CONCAT from 
+    HdlOp: CONCAT
+        list: ops
+            HdlValueId: wayval1
+            HdlOp: AND_LOG
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: cpu0_dhit1
+                            HdlValueInt: 2
+                    HdlOp: EQ
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: address_d
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 5
+                                            HdlValueInt: 4
+                            HdlValueInt: 00
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@INDEX to 
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: inval_vect1
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 7
+                    HdlValueInt: 4
+    DEL HdlOp@@CONCAT from 
+    HdlOp: CONCAT
+        list: ops
+            HdlValueId: wayval1
+            HdlOp: AND_LOG
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: cpu1_dhit1
+                            HdlValueInt: 2
+                    HdlOp: EQ
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: address_d
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 5
+                                            HdlValueInt: 4
+                            HdlValueInt: 00
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@INDEX to 
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: inval_vect1
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 34
+                    HdlValueInt: 32
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlOp@@AND_LOG to AND_LOG
+            MOV HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: cpu0_dhit1
+                    HdlValueInt: 2
+            DEL HdlOp@@EQ from ops
+            HdlOp: EQ
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: address_d
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 5
+                                    HdlValueInt: 4
+                    HdlValueInt: 01
+            DEL list@@ops from AND_LOG
+        DEL HdlValueId@@wayval1 from ops
+        DEL HdlOp@@AND_LOG from ops
+        DEL list@@ops from CONCAT
+    DEL HdlOp@@CONCAT from 
+
+DEL HdlStmAssign@@ from objs
+
+DEL HdlStmAssign@@ from objs
+
+DEL HdlStmAssign@@ from objs
+
+
+CommitId: ac914096f4aa7d1b81853726a4a1424ef3e9180d
+Bugfix
+--- a/os2wb/l1dir.v
++++ b/os2wb/l1dir.v
+@@ -183,8 +183,21 @@ assign inval_vect1[63:60]={wayval1,cpu1_dhit1[2] && (address_d[5:4]==2'b10)};
+ assign inval_vect1[87:64]=0;
+ assign inval_vect1[90:88]={wayval1,cpu0_dhit1[2] && (address_d[5:4]==2'b11)};
+ assign inval_vect1[93:91]={wayval1,cpu1_dhit1[2] && (address_d[5:4]==2'b11)};
+-assign inval_vect1[111:94]=0;
++assign inval_vect1[111:94]=0;*/
+ 
++assign inval_vect1[3:0]=0;
++assign inval_vect1[7:4]=0;
++assign inval_vect1[31:8]=0;
++assign inval_vect1[34:32]={wayval1,cpu0_dhit1[2] && (address_d[5]==0)};
++assign inval_vect1[37:35]={wayval1,cpu1_dhit1[2] && (address_d[5]==0)};
++assign inval_vect1[55:38]=0;
++assign inval_vect1[59:56]=0;
++assign inval_vect1[63:60]=0;
++assign inval_vect1[87:64]=0;
++assign inval_vect1[90:88]={wayval1,cpu0_dhit1[2] && (address_d[5]==1)};
++assign inval_vect1[93:91]={wayval1,cpu1_dhit1[2] && (address_d[5]==1)};
++assign inval_vect1[111:94]=0;
++
+ assign wayval0=cpu0_dhit0[1:0] | cpu1_dhit0[1:0] | cpu0_ihit[1:0] | cpu1_ihit[1:0];
+ assign wayval1=cpu0_dhit1[1:0] | cpu1_dhit1[1:0];
+ assign othercachehit[0]=((!cpu_d) && ifill_d && cpu0_dhit0[2]) ||
+ParseResult:
+INS HdlStmAssign@@ to objs
+
+INS HdlStmAssign@@ to objs
+
+INS HdlStmAssign@@ to objs
+
+INS HdlStmAssign@@ to objs
+
+INS HdlStmAssign@@ to objs
+
+INS HdlStmAssign@@ to objs
+
+INS HdlStmAssign@@ to objs
+
+INS HdlStmAssign@@ to objs
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueInt@@0 to 
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueInt@@0 to 
+
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@CONCAT to 
+    UPD HdlOp@@CONCAT to CONCAT
+        INS list@@ops to CONCAT
+        INS HdlValueId@@wayval1 to ops
+        INS HdlOp@@AND_LOG to ops
+        UPD HdlOp@@AND_LOG to AND_LOG
+            INS list@@ops to AND_LOG
+            INS HdlOp@@EQ to ops
+            HdlOp: EQ
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: address_d
+                            HdlValueInt: 5
+                    HdlValueInt: 0
+
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@CONCAT to 
+    UPD HdlOp@@CONCAT to CONCAT
+        INS list@@ops to CONCAT
+        INS HdlValueId@@wayval1 to ops
+        INS HdlOp@@AND_LOG to ops
+        UPD HdlOp@@AND_LOG to AND_LOG
+            INS list@@ops to AND_LOG
+            INS HdlOp@@EQ to ops
+            HdlOp: EQ
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: address_d
+                            HdlValueInt: 5
+                    HdlValueInt: 0
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@INDEX to 
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: inval_vect1
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 90
+                    HdlValueInt: 88
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlOp@@AND_LOG to AND_LOG
+            MOV HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: cpu0_dhit1
+                    HdlValueInt: 2
+            DEL HdlOp@@EQ from ops
+            HdlOp: EQ
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: address_d
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 5
+                                    HdlValueInt: 4
+                    HdlValueInt: 11
+            DEL list@@ops from AND_LOG
+        DEL HdlValueId@@wayval1 from ops
+        DEL HdlOp@@AND_LOG from ops
+        DEL list@@ops from CONCAT
+    DEL HdlOp@@CONCAT from 
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@INDEX to 
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: inval_vect1
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 93
+                    HdlValueInt: 91
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlOp@@AND_LOG to AND_LOG
+            MOV HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: cpu1_dhit1
+                    HdlValueInt: 2
+            DEL HdlOp@@EQ from ops
+            HdlOp: EQ
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: address_d
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 5
+                                    HdlValueInt: 4
+                    HdlValueInt: 11
+            DEL list@@ops from AND_LOG
+        DEL HdlValueId@@wayval1 from ops
+        DEL HdlOp@@AND_LOG from ops
+        DEL list@@ops from CONCAT
+    DEL HdlOp@@CONCAT from 
+
+DEL HdlStmAssign@@ from objs
+
+DEL HdlStmAssign@@ from objs
+
+

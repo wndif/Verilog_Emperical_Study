@@ -1,0 +1,363 @@
+CommitId: c3cdd113475f75680f06f39b3047486979f8cb94
+
+--- a/rtl/verilog/ac97_dma_req.v
++++ b/rtl/verilog/ac97_dma_req.v
+@@ -82,23 +87,23 @@ always @(cfg or status or full_empty)
+ 	case(cfg[5:4])	// synopsys parallel_case full_case
+ 			// REQ = Ch_EN & DMA_EN & Status
+ 			// 1/4 full/empty
+-	   0: dma_req_d = cfg[0] & cfg[6] & (full_empty | (status == 2'd0));
++	   2'h2: dma_req_d = cfg[0] & cfg[6] & (full_empty | (status == 2'h0));
+ 			// 1/2 full/empty
+-	   1: dma_req_d = cfg[0] & cfg[6] & (full_empty | (status[1] == 1'd0));
++	   2'h1: dma_req_d = cfg[0] & cfg[6] & (full_empty | (status[1] == 1'h0));
+ 			// 3/4 full/empty
+-	   2: dma_req_d = cfg[0] & cfg[6] & (full_empty | (status < 2'd3));
+-	   3: dma_req_d = cfg[0] & cfg[6] & full_empty;
++	   2'h0: dma_req_d = cfg[0] & cfg[6] & (full_empty | (status < 2'h3));
++	   2'h3: dma_req_d = cfg[0] & cfg[6] & full_empty;
+ 	endcase
+ 
+ always @(posedge clk)
+ 	dma_req_r1 <= #1 dma_req_d & !dma_ack;
+ 
+ always @(posedge clk or negedge rst)
+-	if(!rst)				dma_req <= #1 0;
++	if(!rst)				dma_req <= #1 1'b0;
+ 	else
+-	if(dma_req_r1 & dma_req_d & !dma_ack) 	dma_req <= #1 1;
++	if(dma_req_r1 & dma_req_d & !dma_ack) 	dma_req <= #1 1'b1;
+ 	else
+-	if(dma_ack) 				dma_req <= #1 0;
++	if(dma_ack) 				dma_req <= #1 1'b0;
+ 
+ endmodule
+ 
+ParseResult:
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['cfg',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '5'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '4'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['cfg',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '5'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '4'}]}]} 
+    UPD HdlValueInt@@0 to 2
+    UPD HdlValueInt@@2 to 0
+
+
+CommitId: c3cdd113475f75680f06f39b3047486979f8cb94
+
+--- a/rtl/verilog/ac97_int.v
++++ b/rtl/verilog/ac97_int.v
+@@ -86,26 +91,26 @@ reg	[2:0]	int_set;
+ //
+ 
+ always @(posedge clk or negedge rst)
+-	if(!rst)	int_set[0] <= #1 0;
++	if(!rst)	int_set[0] <= #1 1'b0;
+ 	else
+ 	case(cfg[5:4])	// synopsys parallel_case full_case
+ 			// 1/4 full/empty
+-	   0: int_set[0] <= #1 cfg[0] & (full_empty | (status == 2'd0));
++	   2'h2: int_set[0] <= #1 cfg[0] & (full_empty | (status == 2'h0));
+ 			// 1/2 full/empty
+-	   1: int_set[0] <= #1 cfg[0] & (full_empty | (status[1] == 1'd0));
++	   2'h1: int_set[0] <= #1 cfg[0] & (full_empty | (status[1] == 1'h0));
+ 			// 3/4 full/empty
+-	   2: int_set[0] <= #1 cfg[0] & (full_empty | (status < 2'd3));	
+-	   3: int_set[0] <= #1 cfg[0] & full_empty;
++	   2'h0: int_set[0] <= #1 cfg[0] & (full_empty | (status < 2'h3));	
++	   2'h3: int_set[0] <= #1 cfg[0] & full_empty;
+ 	endcase
+ 
+ always @(posedge clk or negedge rst)
+-	if(!rst)	int_set[1] <= #1 0;
++	if(!rst)	int_set[1] <= #1 1'b0;
+ 	else
+-	if(empty & re)	int_set[1] <= #1 1;
++	if(empty & re)	int_set[1] <= #1 1'b1;
+ 
+ always @(posedge clk or negedge rst)
+-	if(!rst)	int_set[2] <= #1 0;
++	if(!rst)	int_set[2] <= #1 1'b0;
+ 	else
+-	if(full & we)	int_set[2] <= #1 1;
++	if(full & we)	int_set[2] <= #1 1'b1;
+ 
+ endmodule
+ParseResult:
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['cfg',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '5'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '4'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['cfg',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '5'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '4'}]}]} 
+    UPD HdlValueInt@@0 to 2
+    UPD HdlValueInt@@2 to 0
+
+
+CommitId: a47e1fd5a2c5b9eb962b4790ab31873772b457e5
+Fixed a bug in the IN-FIFO - 18 bit samples where not alligned correctly.
+--- a/rtl/verilog/ac97_in_fifo.v
++++ b/rtl/verilog/ac97_in_fifo.v
+@@ -235,7 +239,7 @@ always @(posedge clk)
+ always @(mode or din_tmp1 or din)
+ 	case(mode)	// synopsys parallel_case full_case
+ 	   2'h0: din_tmp = {din[19:4], din_tmp1};	// 16 Bit Output
+-	   2'h1: din_tmp = {13'h0, din[17:0]};		// 18 bit Output
++	   2'h1: din_tmp = {14'h0, din[19:2]};		// 18 bit Output
+ 	   2'h2: din_tmp = {11'h0, din[19:0]};		// 20 Bit Output
+ 	endcase
+ 
+
+ParseResult:
+UPD HdlStmCase@@mode to mode
+    UPD HdlOp@@ASSIGN to ASSIGN
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlOp@@DOWNTO to DOWNTO
+                    UPD HdlValueInt@@17 to 19
+                    UPD HdlValueInt@@0 to 2
+
+
+CommitId: c3cdd113475f75680f06f39b3047486979f8cb94
+
+--- a/rtl/verilog/ac97_soc.v
++++ b/rtl/verilog/ac97_soc.v
+@@ -103,43 +108,43 @@ always @(posedge clk or negedge rst)
+ 	if(!rst)		cnt <= #1 8'hff;
+ 	else
+ 	if(suspended)		cnt <= #1 8'hff;
+-	else			cnt <= #1 cnt + 1;
++	else			cnt <= #1 cnt + 8'h1;
+ 
+ always @(posedge clk)
+ 	ld <= #1 (cnt == 8'h00);
+ 
+ always @(posedge clk)
+-	sync_beat <= #1 (cnt == 8'h00) | ((cnt > 0) & (cnt < 16));
++	sync_beat <= #1 (cnt == 8'h00) | ((cnt > 8'h00) & (cnt < 8'h10));
+ 
+ always @(posedge clk)
+-	valid <= #1 (cnt > 57);
++	valid <= #1 (cnt > 8'h39);
+ 
+ always @(posedge clk)
+-	out_le[0] <= #1 (cnt == 8'd17);		// Slot 0 Latch Enable
++	out_le[0] <= #1 (cnt == 8'h11);		// Slot 0 Latch Enable
+ 
+ always @(posedge clk)
+-	out_le[1] <= #1 (cnt == 8'd37);		// Slot 1 Latch Enable
++	out_le[1] <= #1 (cnt == 8'h25);		// Slot 1 Latch Enable
+ 
+ always @(posedge clk)
+-	out_le[2] <= #1 (cnt == 8'd57);		// Slot 2 Latch Enable
++	out_le[2] <= #1 (cnt == 8'h39);		// Slot 2 Latch Enable
+ 
+ always @(posedge clk)
+-	out_le[3] <= #1 (cnt == 8'd77);		// Slot 3 Latch Enable
++	out_le[3] <= #1 (cnt == 8'h4d);		// Slot 3 Latch Enable
+ 
+ always @(posedge clk)
+-	out_le[4] <= #1 (cnt == 8'd97);		// Slot 4 Latch Enable
++	out_le[4] <= #1 (cnt == 8'h61);		// Slot 4 Latch Enable
+ 
+ always @(posedge clk)
+-	out_le[5] <= #1 (cnt == 8'd137);	// Slot 6 Latch Enable
++	out_le[5] <= #1 (cnt == 8'h89);		// Slot 6 Latch Enable
+ 
+ always @(posedge clk)
+-	in_valid[0] <= #1 (cnt > 8'd77);	// Input Slot 3 Valid
++	in_valid[0] <= #1 (cnt > 8'h4d);	// Input Slot 3 Valid
+ 
+ always @(posedge clk)
+-	in_valid[1] <= #1 (cnt > 8'd97);	// Input Slot 3 Valid
++	in_valid[1] <= #1 (cnt > 8'h61);	// Input Slot 3 Valid
+ 
+ always @(posedge clk)
+-	in_valid[2] <= #1 (cnt > 8'd137);	// Input Slot 3 Valid
++	in_valid[2] <= #1 (cnt > 8'h89);	// Input Slot 3 Valid
+ 
+ ////////////////////////////////////////////////////////////////////
+ //
+
+ParseResult:
+UPD HdlStmAssign@@body to body
+    UPD HdlOp@@OR to OR
+        UPD HdlOp@@AND to AND
+            UPD HdlOp@@GT to GT
+                UPD HdlValueInt@@0 to 00
+            UPD HdlOp@@LT to LT
+                UPD HdlValueInt@@16 to 10
+
+
+CommitId: c3cdd113475f75680f06f39b3047486979f8cb94
+
+--- a/rtl/verilog/ac97_soc.v
++++ b/rtl/verilog/ac97_soc.v
+@@ -158,11 +163,11 @@ always @(posedge wclk)
+ assign to = (to_cnt == `AC97_SUSP_DET);
+ 
+ always @(posedge wclk or negedge rst)
+-	if(!rst)		to_cnt <= #1 0;
++	if(!rst)		to_cnt <= #1 6'h0;
+ 	else
+-	if(bit_clk_e)		to_cnt <= #1 0;
++	if(bit_clk_e)		to_cnt <= #1 6'h0;
+ 	else
+-	if(!to)			to_cnt <= #1 to_cnt + 1;
++	if(!to)			to_cnt <= #1 to_cnt + 6'h1;
+ 
+ ////////////////////////////////////////////////////////////////////
+ //
+
+ParseResult:
+UPD HdlStmAssign@@body to body
+    UPD HdlOp@@EQ to EQ
+        UPD HdlValueInt@@17 to 11
+
+UPD HdlStmAssign@@body to body
+    UPD HdlOp@@EQ to EQ
+        UPD HdlValueInt@@37 to 25
+
+
+CommitId: c3cdd113475f75680f06f39b3047486979f8cb94
+
+--- a/rtl/verilog/ac97_soc.v
++++ b/rtl/verilog/ac97_soc.v
+@@ -170,17 +175,17 @@ always @(posedge wclk or negedge rst)
+ //
+ 
+ always @(posedge wclk or negedge rst)
+-	if(!rst)			sync_resume <= #1 0;
++	if(!rst)			sync_resume <= #1 1'b0;
+ 	else
+-	if(resume_done)			sync_resume <= #1 0;
++	if(resume_done)			sync_resume <= #1 1'b0;
+ 	else
+-	if(suspended & resume)		sync_resume <= #1 1;
++	if(suspended & resume)		sync_resume <= #1 1'b1;
+ 
+ assign resume_done = (res_cnt == `AC97_RES_SIG);
+ 
+ always @(posedge wclk)
+-	if(!sync_resume)	res_cnt <= #1 0;
++	if(!sync_resume)	res_cnt <= #1 4'h0;
+ 	else
+-	if(ps_ce)		res_cnt <= #1 res_cnt + 1;
++	if(ps_ce)		res_cnt <= #1 res_cnt + 4'h1;
+ 
+ endmodule
+ParseResult:
+UPD HdlStmAssign@@body to body
+    UPD HdlOp@@EQ to EQ
+        UPD HdlValueInt@@57 to 39
+
+UPD HdlStmAssign@@body to body
+    UPD HdlOp@@EQ to EQ
+        UPD HdlValueInt@@77 to 4d
+
+UPD HdlStmAssign@@body to body
+    UPD HdlOp@@EQ to EQ
+        UPD HdlValueInt@@97 to 61
+
+
+CommitId: 1cf69ec63258a4e3a51bd444f404a667e417cf36
+Fixed a bug reported by Igor. Apparently this bug only shows up when
+--- a/rtl/verilog/ac97_cra.v
++++ b/rtl/verilog/ac97_cra.v
+@@ -165,11 +173,11 @@ always @(posedge clk or negedge rst)
+ 	if(crac_rd_done)				rdd2 <= #1 1'b0;
+ 
+ always @(posedge clk or negedge rst)
+-	if(!rst)		rdd3 <= #1 1'b0;
++	if(!rst)			rdd3 <= #1 1'b0;
+ 	else
+-	if(rdd2 & valid_pe)	rdd3 <= #1 1'b1;
++	if(rdd2 & valid_pe)		rdd3 <= #1 1'b1;
+ 	else
+-	if(crac_rd_done)	rdd3 <= #1 1'b0;
++	if(crac_rd_done)		rdd3 <= #1 1'b0;
+ 
+ always @(posedge clk)
+ 	crac_rd_done <= #1 rdd3 & valid_pe;
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+
+INS HdlStmIf@@ to body
+
+INS HdlStmAssign@@if_true to 
+HdlStmAssign: if_true
+    HdlValueInt: 0
+    HdlValueId: crac_din
+    HdlValueInt: 1
+
+
+CommitId: 1cf69ec63258a4e3a51bd444f404a667e417cf36
+Fixed a bug reported by Igor. Apparently this bug only shows up when
+--- a/rtl/verilog/ac97_cra.v
++++ b/rtl/verilog/ac97_cra.v
+@@ -181,7 +189,4 @@ assign valid_ne = !valid & valid_r;
+ 
+ assign valid_pe = valid & !valid_r;
+ 
+-always @(posedge clk)
+-	crac_rd_r <= #1 crac_rd & valid;
+-
+ endmodule
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS HdlStmBlock@@SEQ to 
+    INS HdlOp@@FALLING to sensitivity
+    HdlOp: FALLING
+        list: ops
+            HdlValueId: rst
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+
+CommitId: c3cdd113475f75680f06f39b3047486979f8cb94
+
+--- a/rtl/verilog/ac97_wb_if.v
++++ b/rtl/verilog/ac97_wb_if.v
+@@ -155,33 +162,33 @@ always @(posedge clk)
+ 	wb_ack_o <= #1 (re | we) & wb_cyc_i & wb_stb_i & ~wb_ack_o;
+ 
+ always @(posedge clk)
+-	rf_we <= #1 we & (wb_addr_i[6:2] < 8);
++	rf_we <= #1 we & (wb_addr_i[6:2] < 5'h8);
+ 
+ always @(posedge clk)
+-	o3_we <= #1 we & (wb_addr_i[6:2] == 8);
++	o3_we <= #1 we & (wb_addr_i[6:2] == 5'h8);
+ 
+ always @(posedge clk)
+-	o4_we <= #1 we & (wb_addr_i[6:2] == 9);
++	o4_we <= #1 we & (wb_addr_i[6:2] == 5'h9);
+ 
+ always @(posedge clk)
+-	o6_we <= #1 we & (wb_addr_i[6:2] == 10);
++	o6_we <= #1 we & (wb_addr_i[6:2] == 5'ha);
+ 
+ always @(posedge clk)
+-	o7_we <= #1 we & (wb_addr_i[6:2] == 11);
++	o7_we <= #1 we & (wb_addr_i[6:2] == 5'hb);
+ 
+ always @(posedge clk)
+-	o8_we <= #1 we & (wb_addr_i[6:2] == 12);
++	o8_we <= #1 we & (wb_addr_i[6:2] == 5'hc);
+ 
+ always @(posedge clk)
+-	o9_we <= #1 we & (wb_addr_i[6:2] == 13);
++	o9_we <= #1 we & (wb_addr_i[6:2] == 5'hd);
+ 
+ always @(posedge clk)
+-	i3_re <= #1 re & (wb_addr_i[6:2] == 14);
++	i3_re <= #1 re & (wb_addr_i[6:2] == 5'he);
+ 
+ always @(posedge clk)
+-	i4_re <= #1 re & (wb_addr_i[6:2] == 15);
++	i4_re <= #1 re & (wb_addr_i[6:2] == 5'hf);
+ 
+ always @(posedge clk)
+-	i6_re <= #1 re & (wb_addr_i[6:2] == 16);
++	i6_re <= #1 re & (wb_addr_i[6:2] == 5'h10);
+ 
+ endmodule
+ParseResult:
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['wb_addr_i',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '6'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '2'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['wb_addr_i',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '6'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '2'}]}]} 
+    UPD HdlValueInt@@14 to e
+    UPD HdlValueInt@@15 to f
+    UPD HdlValueInt@@16 to 10
+
+

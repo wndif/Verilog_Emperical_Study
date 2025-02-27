@@ -1,0 +1,8 @@
+,insert,update,move,delete
+HdlStmIf-HdlStmIf,2.0,7.0,,1.0
+HdlOp-Assignment-HdlStmIf,1.0,,2.0,
+HdlStmAssign-HdlStmIf,1.0,,1.0,
+HdlOp-FunctionCall-HdlStmIf,1.0,,1.0,
+HdlStmIf-HdlStmCase,,1.0,,
+HdlStmCase-HdlStmProcess,,4.0,,
+HdlOp-Assignment-HdlStmCase,,,6.0,

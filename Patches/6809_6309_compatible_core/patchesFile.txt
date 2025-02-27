@@ -1,0 +1,417 @@
+CommitId: e847e00b3e1b51b9d55c50c2db453c8e0cab04ce
+Fixed several extended and indirect opcodes
+--- a/syn/lattice/CC3_top.v
++++ b/syn/lattice/CC3_top.v
+@@ -12,11 +12,11 @@ module CC3_top(
+ 	/* CPU Bus */
+ 	output wire cpuclk_o,
+ 	output wire reset_o,
+-	output wire [15:0] addr_o,
++	output wire [18:0] addr_o,
+ 	output wire oen_o,
+ 	output wire wen_o,
+ 	output wire cen_o,
+-	output wire [7:0] data_io,
++	inout wire [15:0] data_io,
+ 	output wire [5:0] state_o,
+ 	/* Debug */
+ 	output wire [7:0] leds_o,
+
+ParseResult:
+MOV HdlIdDef@@addr_o to ports
+HdlIdDef: addr_o
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 15
+                    HdlValueInt: 0
+    HdlDirection: OUT
+
+MOV HdlIdDef@@data_io to ports
+HdlIdDef: data_io
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 7
+                    HdlValueInt: 0
+    HdlDirection: OUT
+
+INS HdlIdDef@@addr_o to ports
+HdlIdDef: addr_o
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 18
+                    HdlValueInt: 0
+    HdlDirection: OUT
+
+UPD HdlIdDef@@addr_o to data_io
+
+UPD HdlIdDef@@data_io to ldata_io
+
+UPD HdlIdDef@@addr_o to addr_o
+    UPD HdlDirection@@OUT to INOUT
+
+
+CommitId: e847e00b3e1b51b9d55c50c2db453c8e0cab04ce
+Fixed several extended and indirect opcodes
+--- a/syn/lattice/CC3_top.v
++++ b/syn/lattice/CC3_top.v
+@@ -25,7 +25,13 @@ module CC3_top(
+ 	output wire vsync_o,
+ 	output wire red_o,
+ 	output wire green_o,
+-	output wire blue_o
++	output wire blue_o,
++	/* logic analyzer probe */
++	output wire [5:0] laddr_o,
++	output wire loen_o,
++	output wire lwen_o,
++	output wire lcen_o,
++	output wire [7:0] ldata_io
+ 	
+ 	);
+ 
+reg cpu_clk, clk_div2;
+
+ParseResult:
+INS HdlIdDef@@laddr_o to ports
+HdlIdDef: laddr_o
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 5
+                    HdlValueInt: 0
+    HdlDirection: OUT
+
+INS HdlIdDef@@loen_o to ports
+HdlIdDef: loen_o
+    HdlDirection: OUT
+
+INS HdlIdDef@@lwen_o to ports
+HdlIdDef: lwen_o
+    HdlDirection: OUT
+
+INS HdlIdDef@@lcen_o to ports
+HdlIdDef: lcen_o
+    HdlDirection: OUT
+
+
+CommitId: e847e00b3e1b51b9d55c50c2db453c8e0cab04ce
+Fixed several extended and indirect opcodes
+--- a/syn/lattice/CC3_top.v
++++ b/syn/lattice/CC3_top.v
+@@ -81,19 +127,14 @@ MC6809_cpu cpu0(
+ 	.cpu_oe_o(cpu0_oe),
+ 	.cpu_addr_o(cpu0_addr_o),
+ 	.cpu_data_i(cpu0_data_in),
+-	.cpu_data_o(cpu0_data_out)
++	.cpu_data_o(cpu0_data_out),
++	.debug_clk(clk40_i),
++	.debug_data_o(debug_data)
+ 	);
+ 	
+ /* Memory */
+ 
+-wire bios_en, video_en;
+-wire [7:0] data_from_bios, data_from_video;
+-
+-assign bios_en = cpu0_addr_o[15:12] == 4'hf;
+-assign video_en = cpu0_addr_o[15:12] == 4'h0;
+ 
+-assign cpu0_data_in = bios_en ? data_from_bios:
+-                     video_en ? data_from_video:8'hzz;
+ 
+ bios2k bios(
+ 	.DataInA(cpu0_data_out[7:0]), 
+
+ParseResult:
+MOV HdlIdDef@@bios_en to objs
+HdlIdDef: bios_en
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@video_en to objs
+HdlIdDef: video_en
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@data_from_bios to objs
+HdlIdDef: data_from_bios
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 7
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@data_from_video to objs
+HdlIdDef: data_from_video
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 7
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+MOV HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: EQ
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: cpu0_addr_o
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 15
+                            HdlValueInt: 12
+            HdlValueInt: f
+    HdlValueId: bios_en
+
+MOV HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: EQ
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: cpu0_addr_o
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 15
+                            HdlValueInt: 12
+            HdlValueInt: 0
+    HdlValueId: video_en
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueId@@laddr_o to 
+
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@INDEX to 
+    INS HdlValueId@@ldata_io to 
+    UPD HdlOp@@INDEX to INDEX
+        INS list@@ops to INDEX
+        INS HdlValueId@@data_io to ops
+        INS HdlOp@@DOWNTO to ops
+        UPD HdlOp@@DOWNTO to DOWNTO
+            INS list@@ops to DOWNTO
+            INS HdlValueInt@@7 to ops
+
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@NEG_LOG to 
+    HdlOp: NEG_LOG
+        list: ops
+            HdlValueId: cpu0_we
+
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@NEG_LOG to 
+    UPD HdlOp@@NEG_LOG to NEG_LOG
+        INS list@@ops to NEG_LOG
+        UPD HdlOp@@AND to AND
+            INS HdlValueId@@extram_en to ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to MAP_ASSOCIATION
+    MOV HdlOp@@TERNARY to 
+    HdlOp: TERNARY
+        list: ops
+            HdlValueId: bios_en
+            HdlValueId: data_from_bios
+            HdlOp: TERNARY
+                list: ops
+                    HdlValueId: video_en
+                    HdlValueId: data_from_video
+                    HdlValueInt: zz
+    UPD HdlOp@@TERNARY to TERNARY
+        UPD HdlValueId@@data_from_bios to debug_data_o
+        UPD HdlOp@@TERNARY to TERNARY
+            UPD HdlValueId@@data_from_video to debug_data
+            MOV HdlValueId@@data_from_video to ops
+            HdlValueId: data_from_video
+            DEL HdlValueId@@video_en from ops
+            DEL HdlValueInt@@zz from ops
+            DEL list@@ops from TERNARY
+        DEL HdlValueId@@bios_en from ops
+        DEL HdlOp@@TERNARY from ops
+    DEL HdlValueId@@cpu0_data_in from 
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@EQ to EQ
+        UPD HdlValueInt@@0 to e
+
+DEL HdlStmAssign@@ from objs
+
+
+CommitId: 8f124a0f397a9b5ed46b1b614d5d6af1a73a3b56
+Added SYNC, Fixed EXG
+--- a/syn/lattice/CC3_top.v
++++ b/syn/lattice/CC3_top.v
+@@ -41,16 +41,17 @@ wire [5:0] cpu0_state;
+ 
+ assign addr_o = cpu0_addr_o;
+ assign data_io = cpu0_we ? cpu0_data_out:cpu0_data_in;
+-
++/*
+ assign hsync_o = 0;
+ assign vsync_o = 0;
+ assign red_o = 0;
+ assign green_o = 0;
+-assign blue_o = 0;
++assign blue_o = 0;
++*/
+ assign leds_o = leds_r;
+ 
+ assign oen_o = !cpu0_oe;
+-assign wen_o = !cpu0_we;
++assign wen_o = cpu0_we & (cpu0_addr_o[15:12] == 4'h0);
+ assign cen_o = !(cpu0_oe | cpu0_we);
+ assign cpuclk_o = cpu_clk;
+ assign reset_o = cpu_reset;
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@NEG_LOG to AND
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        INS HdlOp@@EQ to ops
+        HdlOp: EQ
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: cpu0_addr_o
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 15
+                                HdlValueInt: 12
+                HdlValueInt: 0
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: hsync_o
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: vsync_o
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: red_o
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: green_o
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: blue_o
+
+
+CommitId: 8f124a0f397a9b5ed46b1b614d5d6af1a73a3b56
+Added SYNC, Fixed EXG
+--- a/syn/lattice/CC3_top.v
++++ b/syn/lattice/CC3_top.v
+@@ -85,6 +86,15 @@ MC6809_cpu cpu0(
+ 	
+ /* Memory */
+ 
++wire bios_en, video_en;
++wire [7:0] data_from_bios, data_from_video;
++
++assign bios_en = cpu0_addr_o[15:12] == 4'hf;
++assign video_en = cpu0_addr_o[15:12] == 4'h0;
++
++assign cpu0_data_in = bios_en ? data_from_bios:
++                     video_en ? data_from_video:8'hzz;
++
+ bios2k bios(
+ 	.DataInA(cpu0_data_out[7:0]), 
+ 	.DataInB(cpu1_data_out[7:0]), 
+
+ParseResult:
+INS HdlIdDef@@bios_en to objs
+HdlIdDef: bios_en
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@video_en to objs
+HdlIdDef: video_en
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@data_from_bios to objs
+HdlIdDef: data_from_bios
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 7
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@data_from_video to objs
+HdlIdDef: data_from_video
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 7
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: EQ
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: cpu0_addr_o
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 15
+                            HdlValueInt: 12
+            HdlValueInt: f
+    HdlValueId: bios_en
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: EQ
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: cpu0_addr_o
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 15
+                            HdlValueInt: 12
+            HdlValueInt: 0
+    HdlValueId: video_en
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: TERNARY
+        list: ops
+            HdlValueId: bios_en
+            HdlValueId: data_from_bios
+            HdlOp: TERNARY
+                list: ops
+                    HdlValueId: video_en
+                    HdlValueId: data_from_video
+                    HdlValueInt: zz
+    HdlValueId: cpu0_data_in
+
+

@@ -1,0 +1,9 @@
+,update,delete,insert
+HdlStmAssign-HdlStmCase,1,1.0,
+HdlOp-MemberAccessing-HdlStmAssign,1,1.0,
+HdlIdDef-HdlModuleDef,2,,
+HdlOp-MemberAccessing-HdlIdDef,2,,
+HdlOp-DOWNTO-HdlOp-MemberAccessing,2,1.0,
+HdlOp-InfixExpression-HdlOp-DOWNTO,2,,
+HdlOp-InfixExpression-HdlOp-InfixExpression,1,,2.0
+HdlModuleDef-HdlContext,1,,

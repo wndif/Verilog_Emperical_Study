@@ -1,0 +1,59 @@
+CommitId: b292c75b6cc52914639519360e399c9ed1c23d24
+Support for 128 bits character length added. Zero value divider bug fixed.
+--- a/rtl/verilog/spi_shift.v
++++ b/rtl/verilog/spi_shift.v
+@@ -50,8 +50,7 @@ module spi_shift (clk, rst, latch_h, latch_l, len, lsb, go,
+   
+   input                          clk;          // system clock
+   input                          rst;          // reset
+-  input                          latch_h;      // latch_h signal for storing the data in shift register
+-  input                          latch_l;      // latch_l signal for storing the data in shift register
++  input                    [3:0] latch;        // latch signal for storing the data in shift register
+   input [`SPI_CHAR_LEN_BITS-1:0] len;          // data len in bits (minus one)
+   input                          lsb;          // lbs first on the line
+   input                          go;           // start stansfer
+
+ParseResult:
+UPD HdlIdDef@@cnt to cnt
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueInt@@6 to 7
+
+UPD HdlIdDef@@tx_bit_pos to tx_bit_pos
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueInt@@6 to 7
+
+UPD HdlIdDef@@rx_bit_pos to rx_bit_pos
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueInt@@6 to 7
+
+UPD HdlIdDef@@data to data
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlOp@@SUB to SUB
+                UPD HdlValueInt@@64 to 128
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        UPD HdlOp@@SUB to SUB
+            UPD HdlOp@@CONCAT to CONCAT
+                UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                    UPD HdlValueInt@@6 to 7
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        UPD HdlOp@@TERNARY to TERNARY
+            UPD HdlOp@@SUB to SUB
+                UPD HdlOp@@CONCAT to CONCAT
+                    UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                        UPD HdlValueInt@@6 to 7
+        UPD HdlOp@@SUB to SUB
+            UPD HdlOp@@TERNARY to TERNARY
+                UPD HdlOp@@ADD to ADD
+                    UPD HdlOp@@CONCAT to CONCAT
+                        UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                            UPD HdlValueInt@@6 to 7
+
+

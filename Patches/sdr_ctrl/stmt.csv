@@ -1,0 +1,5 @@
+,HdlStmIf,HdlIdDef,HdlStmProcess,HdlStmAssign
+update,3.0,3,1.0,2.0
+insert,,4,1.0,
+delete,,4,,
+move,,1,,2.0

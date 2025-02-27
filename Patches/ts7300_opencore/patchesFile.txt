@@ -1,0 +1,379 @@
+CommitId: 22ac89a23d02c0fe0d313880541436cff022b7ea
+
+--- a/ts7300_top.v
++++ b/ts7300_top.v
+@@ -245,6 +245,10 @@ inout reg hsync_pad;
+ inout reg vsync_pad;
+ output sdram_clk_pad;
+ 
++/* Set to 1'b0 to disable ethernet.  If you disable this, don't
++ * attempt to load the ethernet driver module! */
++parameter ethernet = 1'b1;
++
+ /* Bus cycles from the ep9302 processor come in to the FPGA multiplexed by
+  * the MAX2 CPLD on the TS-7300.  Any access on the ep9302 for addresses 
+  * 0x72000000 - 0x72ffffff are routed to the FPGA.  The ep9302 CS7 SMCBCR register
+
+ParseResult:
+INS HdlIdDef@@ethernet to params
+HdlIdDef: ethernet
+    HdlValueInt: 1
+    HdlDirection: INTERNAL
+
+
+CommitId: 22ac89a23d02c0fe0d313880541436cff022b7ea
+
+--- a/ts7300_top.v
++++ b/ts7300_top.v
+@@ -347,11 +351,9 @@ always @(posedge ep93xx_end_q or posedge start_cycle_negedge_aset) begin
+   else start_cycle_negedge <= 1'b0;
+ end
+ 
+-wire start_cycle_posedge_aset = start_cycle_negedge && start_cycle_pad && 
+-  !bd_oe_negedge && pll_locked;
+-always @(posedge ep93xx_end_q or posedge start_cycle_posedge_aset) begin
+-  if (start_cycle_posedge_aset) start_cycle_posedge <= 1'b1;
+-  else start_cycle_posedge <= 1'b0;
++always @(posedge start_cycle_pad or posedge ep93xx_end_q) begin
++  if (ep93xx_end_q) start_cycle_posedge <= 1'b0;
++  else if (start_cycle_negedge) start_cycle_posedge <= 1'b1;
+ end
+ 
+ always @(posedge start_cycle_pad) begin
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+
+UPD HdlStmProcess@@ to 
+    MOV list@@sensitivity to 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: ep93xx_end_q
+        HdlOp: RISING
+            list: ops
+                HdlValueId: start_cycle_posedge_aset
+    DEL HdlOp@@RISING from sensitivity
+    HdlOp: RISING
+        list: ops
+            HdlValueId: start_cycle_posedge_aset
+    DEL HdlStmBlock@@SEQ from 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: start_cycle_posedge_aset
+                HdlStmAssign: if_true
+                    HdlValueInt: 1
+                    HdlValueId: start_cycle_posedge
+                list: elifs
+                HdlStmAssign: if_false
+                    HdlValueInt: 0
+                    HdlValueId: start_cycle_posedge
+
+UPD HdlStmProcess@@ to 
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: ep93xx_end_q
+                HdlStmAssign: if_true
+                    HdlValueInt: 0
+                    HdlValueId: start_cycle_posedge
+                list: elifs
+                    tuple
+                        HdlValueId: start_cycle_negedge
+                        HdlStmAssign
+                            HdlValueInt: 1
+                            HdlValueId: start_cycle_posedge
+    INS HdlOp@@RISING to sensitivity
+    HdlOp: RISING
+        list: ops
+            HdlValueId: start_cycle_pad
+
+DEL HdlIdDef@@start_cycle_posedge_aset from objs
+HdlIdDef: start_cycle_posedge_aset
+    HdlOp: AND_LOG
+        list: ops
+            HdlOp: AND_LOG
+                list: ops
+                    HdlOp: AND_LOG
+                        list: ops
+                            HdlValueId: start_cycle_negedge
+                            HdlValueId: start_cycle_pad
+                    HdlOp: NEG_LOG
+                        list: ops
+                            HdlValueId: bd_oe_negedge
+            HdlValueId: pll_locked
+    HdlDirection: INTERNAL
+
+DEL HdlStmProcess@@ from objs
+
+
+CommitId: 22ac89a23d02c0fe0d313880541436cff022b7ea
+
+--- a/ts7300_top.v
++++ b/ts7300_top.v
+@@ -379,11 +381,9 @@ always @(posedge start_cycle_pad) begin
+   ep93xx_address[0] <= fl_d_pad[6];
+ end
+ 
+-wire bd_oe_negedge_aset = start_cycle_posedge && !bd_oe_pad &&
+- !bd_oe_posedge && pll_locked;
+-always @(posedge ep93xx_end_q or posedge bd_oe_negedge_aset) begin
+-  if (bd_oe_negedge_aset) bd_oe_negedge <= 1'b1;
+-  else bd_oe_negedge <= 1'b0;
++always @(negedge bd_oe_pad or posedge ep93xx_end_q) begin
++  if (ep93xx_end_q) bd_oe_negedge <= 1'b0;
++  else if (start_cycle_posedge) bd_oe_negedge <= 1'b1;
+ end
+ 
+ always @(posedge bd_oe_pad or posedge ep93xx_end_q) begin
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+
+UPD HdlIdDef@@bd_oe_negedge_aset to bd_oe_negedge_aset
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@AND_LOG to AND_LOG
+            UPD HdlOp@@AND_LOG to AND_LOG
+                UPD list@@ops to sensitivity
+                MOV list@@ops to AND_LOG
+                list: ops
+                    HdlValueId: start_cycle_posedge
+                    HdlOp: NEG_LOG
+                        list: ops
+                            HdlValueId: bd_oe_pad
+                UPD HdlOp@@NEG_LOG to FALLING
+                DEL HdlValueId@@start_cycle_posedge from ops
+            DEL HdlOp@@AND_LOG from ops
+            DEL HdlOp@@NEG_LOG from ops
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlValueId: bd_oe_posedge
+            DEL list@@ops from AND_LOG
+        DEL HdlOp@@AND_LOG from ops
+        DEL HdlValueId@@pll_locked from ops
+        DEL list@@ops from AND_LOG
+    DEL HdlOp@@AND_LOG from bd_oe_negedge_aset
+    DEL HdlDirection@@INTERNAL from bd_oe_negedge_aset
+
+UPD HdlStmProcess@@ to 
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: ep93xx_end_q
+                HdlStmAssign: if_true
+                    HdlValueInt: 0
+                    HdlValueId: bd_oe_negedge
+                list: elifs
+                    tuple
+                        HdlValueId: start_cycle_posedge
+                        HdlStmAssign
+                            HdlValueInt: 1
+                            HdlValueId: bd_oe_negedge
+
+UPD HdlStmProcess@@ to 
+    MOV HdlOp@@RISING to sensitivity
+    HdlOp: RISING
+        list: ops
+            HdlValueId: ep93xx_end_q
+    DEL HdlOp@@RISING from sensitivity
+    HdlOp: RISING
+        list: ops
+            HdlValueId: bd_oe_negedge_aset
+    DEL list@@sensitivity from 
+    DEL HdlStmBlock@@SEQ from 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: bd_oe_negedge_aset
+                HdlStmAssign: if_true
+                    HdlValueInt: 1
+                    HdlValueId: bd_oe_negedge
+                list: elifs
+                HdlStmAssign: if_false
+                    HdlValueInt: 0
+                    HdlValueId: bd_oe_negedge
+
+DEL HdlIdDef@@bd_oe_negedge_aset from objs
+
+DEL HdlStmProcess@@ from objs
+
+
+CommitId: eccee0a49fb2bd2da39bab94dae54e3773bd6031
+
+--- a/ts7300_top.v
++++ b/ts7300_top.v
+@@ -278,8 +278,9 @@ assign bd_pad[7:0] = ep93xx_databus_oe ?
+   ep93xx_dat_latch[15:8] : 8'hzz;
+ assign isa_wait_pad =  start_cycle_negedge ?  epwbm_done : 1'bz; 
+ assign epwbm_adr_o[23:2] = ep93xx_address[23:2];
++reg ep93xx_address1_q;
+ assign epwbm_adr_o[0] = ep93xx_address[0];
+-assign epwbm_adr_o[1] = epwbm_done32 ? 1'b1 : ep93xx_address[1];
++assign epwbm_adr_o[1] = ep93xx_address1_q;
+ 
+ /* Use Altera's PLL to multiply 25Mhz from the ethernet PHY to 75Mhz */
+ pll clkgencore(
+
+ParseResult:
+INS HdlIdDef@@ep93xx_address1_q to objs
+HdlIdDef: ep93xx_address1_q
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+INS HdlStmAssign@@ to objs
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueId@@ep93xx_address1_q to 
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@INDEX to 
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: epwbm_adr_o
+            HdlValueInt: 1
+    DEL HdlOp@@TERNARY from 
+    HdlOp: TERNARY
+        list: ops
+            HdlValueId: epwbm_done32
+            HdlValueInt: 1
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: ep93xx_address
+                    HdlValueInt: 1
+
+DEL HdlStmAssign@@ from objs
+
+
+CommitId: eccee0a49fb2bd2da39bab94dae54e3773bd6031
+
+--- a/ts7300_top.v
++++ b/ts7300_top.v
+@@ -301,33 +302,28 @@ always @(posedge clk_75mhz_pad) begin
+   bd_oe_posedge_q <= bd_oe_posedge;
+   isa_add1_pad_q <= isa_add1_pad;
+ 
+-  if (bd_oe_negedge_q && epwbm_we_o && !epwbm_done) begin
++  if ((bd_oe_negedge_q && epwbm_we_o) ||
++    (start_cycle_posedge_q && !epwbm_we_o) && !epwbm_done) begin
+     epwbm_stb_o <= 1'b1;
++    ep93xx_address1_q <= isa_add1_pad_q;
+     epwbm_dat_o <= {bd_pad[7:0], fl_d_pad[7:0]};
+   end
+ 
+-  if (start_cycle_posedge_q && !epwbm_we_o && !epwbm_done) begin
+-    epwbm_stb_o <= 1'b1;
+-  end
+-
+   if (epwbm_stb_o && epwbm_ack_i) begin
+     epwbm_stb_o <= 1'b0;
+     epwbm_done <= 1'b1;
+     ep93xx_dat_latch <= epwbm_dat_i;
+   end
+ 
+-  if ((epwbm_done || (epwbm_stb_o && epwbm_ack_i)) && 
+-    !epwbm_done32 && bd_oe_negedge_q &&
+-    (ep93xx_address[1] != isa_add1_pad_q)) begin
++  if (epwbm_done && !epwbm_done32 && (ep93xx_address[1] != isa_add1_pad_q)) begin
+     epwbm_done <= 1'b0;
+     epwbm_done32 <= 1'b1;
+-    epwbm_stb_o <= 1'b1;
+   end
+ 
+   ep93xx_end_q <= 1'b0;
+ 
+-  if ((start_cycle_negedge && start_cycle_posedge && 
+-    bd_oe_negedge && bd_oe_posedge) || !pll_locked) begin
++  if ((start_cycle_negedge_q && start_cycle_posedge_q && 
++    bd_oe_negedge_q && bd_oe_posedge) || !pll_locked) begin
+     ep93xx_end <= 1'b1;
+     ep93xx_end_q <= 1'b0;
+   end
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to OR_LOG
+    UPD HdlOp@@AND_LOG to AND_LOG
+        DEL HdlOp@@NEG_LOG from ops
+        HdlOp: NEG_LOG
+            list: ops
+                HdlValueId: epwbm_done
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@AND_LOG to 
+    HdlOp: AND_LOG
+        list: ops
+            HdlOp: AND_LOG
+                list: ops
+                    HdlValueId: start_cycle_posedge_q
+                    HdlOp: NEG_LOG
+                        list: ops
+                            HdlValueId: epwbm_we_o
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlValueId: epwbm_done
+    DEL HdlStmBlock@@SEQ from 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: epwbm_stb_o
+    DEL list@@elifs from 
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueId: isa_add1_pad_q
+    HdlValueId: ep93xx_address1_q
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@AND_LOG to AND_LOG
+            MOV HdlOp@@AND_LOG to ops
+            HdlOp: AND_LOG
+                list: ops
+                    HdlOp: OR_LOG
+                        list: ops
+                            HdlValueId: epwbm_done
+                            HdlOp: AND_LOG
+                                list: ops
+                                    HdlValueId: epwbm_stb_o
+                                    HdlValueId: epwbm_ack_i
+                    HdlOp: NEG_LOG
+                        list: ops
+                            HdlValueId: epwbm_done32
+            UPD HdlOp@@AND_LOG to AND_LOG
+                UPD HdlOp@@OR_LOG to OR_LOG
+                    MOV HdlValueId@@epwbm_done to ops
+                    HdlValueId: epwbm_done
+                    DEL HdlOp@@AND_LOG from ops
+                    HdlOp: AND_LOG
+                        list: ops
+                            HdlValueId: epwbm_stb_o
+                            HdlValueId: epwbm_ack_i
+                    DEL list@@ops from OR_LOG
+                DEL HdlOp@@OR_LOG from ops
+            DEL HdlValueId@@bd_oe_negedge_q from ops
+            DEL list@@ops from AND_LOG
+        DEL HdlOp@@AND_LOG from ops
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@OR_LOG to OR_LOG
+        UPD HdlOp@@AND_LOG to AND_LOG
+            UPD HdlOp@@AND_LOG to AND_LOG
+                UPD HdlValueId@@bd_oe_negedge to bd_oe_negedge_q
+                UPD HdlOp@@AND_LOG to AND_LOG
+                    UPD HdlValueId@@start_cycle_negedge to start_cycle_negedge_q
+                    UPD HdlValueId@@start_cycle_posedge to start_cycle_posedge_q
+
+DEL HdlStmIf@@ from body
+
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 1
+    HdlValueId: epwbm_stb_o
+
+

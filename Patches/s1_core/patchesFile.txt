@@ -1,0 +1,1852 @@
+CommitId: 6e5619a1051115e94524b5145cd89745384ddf64
+Updated the PCX/CPX fields description with all the info required for debugging.
+--- a/hdl/rtl/s1_top/spc2wbm.v
++++ b/hdl/rtl/s1_top/spc2wbm.v
+@@ -158,8 +162,8 @@ module spc2wbm (
+   assign spc2wbm_data = spc2wbm_packet[`PCX_DA_HI:`PCX_DA_LO];
+ 
+   // Encode info going to the SPC side assembling return packets
+-  assign wbm2spc_packet = { wbm2spc_valid, wbm2spc_type, wbm2spc_error, wbm2spc_nc,
+-    wbm2spc_thread, wbm2spc_way_valid, wbm2spc_way, 3'b100, wbm2spc_data };
++  assign wbm2spc_packet = { wbm2spc_valid, wbm2spc_type, wbm2spc_miss, wbm2spc_error, wbm2spc_nc, wbm2spc_thread,
++    wbm2spc_way_valid, wbm2spc_way, wbm2spc_boot_fetch, wbm2spc_atomic, wbm2spc_pfl, wbm2spc_data };
+ 
+   /*
+    * State Machine
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: wbm2spc_atomic
+                HdlValueInt: 1
+
+
+CommitId: 6e5619a1051115e94524b5145cd89745384ddf64
+Updated the PCX/CPX fields description with all the info required for debugging.
+--- a/hdl/rtl/s1_top/spc2wbm.v
++++ b/hdl/rtl/s1_top/spc2wbm.v
+@@ -422,7 +433,7 @@ module spc2wbm (
+         if(wbm_ack_i==1) begin
+ 
+           // Clear previously modified outputs
+-          if(spc2wbm_atom==0) wbm_cycle_o = 0;
++          if(spc2wbm_atomic==0) wbm_cycle_o = 0;
+           wbm_strobe_o = 0;
+           wbm_we_o = 0;
+           wbm_addr_o = 64'b0;
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@CONCAT to 
+    UPD HdlOp@@CONCAT to CONCAT
+        INS list@@ops to CONCAT
+        INS HdlOp@@CONCAT to ops
+        INS HdlValueId@@wbm2spc_data to ops
+        UPD HdlOp@@CONCAT to CONCAT
+            INS list@@ops to CONCAT
+            INS HdlOp@@CONCAT to ops
+            INS HdlValueId@@wbm2spc_pfl to ops
+            UPD HdlOp@@CONCAT to CONCAT
+                INS list@@ops to CONCAT
+                INS HdlValueId@@wbm2spc_atomic to ops
+                UPD HdlOp@@CONCAT to CONCAT
+                    UPD HdlOp@@CONCAT to CONCAT
+                        INS HdlValueId@@wbm2spc_way to ops
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@CONCAT to 
+    HdlOp: CONCAT
+        list: ops
+            HdlOp: CONCAT
+                list: ops
+                    HdlOp: CONCAT
+                        list: ops
+                            HdlOp: CONCAT
+                                list: ops
+                                    HdlOp: CONCAT
+                                        list: ops
+                                            HdlOp: CONCAT
+                                                list: ops
+                                                    HdlOp: CONCAT
+                                                        list: ops
+                                                            HdlOp: CONCAT
+                                                                list: ops
+                                                                    HdlValueId: wbm2spc_valid
+                                                                    HdlValueId: wbm2spc_type
+                                                            HdlValueId: wbm2spc_error
+                                                    HdlValueId: wbm2spc_nc
+                                            HdlValueId: wbm2spc_thread
+                                    HdlValueId: wbm2spc_way_valid
+                            HdlValueId: wbm2spc_way
+                    HdlValueInt: 100
+            HdlValueId: wbm2spc_data
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlValueId@@wbm2spc_data to wbm2spc_boot_fetch
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@CONCAT to CONCAT
+                UPD HdlValueId@@wbm2spc_way to wbm2spc_way_valid
+                UPD HdlOp@@CONCAT to CONCAT
+                    UPD HdlValueId@@wbm2spc_way_valid to wbm2spc_thread
+                    UPD HdlOp@@CONCAT to CONCAT
+                        UPD HdlValueId@@wbm2spc_thread to wbm2spc_nc
+                        UPD HdlOp@@CONCAT to CONCAT
+                            UPD HdlValueId@@wbm2spc_nc to wbm2spc_error
+                            UPD HdlOp@@CONCAT to CONCAT
+                                UPD HdlValueId@@wbm2spc_error to wbm2spc_miss
+            DEL HdlValueInt@@100 from ops
+
+
+CommitId: 6e5619a1051115e94524b5145cd89745384ddf64
+Updated the PCX/CPX fields description with all the info required for debugging.
+--- a/hdl/rtl/s1_top/spc2wbm.v
++++ b/hdl/rtl/s1_top/spc2wbm.v
+@@ -486,7 +504,7 @@ module spc2wbm (
+         if(wbm_ack_i==1) begin
+ 
+           // Clear previously modified outputs
+-          if(spc2wbm_atom==0) wbm_cycle_o = 0;
++          if(spc2wbm_atomic==0) wbm_cycle_o = 0;
+           wbm_strobe_o = 0;
+           wbm_we_o = 0;
+           wbm_addr_o = 64'b0;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueId@@spc2wbm_atom to spc2wbm_atomic
+
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: wbm2spc_miss
+                HdlValueInt: 0
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: wbm2spc_boot_fetch
+                HdlValueInt: 0
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: wbm2spc_atomic
+                HdlValueInt: 0
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: wbm2spc_pfl
+                HdlValueInt: 0
+
+
+CommitId: 9d64c41af1edcb2c62f1f39bf406182a17c28f5c
+User Chris "gaterocket" corrected a couple of errors for FPGA boards: blocking assignments and two uninitialized variables.
+--- a/hdl/rtl/s1_top/spc2wbm.v
++++ b/hdl/rtl/s1_top/spc2wbm.v
+@@ -475,26 +486,26 @@ module spc2wbm (
+               // Data access of 128 bits
+               ( (spc2wbm_type==`LOAD_RQ)&&(spc2wbm_size==`PCX_SZ_16B) )
+             )
+-            state = `STATE_ACCESS2_BEGIN;
++            state <= `STATE_ACCESS2_BEGIN;
+           else
+-            state = `STATE_PACKET_READY;
++            state <= `STATE_PACKET_READY;
+ 
+-        end else state = `STATE_REQUEST_GRANTED;
++        end else state <= `STATE_REQUEST_GRANTED;
+ 
+       // FSM State 5: STATE_ACCESS2_BEGIN
+       // If needed start a second read access to the Wishbone bus
+       end else if(state==`STATE_ACCESS2_BEGIN) begin
+ 
+         // Issue a second request on the Wishbone bus
+-        wbm_cycle_o = 1;
+-        wbm_strobe_o = 1;
+-        wbm_we_o = 0;
+-        wbm_addr_o = { spc2wbm_region, 19'b0, spc2wbm_addr[`PCX_AD_HI-`PCX_AD_LO:4], 4'b1000 };  // 2nd doubleword inside the same quadword
+-        wbm_data_o = 64'b0;
+-        wbm_sel_o = 8'b11111111;
++        wbm_cycle_o <= 1;
++        wbm_strobe_o <= 1;
++        wbm_we_o <= 0;
++        wbm_addr_o <= { spc2wbm_region, 19'b0, spc2wbm_addr[`PCX_AD_HI-`PCX_AD_LO:4], 4'b1000 };  // 2nd doubleword inside the same quadword
++        wbm_data_o <= 64'b0;
++        wbm_sel_o <= 8'b11111111;
+ 
+         // Unconditional state change
+-        state = `STATE_ACCESS2_END;
++        state <= `STATE_ACCESS2_END;
+ 
+       // FSM State 6: STATE_ACCESS2_END
+       // Latch the second data returning from Wishbone when ready
+
+ParseResult:
+INS HdlStmIf@@ to body
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@EQ to 
+    HdlOp: EQ
+        list: ops
+            HdlValueId: spc2wbm_req
+            HdlValueInt: 1
+    MOV HdlOp@@NE to 
+    HdlOp: NE
+        list: ops
+            HdlValueId: sys_interrupt_source_i
+            HdlValueId: wbm2spc_interrupt_source
+    MOV HdlOp@@AND_LOG to 
+    HdlOp: AND_LOG
+        list: ops
+            HdlOp: NE
+                list: ops
+                    HdlValueId: wbm2spc_interrupt_source
+                    HdlValueInt: 000000
+            HdlValueId: wbm2spc_interrupt_new
+    DEL HdlStmBlock@@SEQ from 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc_ready_o
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc_packetin_o
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc_stallreq_o
+                    HdlValueInt: 1
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc2wbm_region
+                    HdlValueId: spc_req_i
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc2wbm_atomic
+                    HdlValueId: spc_atom_i
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: state
+                    HdlValueInt: 0010
+    DEL HdlStmBlock@@SEQ from 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_interrupt_new
+                    HdlValueInt: 1
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_valid
+                    HdlValueInt: 1
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_type
+                    HdlValueInt: 0111
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_miss
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_error
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_nc
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_thread
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_way_valid
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_way
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_boot_fetch
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_atomic
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_pfl
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc_stallreq_o
+                    HdlValueInt: 1
+    DEL tuple@@ from elifs
+    DEL HdlStmBlock@@SEQ from 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_interrupt_new
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc_ready_o
+                    HdlValueInt: 1
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc_packetin_o
+                    HdlValueId: wbm2spc_packet
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc_stallreq_o
+                    HdlValueInt: 1
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: state
+                    HdlValueInt: 0001
+    DEL tuple@@ from elifs
+    DEL list@@elifs from 
+    DEL HdlStmBlock@@SEQ from 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc_ready_o
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc_packetin_o
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc_stallreq_o
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: state
+                    HdlValueInt: 0001
+
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: spc_ready_o
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: spc_packetin_o
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: spc_stallreq_o
+            HdlStmAssign
+                HdlValueId: spc_req_i
+                HdlValueId: spc2wbm_region
+            HdlStmAssign
+                HdlValueId: spc_atom_i
+                HdlValueId: spc2wbm_atomic
+            HdlStmAssign
+                HdlValueInt: 0010
+                HdlValueId: state
+    INS list@@elifs to 
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: spc_ready_o
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: spc_packetin_o
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: spc_stallreq_o
+            HdlStmAssign
+                HdlValueInt: 0001
+                HdlValueId: state
+    INS tuple@@ to elifs
+    INS tuple@@ to elifs
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: wbm2spc_interrupt_new
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: wbm2spc_valid
+            HdlStmAssign
+                HdlValueInt: 0111
+                HdlValueId: wbm2spc_type
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: wbm2spc_miss
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: wbm2spc_error
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: wbm2spc_nc
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: wbm2spc_thread
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: wbm2spc_way_valid
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: wbm2spc_way
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: wbm2spc_boot_fetch
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: wbm2spc_atomic
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: wbm2spc_pfl
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: spc_stallreq_o
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: wbm2spc_interrupt_new
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: spc_ready_o
+            HdlStmAssign
+                HdlValueId: wbm2spc_packet
+                HdlValueId: spc_packetin_o
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: spc_stallreq_o
+            HdlStmAssign
+                HdlValueInt: 0001
+                HdlValueId: state
+
+DEL HdlStmIf@@ from body
+
+
+CommitId: 9d64c41af1edcb2c62f1f39bf406182a17c28f5c
+User Chris "gaterocket" corrected a couple of errors for FPGA boards: blocking assignments and two uninitialized variables.
+--- a/hdl/rtl/s1_top/spc2wbm.v
++++ b/hdl/rtl/s1_top/spc2wbm.v
+@@ -504,23 +515,23 @@ module spc2wbm (
+         if(wbm_ack_i==1) begin
+ 
+           // Clear previously modified outputs
+-          if(spc2wbm_atomic==0) wbm_cycle_o = 0;
+-          wbm_strobe_o = 0;
+-          wbm_we_o = 0;
+-          wbm_addr_o = 64'b0;
+-          wbm_data_o = 64'b0;
+-          wbm_sel_o = 8'b0;
++          if(spc2wbm_atomic==0) wbm_cycle_o <= 0;
++          wbm_strobe_o <= 0;
++          wbm_we_o <= 0;
++          wbm_addr_o <= 64'b0;
++          wbm_data_o <= 64'b0;
++          wbm_sel_o <= 8'b0;
+ 
+           // Latch the data and set up the return packet for the SPARC Core
+-          wbm2spc_data[63:0] = wbm_data_i;
++          wbm2spc_data[63:0] <= wbm_data_i;
+ 
+           // See if two return packets are required or just one
+           if(spc2wbm_type==`IMISS_RQ && spc2wbm_region==5'b10000)
+-            state = `STATE_PACKET_READY;
++            state <= `STATE_PACKET_READY;
+           else
+-            state = `STATE_ACCESS3_BEGIN;
++            state <= `STATE_ACCESS3_BEGIN;
+ 
+-        end else state = `STATE_ACCESS2_END;
++        end else state <= `STATE_ACCESS2_END;
+ 
+       // FSM State 7: STATE_ACCESS3_BEGIN
+       // If needed start a third read access to the Wishbone bus
+
+ParseResult:
+INS HdlStmAssign@@ to body
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@EQ to 
+    HdlOp: EQ
+        list: ops
+            HdlValueId: spc2wbm_req
+            HdlValueInt: 1
+    MOV HdlOp@@NE to 
+    HdlOp: NE
+        list: ops
+            HdlValueId: sys_interrupt_source_i
+            HdlValueId: wbm2spc_interrupt_source
+    MOV HdlOp@@AND_LOG to 
+    HdlOp: AND_LOG
+        list: ops
+            HdlOp: NE
+                list: ops
+                    HdlValueId: wbm2spc_interrupt_source
+                    HdlValueInt: 000000
+            HdlValueId: wbm2spc_interrupt_new
+    DEL HdlStmBlock@@SEQ from 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc_ready_o
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc_packetin_o
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc_stallreq_o
+                    HdlValueInt: 1
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc2wbm_region
+                    HdlValueId: spc_req_i
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc2wbm_atomic
+                    HdlValueId: spc_atom_i
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: state
+                    HdlValueInt: 0010
+    DEL HdlStmBlock@@SEQ from 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_interrupt_new
+                    HdlValueInt: 1
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_valid
+                    HdlValueInt: 1
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_type
+                    HdlValueInt: 0111
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_miss
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_error
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_nc
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_thread
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_way_valid
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_way
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_boot_fetch
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_atomic
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_pfl
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc_stallreq_o
+                    HdlValueInt: 1
+    DEL tuple@@ from elifs
+    DEL HdlStmBlock@@SEQ from 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm2spc_interrupt_new
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc_ready_o
+                    HdlValueInt: 1
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc_packetin_o
+                    HdlValueId: wbm2spc_packet
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc_stallreq_o
+                    HdlValueInt: 1
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: state
+                    HdlValueInt: 0001
+    DEL tuple@@ from elifs
+    DEL list@@elifs from 
+    DEL HdlStmBlock@@SEQ from 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc_ready_o
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc_packetin_o
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: spc_stallreq_o
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: state
+                    HdlValueInt: 0001
+
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: spc_ready_o
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: spc_packetin_o
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: spc_stallreq_o
+            HdlStmAssign
+                HdlValueId: spc_req_i
+                HdlValueId: spc2wbm_region
+            HdlStmAssign
+                HdlValueId: spc_atom_i
+                HdlValueId: spc2wbm_atomic
+            HdlStmAssign
+                HdlValueInt: 0010
+                HdlValueId: state
+    INS list@@elifs to 
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: spc_ready_o
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: spc_packetin_o
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: spc_stallreq_o
+            HdlStmAssign
+                HdlValueInt: 0001
+                HdlValueId: state
+    INS tuple@@ to elifs
+    INS tuple@@ to elifs
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: wbm2spc_interrupt_new
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: wbm2spc_valid
+            HdlStmAssign
+                HdlValueInt: 0111
+                HdlValueId: wbm2spc_type
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: wbm2spc_miss
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: wbm2spc_error
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: wbm2spc_nc
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: wbm2spc_thread
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: wbm2spc_way_valid
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: wbm2spc_way
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: wbm2spc_boot_fetch
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: wbm2spc_atomic
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: wbm2spc_pfl
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: spc_stallreq_o
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: wbm2spc_interrupt_new
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: spc_ready_o
+            HdlStmAssign
+                HdlValueId: wbm2spc_packet
+                HdlValueId: spc_packetin_o
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: spc_stallreq_o
+            HdlStmAssign
+                HdlValueInt: 0001
+                HdlValueId: state
+
+DEL HdlStmIf@@ from body
+
+
+CommitId: 9d64c41af1edcb2c62f1f39bf406182a17c28f5c
+User Chris "gaterocket" corrected a couple of errors for FPGA boards: blocking assignments and two uninitialized variables.
+--- a/hdl/rtl/s1_top/spc2wbm.v
++++ b/hdl/rtl/s1_top/spc2wbm.v
+@@ -528,19 +539,20 @@ module spc2wbm (
+       end else if(state==`STATE_ACCESS3_BEGIN) begin
+ 
+         // Return the packet to the SPARC Core
+-        spc_ready_o = 1;
+-        spc_packetin_o = wbm2spc_packet;
++        spc_ready_o <= 1;
++        spc_packetin_o <= wbm2spc_packet;
+ 
+         // Issue a third request on the Wishbone bus
+-        wbm_cycle_o = 1;
+-        wbm_strobe_o = 1;
+-        wbm_we_o = 0;
+-        wbm_addr_o = { spc2wbm_region, 19'b0, spc2wbm_addr[`PCX_AD_HI-`PCX_AD_LO:5], 5'b10000 };  // 3nd doubleword inside the same 256-bit data
+-        wbm_data_o = 64'b0;
+-        wbm_sel_o = 8'b11111111;
++        wbm_cycle_o <= 1;
++        wbm_strobe_o <= 1;
++        wbm_we_o <= 0;
++        wbm_addr_o <= { spc2wbm_region, 19'b0, spc2wbm_addr[`PCX_AD_HI-`PCX_AD_LO:5], 5'b10000 };  // 3nd doubleword inside the same 256-bit data
++        wbm_data_o <= 64'b0;
++        wbm_sel_o <= 8'b11111111;
+ 
+ // synopsys translate_off
+         // Print details of return packet
++`ifdef DEBUG
+         $display("INFO: WBM2SPC: *** RETURN PACKET TO SPARC CORE ***");	 
+         $display("INFO: WBM2SPC: Valid bit is %X", wbm2spc_valid);
+         case(wbm2spc_type)
+
+ParseResult:
+INS HdlStmAssign@@ to body
+
+INS HdlStmAssign@@ to body
+
+INS HdlStmAssign@@ to body
+
+INS HdlStmAssign@@ to body
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueId@@wbm_data_o to 
+
+INS HdlStmAssign@@ to body
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueInt@@0 to 
+
+INS HdlStmAssign@@if_true to 
+
+INS HdlStmAssign@@if_false to 
+
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            MOV HdlValueInt@@1 to ops
+            HdlValueInt: 1
+            DEL HdlValueId@@wbm_we_o from ops
+            DEL list@@ops from ASSIGN
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueId@@wbm_sel_o to wbm_we_o
+            MOV HdlValueId@@wbm_sel_o to ops
+            HdlValueId: wbm_sel_o
+            MOV HdlValueInt@@00000000 to ops
+            HdlValueInt: 00000000
+            DEL list@@ops from ASSIGN
+        DEL HdlOp@@ASSIGN from body
+        DEL HdlOp@@ASSIGN from body
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            MOV HdlValueId@@wbm_we_o to ops
+            HdlValueId: wbm_we_o
+            DEL HdlValueInt@@0 from ops
+            DEL list@@ops from ASSIGN
+        DEL HdlOp@@ASSIGN from body
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            MOV HdlValueId@@wbm_we_o to ops
+            HdlValueId: wbm_we_o
+            DEL HdlValueInt@@1 from ops
+            DEL list@@ops from ASSIGN
+        DEL HdlOp@@ASSIGN from body
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: wbm_we_o
+                HdlValueInt: 0
+        DEL list@@body from SEQ
+
+UPD HdlStmAssign@@if_true to if_true
+    INS HdlValueId@@wbm_sel_o to if_true
+
+INS HdlStmAssign@@ to body
+
+INS HdlStmAssign@@ to 
+
+INS HdlStmAssign@@ to 
+
+
+CommitId: 9d64c41af1edcb2c62f1f39bf406182a17c28f5c
+User Chris "gaterocket" corrected a couple of errors for FPGA boards: blocking assignments and two uninitialized variables.
+--- a/hdl/rtl/s1_top/spc2wbm.v
++++ b/hdl/rtl/s1_top/spc2wbm.v
+@@ -559,51 +571,52 @@ module spc2wbm (
+         $display("INFO: WBM2SPC: Atomic LD/ST or 2nd IFill Packet is %X", wbm2spc_atomic);
+         $display("INFO: WBM2SPC: PFL is %X", wbm2spc_pfl); 
+         $display("INFO: WBM2SPC: Data is %X", wbm2spc_data);
++`endif
+ // synopsys translate_on
+ 
+         // Unconditional state change
+-        state = `STATE_ACCESS3_END;
++        state <= `STATE_ACCESS3_END;
+ 
+       // FSM State 8: STATE_ACCESS3_END
+       // Latch the second data returning from Wishbone when ready
+       end else if(state==`STATE_ACCESS3_END) begin
+ 
+         // Clear previously modified outputs
+-        spc_ready_o = 0;
++        spc_ready_o <= 0;
+ 
+         // Wait until Wishbone access completes
+         if(wbm_ack_i==1) begin
+ 
+           // Clear previously modified outputs
+-          if(spc2wbm_atomic==0) wbm_cycle_o = 0;
+-          wbm_strobe_o = 0;
+-          wbm_we_o = 0;
+-          wbm_addr_o = 64'b0;
+-          wbm_data_o = 64'b0;
+-          wbm_sel_o = 8'b0;
++          if(spc2wbm_atomic==0) wbm_cycle_o <= 0;
++          wbm_strobe_o <= 0;
++          wbm_we_o <= 0;
++          wbm_addr_o <= 64'b0;
++          wbm_data_o <= 64'b0;
++          wbm_sel_o <= 8'b0;
+ 
+           // Latch the data and set up the return packet for the SPARC Core
+-          wbm2spc_data = { wbm_data_i, 64'b0 };
++          wbm2spc_data <= { wbm_data_i, 64'b0 };
+ 
+           // Jump to next state
+-          state = `STATE_ACCESS4_BEGIN;
++          state <= `STATE_ACCESS4_BEGIN;
+ 
+-        end else state = `STATE_ACCESS3_END;
++        end else state <= `STATE_ACCESS3_END;
+ 
+       // FSM State 9: STATE_ACCESS4_BEGIN
+       // If needed start a second read access to the Wishbone bus
+       end else if(state==`STATE_ACCESS4_BEGIN) begin
+ 
+         // Issue a fourth request on the Wishbone bus
+-        wbm_cycle_o = 1;
+-        wbm_strobe_o = 1;
+-        wbm_we_o = 0;
+-        wbm_addr_o = { spc2wbm_region, 19'b0, spc2wbm_addr[`PCX_AD_HI-`PCX_AD_LO:5], 5'b11000 };  // 4th doubleword inside the same 256-bit data
+-        wbm_data_o = 64'b0;
+-        wbm_sel_o = 8'b11111111;
++        wbm_cycle_o <= 1;
++        wbm_strobe_o <= 1;
++        wbm_we_o <= 0;
++        wbm_addr_o <= { spc2wbm_region, 19'b0, spc2wbm_addr[`PCX_AD_HI-`PCX_AD_LO:5], 5'b11000 };  // 4th doubleword inside the same 256-bit data
++        wbm_data_o <= 64'b0;
++        wbm_sel_o <= 8'b11111111;
+ 
+         // Unconditional state change
+-        state = `STATE_ACCESS4_END;
++        state <= `STATE_ACCESS4_END;
+ 
+       // FSM State 10: STATE_ACCESS4_END
+       // Latch the second data returning from Wishbone when ready
+
+ParseResult:
+INS HdlStmAssign@@ to body
+
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            MOV HdlValueInt@@1 to ops
+            HdlValueInt: 1
+            DEL HdlValueId@@wbm_we_o from ops
+            DEL list@@ops from ASSIGN
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueId@@wbm_sel_o to wbm_we_o
+            MOV HdlValueId@@wbm_sel_o to ops
+            HdlValueId: wbm_sel_o
+            MOV HdlValueInt@@00000000 to ops
+            HdlValueInt: 00000000
+            DEL list@@ops from ASSIGN
+        DEL HdlOp@@ASSIGN from body
+        DEL HdlOp@@ASSIGN from body
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            MOV HdlValueId@@wbm_we_o to ops
+            HdlValueId: wbm_we_o
+            DEL HdlValueInt@@0 from ops
+            DEL list@@ops from ASSIGN
+        DEL HdlOp@@ASSIGN from body
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            MOV HdlValueId@@wbm_we_o to ops
+            HdlValueId: wbm_we_o
+            DEL HdlValueInt@@1 from ops
+            DEL list@@ops from ASSIGN
+        DEL HdlOp@@ASSIGN from body
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: wbm_we_o
+                HdlValueInt: 0
+        DEL list@@body from SEQ
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueId@@wbm_sel_o to 
+
+UPD HdlStmAssign@@default to default
+    INS HdlValueInt@@00000000 to default
+
+UPD HdlStmCase@@spc2wbm_size to spc2wbm_size
+    UPD HdlOp@@ASSIGN to ASSIGN
+        MOV HdlValueId@@wbm_sel_o to ops
+        HdlValueId: wbm_sel_o
+        DEL HdlValueInt@@00000000 from ops
+        DEL list@@ops from ASSIGN
+    UPD HdlOp@@ASSIGN to ASSIGN
+        MOV HdlOp@@SLL to ops
+        HdlOp: SLL
+            list: ops
+                HdlValueInt: 1
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: spc2wbm_addr
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 2
+                                HdlValueInt: 0
+        DEL HdlValueId@@wbm_sel_o from ops
+        DEL list@@ops from ASSIGN
+    UPD HdlOp@@ASSIGN to ASSIGN
+        MOV HdlOp@@SLL to ops
+        HdlOp: SLL
+            list: ops
+                HdlValueInt: 11
+                HdlOp: SLL
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: spc2wbm_addr
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 2
+                                        HdlValueInt: 1
+                        HdlValueInt: 1
+        DEL HdlValueId@@wbm_sel_o from ops
+        DEL list@@ops from ASSIGN
+    UPD HdlOp@@ASSIGN to ASSIGN
+        MOV HdlOp@@SLL to ops
+        HdlOp: SLL
+            list: ops
+                HdlValueInt: 1111
+                HdlOp: SLL
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: spc2wbm_addr
+                                HdlValueInt: 2
+                        HdlValueInt: 2
+        DEL HdlValueId@@wbm_sel_o from ops
+        DEL list@@ops from ASSIGN
+    UPD HdlOp@@ASSIGN to ASSIGN
+        MOV HdlValueId@@wbm_sel_o to ops
+        HdlValueId: wbm_sel_o
+        DEL HdlValueInt@@11111111 from ops
+        DEL list@@ops from ASSIGN
+    UPD HdlOp@@ASSIGN to ASSIGN
+        MOV HdlValueId@@wbm_sel_o to ops
+        HdlValueId: wbm_sel_o
+        DEL HdlValueInt@@11111111 from ops
+        DEL list@@ops from ASSIGN
+    DEL HdlOp@@ASSIGN from 
+    DEL HdlOp@@ASSIGN from 
+    DEL HdlOp@@ASSIGN from 
+    DEL HdlOp@@ASSIGN from 
+    DEL HdlOp@@ASSIGN from 
+    DEL HdlOp@@ASSIGN from spc2wbm_size
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueInt@@11111111 to 
+
+
+CommitId: e7d4adef0543995f7fc54910a9a37859e188782a
+Corrected the bug about the packet format, now we are near to perfection...
+--- a/hdl/rtl/s1_top/spc2wbm.v
++++ b/hdl/rtl/s1_top/spc2wbm.v
+@@ -40,7 +40,7 @@ module spc2wbm (
+   // System inputs
+   input sys_clock_i;                            // System Clock
+   input sys_reset_i;                            // System Reset
+-  input[5:0] sys_interrupt_source_i;            // Interrupt Requests
++  input[5:0] sys_interrupt_source_i;            // Encoded Interrupt Source
+ 
+   // SPARC-side inputs connected to the PCX (Processor-to-Cache Xbar) outputs of the SPARC Core
+   input[4:0] spc_req_i;                         // Request
+
+ParseResult:
+MOV HdlStmIf@@ to body
+HdlStmIf
+    HdlOp: EQ
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: spc2wbm_addr
+                    HdlValueInt: 3
+            HdlValueInt: 0
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: wbm2spc_data
+            HdlOp: CONCAT
+                list: ops
+                    HdlValueId: wbm_data_i
+                    HdlValueInt: 0
+    list: elifs
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: wbm2spc_data
+            HdlOp: CONCAT
+                list: ops
+                    HdlValueInt: 0
+                    HdlValueId: wbm_data_i
+
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: wbm2spc_nc
+                HdlValueId: spc2wbm_nc
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: wbm2spc_way_valid
+                HdlValueInt: 0
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: wbm2spc_way
+                HdlValueInt: 0
+
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: wbm2spc_rnwd_or_ncif
+                HdlValueId: spc2wbm_rnwd_or_ncif
+
+
+CommitId: e7d4adef0543995f7fc54910a9a37859e188782a
+Corrected the bug about the packet format, now we are near to perfection...
+--- a/hdl/rtl/s1_top/spc2wbm.v
++++ b/hdl/rtl/s1_top/spc2wbm.v
+@@ -111,19 +110,17 @@ module spc2wbm (
+   wire spc2wbm_req;                                                     // Request
+   wire spc2wbm_valid;                                                   // Valid
+   wire[(`PCX_RQ_HI-`PCX_RQ_LO):0] spc2wbm_type;                         // Request type
+-  wire spc2wbm_rnwd_or_ncif;                                            // Read-Not-Write Data or Non-Cacheable Instruction Fetch
++  wire spc2wbm_nc;                                                      // Non-Cacheable
+   wire[(`PCX_CP_HI-`PCX_CP_LO):0] spc2wbm_cpu_id;                       // CPU ID
+   wire[(`PCX_TH_HI-`PCX_TH_LO):0] spc2wbm_thread;                       // Thread
+-  wire[(`PCX_BF_HI-`PCX_BF_LO):0] spc2wbm_buffer;                       // Buffer
+-  wire[(`PCX_P_HI-`PCX_P_LO):0] spc2wbm_packet_id;                      // Packet ID
++  wire spc2wbm_invalidate;                                              // Invalidate all
++  wire[(`PCX_WY_HI-`PCX_WY_LO):0] spc2wbm_way;                          // Replaced L1 Way
+   wire[(`PCX_SZ_HI-`PCX_SZ_LO):0] spc2wbm_size;                         // Load/Store size
+-  wire[(`PCX_ERR_HI-`PCX_ERR_LO):0] spc2wbm_error;                      // Error
+   wire[(`PCX_AD_HI-`PCX_AD_LO):0] spc2wbm_addr;                         // Address
+   wire[(`PCX_DA_HI-`PCX_DA_LO):0] spc2wbm_data;                         // Store Data
+ 
+   // Return packets assembled with various fields
+-  wire[`CPX_WIDTH-1:0] wbm2spc_packet_dat;                              // Incoming Packet - Data
+-  wire[`CPX_WIDTH-1:0] wbm2spc_packet_int;                              // Incoming Packet - Interrupt
++  wire[`CPX_WIDTH-1:0] wbm2spc_packet;                                  // Incoming Packet
+ 
+   /*
+    * Encode/decode incoming info
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@CALL to 
+    HdlOp: CALL
+        list: ops
+            HdlValueId: $display
+            str
+    DEL HdlOp@@EQ from 
+    HdlOp: EQ
+        list: ops
+            HdlValueId: wbm2spc_valid
+            HdlValueInt: 1
+    DEL list@@elifs from 
+    DEL HdlOp@@CALL from 
+    HdlOp: CALL
+        list: ops
+            HdlValueId: $display
+            str
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@CALL to 
+    HdlOp: CALL
+        list: ops
+            HdlValueId: $display
+            str
+    DEL HdlOp@@EQ from 
+    HdlOp: EQ
+        list: ops
+            HdlValueId: wbm2spc_rnwd_or_ncif
+            HdlValueInt: 1
+    DEL HdlOp@@CALL from 
+    HdlOp: CALL
+        list: ops
+            HdlValueId: $display
+            str
+    DEL list@@elifs from 
+
+DEL HdlStmIf@@ from body
+
+UPD HdlStmIf@@ to 
+    DEL HdlOp@@EQ from 
+    HdlOp: EQ
+        list: ops
+            HdlValueId: wbm2spc_type
+            HdlValueInt: 0001
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL list@@body from SEQ
+    DEL HdlStmBlock@@SEQ from 
+    DEL list@@elifs from 
+    DEL HdlStmBlock@@SEQ from 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlOp: EQ
+                    list: ops
+                        HdlValueId: spc2wbm_rnwd_or_ncif
+                        HdlValueInt: 1
+                HdlOp: CALL
+                    list: ops
+                        HdlValueId: $display
+                        str
+                list: elifs
+                HdlOp: CALL
+                    list: ops
+                        HdlValueId: $display
+                        str
+
+DEL HdlStmIf@@ from body
+
+DEL HdlStmIf@@ from body
+
+
+CommitId: e7d4adef0543995f7fc54910a9a37859e188782a
+Corrected the bug about the packet format, now we are near to perfection...
+--- a/hdl/rtl/s1_top/spc2wbm.v
++++ b/hdl/rtl/s1_top/spc2wbm.v
+@@ -151,24 +148,18 @@ module spc2wbm (
+   assign spc2wbm_req = ( spc_req_i[4] | spc_req_i[3] | spc_req_i[2] | spc_req_i[1] | spc_req_i[0] );
+   assign spc2wbm_valid = spc2wbm_packet[`PCX_VLD];
+   assign spc2wbm_type = spc2wbm_packet[`PCX_RQ_HI:`PCX_RQ_LO];
+-  assign spc2wbm_rnwd_or_ncif = spc2wbm_packet[`PCX_R];
++  assign spc2wbm_nc = spc2wbm_packet[`PCX_NC];
+   assign spc2wbm_cpu_id = spc2wbm_packet[`PCX_CP_HI:`PCX_CP_LO];
+   assign spc2wbm_thread = spc2wbm_packet[`PCX_TH_HI:`PCX_TH_LO];
+-  assign spc2wbm_buffer = spc2wbm_packet[`PCX_BF_HI:`PCX_BF_LO];
+-  assign spc2wbm_packet_id = spc2wbm_packet[`PCX_P_HI:`PCX_P_LO];
++  assign spc2wbm_invalidate = spc2wbm_packet[`PCX_INVALL];
++  assign spc2wbm_way = spc2wbm_packet[`PCX_WY_HI:`PCX_WY_LO];
+   assign spc2wbm_size = spc2wbm_packet[`PCX_SZ_HI:`PCX_SZ_LO];
+-  assign spc2wbm_error = spc2wbm_packet[`PCX_ERR_HI:`PCX_ERR_LO];
+   assign spc2wbm_addr = spc2wbm_packet[`PCX_AD_HI:`PCX_AD_LO];
+   assign spc2wbm_data = spc2wbm_packet[`PCX_DA_HI:`PCX_DA_LO];
+ 
+   // Encode info going to the SPC side assembling return packets
+-  assign wbm2spc_packet_dat = { wbm2spc_valid, wbm2spc_type, wbm2spc_error,
+-    wbm2spc_rnwd_or_ncif, wbm2spc_thread, 2'b00, wbm2spc_packet_id,
+-    2'b00, wbm2spc_data };
+-  assign wbm2spc_packet_int = { wbm2spc_valid, wbm2spc_type, wbm2spc_error,
+-    wbm2spc_rnwd_or_ncif, wbm2spc_thread, wbm2spc_interrupt_source,
+-    111'b0, wbm2spc_reset_not_int, 3'b0, wbm2spc_virtual_cpu_target,
+-    2'b0, wbm2spc_intsrc_or_resettype };
++  assign wbm2spc_packet = { wbm2spc_valid, wbm2spc_type, wbm2spc_error, wbm2spc_nc,
++    wbm2spc_thread, wbm2spc_way_valid, wbm2spc_way, 3'b100, wbm2spc_data };
+ 
+   /*
+    * State Machine
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@CALL to 
+    HdlOp: CALL
+        list: ops
+            HdlValueId: $display
+            str
+    DEL HdlOp@@EQ from 
+    HdlOp: EQ
+        list: ops
+            HdlValueId: wbm2spc_valid
+            HdlValueInt: 1
+    DEL list@@elifs from 
+    DEL HdlOp@@CALL from 
+    HdlOp: CALL
+        list: ops
+            HdlValueId: $display
+            str
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@CALL to 
+    HdlOp: CALL
+        list: ops
+            HdlValueId: $display
+            str
+    DEL HdlOp@@EQ from 
+    HdlOp: EQ
+        list: ops
+            HdlValueId: wbm2spc_rnwd_or_ncif
+            HdlValueInt: 1
+    DEL HdlOp@@CALL from 
+    HdlOp: CALL
+        list: ops
+            HdlValueId: $display
+            str
+    DEL list@@elifs from 
+
+DEL HdlStmIf@@ from body
+
+UPD HdlStmIf@@ to 
+    DEL HdlOp@@EQ from 
+    HdlOp: EQ
+        list: ops
+            HdlValueId: wbm2spc_type
+            HdlValueInt: 0001
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL list@@body from SEQ
+    DEL HdlStmBlock@@SEQ from 
+    DEL list@@elifs from 
+    DEL HdlStmBlock@@SEQ from 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlOp: EQ
+                    list: ops
+                        HdlValueId: spc2wbm_rnwd_or_ncif
+                        HdlValueInt: 1
+                HdlOp: CALL
+                    list: ops
+                        HdlValueId: $display
+                        str
+                list: elifs
+                HdlOp: CALL
+                    list: ops
+                        HdlValueId: $display
+                        str
+
+DEL HdlStmIf@@ from body
+
+DEL HdlStmIf@@ from body
+
+
+CommitId: e7d4adef0543995f7fc54910a9a37859e188782a
+Corrected the bug about the packet format, now we are near to perfection...
+--- a/hdl/rtl/s1_top/spc2wbm.v
++++ b/hdl/rtl/s1_top/spc2wbm.v
+@@ -369,12 +367,16 @@ module spc2wbm (
+             default: wbm_sel_o = 8'b00000000;
+           endcase
+ 
++        end else begin
++
++          wbm_we_o = 1;
++          wbm_sel_o = 8'b00000000;
++
+         end
+ 
+ // synopsys translate_off
+         // Print details of request packet
+-        if(spc2wbm_valid==1) $display("INFO: SPC2WBM: Request has valid bit");
+-        else $display("INFO: SPC2WBM: Request has not valid bit");
++        $display("INFO: SPC2WBM: Valid bit is %X", spc2wbm_valid);
+         case(spc2wbm_type)
+           `LOAD_RQ: $display("INFO: SPC2WBM: Request of Type LOAD_RQ");
+           `IMISS_RQ: $display("INFO: SPC2WBM: Request of Type IMISS_RQ");
+
+ParseResult:
+UPD HdlIdDef@@wbm2spc_reset_not_int to wbm2spc_way_valid
+
+UPD HdlIdDef@@spc2wbm_packet_id to spc2wbm_way
+
+DEL HdlIdDef@@wbm2spc_interrupt_source from objs
+HdlIdDef: wbm2spc_interrupt_source
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueInt: 133
+                            HdlValueInt: 128
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@wbm2spc_virtual_cpu_target from objs
+HdlIdDef: wbm2spc_virtual_cpu_target
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 4
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@wbm2spc_intsrc_or_resettype from objs
+HdlIdDef: wbm2spc_intsrc_or_resettype
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueInt: 133
+                            HdlValueInt: 128
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@wbm2spc_new_irq from objs
+HdlIdDef: wbm2spc_new_irq
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueInt: 133
+                            HdlValueInt: 128
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@spc2wbm_rnwd_or_ncif from objs
+HdlIdDef: spc2wbm_rnwd_or_ncif
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@spc2wbm_buffer from objs
+HdlIdDef: spc2wbm_buffer
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueInt: 111
+                            HdlValueInt: 109
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+
+CommitId: e7d4adef0543995f7fc54910a9a37859e188782a
+Corrected the bug about the packet format, now we are near to perfection...
+--- a/hdl/rtl/s1_top/spc2wbm.v
++++ b/hdl/rtl/s1_top/spc2wbm.v
+@@ -390,18 +392,12 @@ module spc2wbm (
+           `FWD_RPY: $display("INFO: SPC2WBM: Request of Type FWD_RPY");
+           `RSVD_RQ: $display("INFO: SPC2WBM: Request of Type RSVD_RQ");
+           default: $display("INFO: SPC2WBM: Request of Type Unknown");
+-        endcase
+-        if(spc2wbm_type==`IMISS_RQ) begin
+-          if(spc2wbm_rnwd_or_ncif==1) $display("INFO: SPC2WBM: Request is Non-Cacheable");
+-          else $display("INFO: SPC2WBM: Request is Cacheable");
+-        end else begin
+-          if(spc2wbm_rnwd_or_ncif==1) $display("INFO: SPC2WBM: Request is a Read Access");
+-          else $display("INFO: SPC2WBM: Request is a Write Access");
+-        end
+-        $display("INFO: SPC2WBM: CPU ID is %X", spc2wbm_cpu_id);
++	endcase
++        $display("INFO: SPC2WBM: Non-Cacheable is %X", spc2wbm_nc);
++        $display("INFO: SPC2WBM: CPU-ID is %X", spc2wbm_cpu_id);
+         $display("INFO: SPC2WBM: Thread is %X", spc2wbm_thread);
+-        $display("INFO: SPC2WBM: Buffer is %X", spc2wbm_buffer);
+-        $display("INFO: SPC2WBM: Packet ID is %X", spc2wbm_packet_id);
++        $display("INFO: SPC2WBM: Invalidate All is %X", spc2wbm_invalidate);
++        $display("INFO: SPC2WBM: Replaced L1 Way is %X", spc2wbm_way);
+         case(spc2wbm_size)
+           `PCX_SZ_1B: $display("INFO: SPC2WBM: Request size is 1 Byte");
+           `PCX_SZ_2B: $display("INFO: SPC2WBM: Request size is 2 Bytes");
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@spc2wbm_rnwd_or_ncif to spc2wbm_nc
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@spc2wbm_packet_id to spc2wbm_way
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@CONCAT to CONCAT
+                UPD HdlOp@@CONCAT to CONCAT
+                    INS HdlValueId@@wbm2spc_way_valid to ops
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: spc2wbm_packet
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 111
+                    HdlValueInt: 109
+    HdlValueId: spc2wbm_buffer
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: spc2wbm_packet
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 106
+                    HdlValueInt: 104
+    HdlValueId: spc2wbm_error
+
+
+CommitId: e7d4adef0543995f7fc54910a9a37859e188782a
+Corrected the bug about the packet format, now we are near to perfection...
+--- a/hdl/rtl/s1_top/spc2wbm.v
++++ b/hdl/rtl/s1_top/spc2wbm.v
+@@ -410,7 +406,6 @@ module spc2wbm (
+           `PCX_SZ_16B: $display("INFO: SPC2WBM: Request size is 16 Bytes");
+           default: $display("INFO: SPC2WBM: Request size is Unknown");
+         endcase
+-        $display("INFO: SPC2WBM: Error is %X", spc2wbm_error);
+         $display("INFO: SPC2WBM: Address is %X", spc2wbm_addr);
+         $display("INFO: SPC2WBM: Data is %X", spc2wbm_data);
+         $display("INFO: SPC2WBM: Request forwarded from SPARC Core to Wishbone Master");
+
+ParseResult:
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: spc2wbm_packet
+            HdlValueInt: 111
+    HdlValueId: spc2wbm_invalidate
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@wbm2spc_packet_dat to wbm2spc_packet
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlValueInt@@00 to 100
+            UPD HdlOp@@CONCAT to CONCAT
+                UPD HdlValueId@@wbm2spc_packet_id to wbm2spc_way
+                UPD HdlOp@@CONCAT to CONCAT
+                    UPD HdlOp@@CONCAT to CONCAT
+                        UPD HdlOp@@CONCAT to CONCAT
+                            UPD HdlValueId@@wbm2spc_rnwd_or_ncif to wbm2spc_nc
+                    DEL HdlValueInt@@00 from ops
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlOp: CONCAT
+        list: ops
+            HdlOp: CONCAT
+                list: ops
+                    HdlOp: CONCAT
+                        list: ops
+                            HdlOp: CONCAT
+                                list: ops
+                                    HdlOp: CONCAT
+                                        list: ops
+                                            HdlOp: CONCAT
+                                                list: ops
+                                                    HdlOp: CONCAT
+                                                        list: ops
+                                                            HdlOp: CONCAT
+                                                                list: ops
+                                                                    HdlOp: CONCAT
+                                                                        list: ops
+                                                                            HdlOp: CONCAT
+                                                                                list: ops
+                                                                                    HdlOp: CONCAT
+                                                                                        list: ops
+                                                                                            HdlValueId: wbm2spc_valid
+                                                                                            HdlValueId: wbm2spc_type
+                                                                                    HdlValueId: wbm2spc_error
+                                                                            HdlValueId: wbm2spc_rnwd_or_ncif
+                                                                    HdlValueId: wbm2spc_thread
+                                                            HdlValueId: wbm2spc_interrupt_source
+                                                    HdlValueInt: 0
+                                            HdlValueId: wbm2spc_reset_not_int
+                                    HdlValueInt: 0
+                            HdlValueId: wbm2spc_virtual_cpu_target
+                    HdlValueInt: 0
+            HdlValueId: wbm2spc_intsrc_or_resettype
+    HdlValueId: wbm2spc_packet_int
+
+
+CommitId: e7d4adef0543995f7fc54910a9a37859e188782a
+Corrected the bug about the packet format, now we are near to perfection...
+--- a/hdl/rtl/s1_top/spc2wbm.v
++++ b/hdl/rtl/s1_top/spc2wbm.v
+@@ -520,7 +511,7 @@ module spc2wbm (
+ 
+         // Return the packet to the SPARC Core
+         spc_ready_o = 1;
+-        spc_packetin_o = wbm2spc_packet_dat;
++        spc_packetin_o = wbm2spc_packet;
+ 
+         // Issue a third request on the Wishbone bus
+         wbm_cycle_o = 1;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm_we_o
+                    HdlValueInt: 1
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm_sel_o
+                    HdlValueInt: 00000000
+    INS tuple@@ to elifs
+    INS tuple@@ to elifs
+    INS HdlOp@@EQ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: wbm_we_o
+                HdlValueInt: 0
+    UPD HdlOp@@EQ to EQ
+        INS HdlValueId@@spc2wbm_type to ops
+        INS HdlValueInt@@00000 to ops
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS HdlValueInt@@1 to ops
+
+
+CommitId: e7d4adef0543995f7fc54910a9a37859e188782a
+Corrected the bug about the packet format, now we are near to perfection...
+--- a/hdl/rtl/s1_top/spc2wbm.v
++++ b/hdl/rtl/s1_top/spc2wbm.v
+@@ -532,24 +523,18 @@ module spc2wbm (
+ 
+ // synopsys translate_off
+         // Print details of return packet
+-        if(wbm2spc_valid==1) $display("INFO: WBM2SPC: Return packet has valid bit");
+-        else $display("INFO: WBM2SPC: Return packet has not valid bit");
++        $display("INFO: WBM2SPC: Return packet has valid bit %X", wbm2spc_valid);
+         case(wbm2spc_type)
+           `IFILL_RET: $display("INFO: WBM2SPC: Return Packet of Type IFILL_RET");
+           `LOAD_RET: $display("INFO: WBM2SPC: Return Packet of Type LOAD_RET");
+           `ST_ACK: $display("INFO: WBM2SPC: Return Packet of Type ST_ACK");
+           default: $display("INFO: WBM2SPC: Return Packet of Type Unknown");
+         endcase
+-        if(wbm2spc_type==`IFILL_RET) begin
+-          if(wbm2spc_rnwd_or_ncif==1) $display("INFO: WBM2SPC: Return Packet is Non-Cacheable");
+-          else $display("INFO: WBM2SPC: Return Packet is Cacheable");
+-        end else begin
+-          if(spc2wbm_rnwd_or_ncif==1) $display("INFO: WBM2SPC: Return Packet is a Read Access");
+-          else $display("INFO: WBM2SPC: Return Packet is a Write Access");
+-        end
+-        $display("INFO: WBM2SPC: Thread is %X", wbm2spc_thread);
+-        $display("INFO: WBM2SPC: Packet ID is %X", wbm2spc_packet_id);
+         $display("INFO: WBM2SPC: Error is %X", wbm2spc_error);
++        $display("INFO: WBM2SPC: Non-Cacheable is %X", wbm2spc_nc);
++        $display("INFO: WBM2SPC: Thread is %X", wbm2spc_thread);
++        $display("INFO: WBM2SPC: Way Valid is %X", wbm2spc_way_valid);
++        $display("INFO: WBM2SPC: Replaced L2 Way is %X", wbm2spc_way);
+         $display("INFO: WBM2SPC: Data is %X", wbm2spc_data);
+         $display("INFO: WBM2SPC: Return Packet forwarded from Wishbone Master to SPARC Core");
+ // synopsys translate_on
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@CALL to 
+    HdlOp: CALL
+        list: ops
+            HdlValueId: $display
+            str
+    MOV HdlOp@@EQ to 
+    HdlOp: EQ
+        list: ops
+            HdlValueId: spc2wbm_valid
+            HdlValueInt: 1
+    UPD HdlOp@@EQ to EQ
+        UPD HdlValueId@@spc2wbm_valid to spc2wbm_type
+        UPD HdlValueInt@@1 to 00001
+    DEL HdlOp@@CALL from 
+    HdlOp: CALL
+        list: ops
+            HdlValueId: $display
+            str
+    DEL list@@elifs from 
+
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm_we_o
+                    HdlValueInt: 1
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm_sel_o
+                    HdlValueInt: 00000000
+    INS tuple@@ to elifs
+    INS tuple@@ to elifs
+    INS HdlOp@@EQ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: wbm_we_o
+                HdlValueInt: 0
+    UPD HdlOp@@EQ to EQ
+        INS HdlValueId@@spc2wbm_type to ops
+        INS HdlValueInt@@00000 to ops
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS HdlValueInt@@1 to ops
+
+UPD HdlStmIf@@ to 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: wbm_we_o
+                    HdlOp: NEG_LOG
+                        list: ops
+                            HdlValueId: spc2wbm_rnwd_or_ncif
+            HdlStmCase: spc2wbm_size
+                HdlStmCaseType: CASE
+                HdlValueId: spc2wbm_size
+                list: cases
+                    tuple
+                        HdlValueInt: 000
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: wbm_sel_o
+                                HdlOp: SLL
+                                    list: ops
+                                        HdlValueInt: 1
+                                        HdlOp: INDEX
+                                            list: ops
+                                                HdlValueId: spc2wbm_addr
+                                                HdlOp: DOWNTO
+                                                    list: ops
+                                                        HdlValueInt: 2
+                                                        HdlValueInt: 0
+                    tuple
+                        HdlValueInt: 001
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: wbm_sel_o
+                                HdlOp: SLL
+                                    list: ops
+                                        HdlValueInt: 11
+                                        HdlOp: SLL
+                                            list: ops
+                                                HdlOp: INDEX
+                                                    list: ops
+                                                        HdlValueId: spc2wbm_addr
+                                                        HdlOp: DOWNTO
+                                                            list: ops
+                                                                HdlValueInt: 2
+                                                                HdlValueInt: 1
+                                                HdlValueInt: 1
+                    tuple
+                        HdlValueInt: 010
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: wbm_sel_o
+                                HdlOp: SLL
+                                    list: ops
+                                        HdlValueInt: 1111
+                                        HdlOp: SLL
+                                            list: ops
+                                                HdlOp: INDEX
+                                                    list: ops
+                                                        HdlValueId: spc2wbm_addr
+                                                        HdlValueInt: 2
+                                                HdlValueInt: 2
+                    tuple
+                        HdlValueInt: 011
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: wbm_sel_o
+                                HdlValueInt: 11111111
+                    tuple
+                        HdlValueInt: 111
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: wbm_sel_o
+                                HdlValueInt: 11111111
+                HdlOp: ASSIGN
+                    list: ops
+                        HdlValueId: wbm_sel_o
+                        HdlValueInt: 00000000
+    UPD list@@elifs to ops
+    MOV list@@elifs to 
+    list: elifs
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@NEG_LOG to INDEX
+            MOV HdlOp@@NEG_LOG to ops
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlValueId: spc2wbm_rnwd_or_ncif
+            UPD HdlOp@@NEG_LOG to NEG_LOG
+                UPD HdlValueId@@spc2wbm_rnwd_or_ncif to spc2wbm_addr
+
+UPD HdlStmCase@@spc2wbm_size to spc2wbm_size
+    INS HdlStmCaseType@@CASE to spc2wbm_size
+    INS HdlValueId@@spc2wbm_size to spc2wbm_size
+    INS list@@cases to spc2wbm_size
+    INS HdlOp@@ASSIGN to spc2wbm_size
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: wbm_sel_o
+            HdlValueInt: 00000000
+    INS tuple@@ to cases
+    INS tuple@@ to cases
+    tuple
+        HdlValueInt: 001
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: wbm_sel_o
+                HdlOp: SLL
+                    list: ops
+                        HdlValueInt: 11
+                        HdlOp: SLL
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: spc2wbm_addr
+                                        HdlOp: DOWNTO
+                                            list: ops
+                                                HdlValueInt: 2
+                                                HdlValueInt: 1
+                                HdlValueInt: 1
+    INS tuple@@ to cases
+    tuple
+        HdlValueInt: 010
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: wbm_sel_o
+                HdlOp: SLL
+                    list: ops
+                        HdlValueInt: 1111
+                        HdlOp: SLL
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: spc2wbm_addr
+                                        HdlValueInt: 2
+                                HdlValueInt: 2
+    INS tuple@@ to cases
+    tuple
+        HdlValueInt: 011
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: wbm_sel_o
+                HdlValueInt: 11111111
+    INS tuple@@ to cases
+    tuple
+        HdlValueInt: 111
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: wbm_sel_o
+                HdlValueInt: 11111111
+    INS HdlValueInt@@000 to 
+    INS HdlOp@@ASSIGN to 
+    UPD HdlOp@@ASSIGN to ASSIGN
+        INS list@@ops to ASSIGN
+        INS HdlValueId@@wbm_sel_o to ops
+        INS HdlOp@@SLL to ops
+        UPD HdlOp@@SLL to SLL
+            INS list@@ops to SLL
+            INS HdlValueInt@@1 to ops
+            UPD HdlOp@@INDEX to INDEX
+                INS HdlOp@@DOWNTO to ops
+                HdlOp: DOWNTO
+                    list: ops
+                        HdlValueInt: 2
+                        HdlValueInt: 0
+
+DEL HdlStmIf@@ from body
+
+

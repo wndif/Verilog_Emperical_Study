@@ -1,0 +1,1496 @@
+CommitId: ab2fd9b44f84b2d4f91950caaff614c6af4ea724
+Fix shifted keys,
+--- a/rtl/ps2.v
++++ b/rtl/ps2.v
+@@ -526,6 +530,19 @@ begin
+ end
+ 
+ assign rx_shift_key_on = left_shift_key || right_shift_key;
++
++// This bit contains the status of the CTRL key
++always @(posedge clk)
++begin
++  if (reset) ctrl_key <= 0;
++  else if ((q[8:1] == `CTRL_KEY) && rx_shifting_done && ~hold_released)
++    ctrl_key <= 1;
++  else if ((q[8:1] == `CTRL_KEY) && rx_shifting_done && hold_released)
++    ctrl_key <= 0;
++end
++
++assign rx_ctrl_key_on = ctrl_key;
++
+ 
+ // Output the special scan code flags, the scan code and the ascii
+ always @(posedge clk)
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: reset
+                HdlStmAssign: if_true
+                    HdlValueInt: 0
+                    HdlValueId: ctrl_key
+                list: elifs
+                    tuple
+                        HdlOp: AND_LOG
+                            list: ops
+                                HdlOp: AND_LOG
+                                    list: ops
+                                        HdlOp: EQ
+                                            list: ops
+                                                HdlOp: INDEX
+                                                    list: ops
+                                                        HdlValueId: q
+                                                        HdlOp: DOWNTO
+                                                            list: ops
+                                                                HdlValueInt: 8
+                                                                HdlValueInt: 1
+                                                HdlValueInt: 1d
+                                        HdlValueId: rx_shifting_done
+                                HdlOp: NEG
+                                    list: ops
+                                        HdlValueId: hold_released
+                        HdlStmAssign
+                            HdlValueInt: 1
+                            HdlValueId: ctrl_key
+                    tuple
+                        HdlOp: AND_LOG
+                            list: ops
+                                HdlOp: AND_LOG
+                                    list: ops
+                                        HdlOp: EQ
+                                            list: ops
+                                                HdlOp: INDEX
+                                                    list: ops
+                                                        HdlValueId: q
+                                                        HdlOp: DOWNTO
+                                                            list: ops
+                                                                HdlValueInt: 8
+                                                                HdlValueInt: 1
+                                                HdlValueInt: 1d
+                                        HdlValueId: rx_shifting_done
+                                HdlValueId: hold_released
+                        HdlStmAssign
+                            HdlValueInt: 0
+                            HdlValueId: ctrl_key
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlValueId: ctrl_key
+    HdlValueId: rx_ctrl_key_on
+
+
+CommitId: 81c25150f8fa5a17988b122aa568562de8808e85
+Change default mapping.
+--- a/rtl/wb_mmu.v
++++ b/rtl/wb_mmu.v
+@@ -76,18 +76,12 @@ module wb_mmu(
+     mmu_adr_o
+ );
+ 
+-    //
+-    // Default address and data bus width
+-    //
+-    parameter aw = 10; //number of address-bits
+-    parameter dw = 32; //number of data-bits
+-
+     // Wishbone Slave Interface
+     input          clk_i;
+     input          nrst_i;
+-    input [aw-1:0] wbs_adr_i;
+-    output reg [dw-1:0] wbs_dat_o;
+-    input [dw-1:0] wbs_dat_i;
++    input    [1:0] wbs_adr_i;
++    output reg [7:0] wbs_dat_o;
++    input    [7:0] wbs_dat_i;
+     input    [3:0] wbs_sel_i;
+     input          wbs_we_i;
+     input          wbs_stb_i;
+
+ParseResult:
+DEL HdlIdDef@@aw from params
+HdlIdDef: aw
+    HdlValueInt: 10
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@dw from params
+HdlIdDef: dw
+    HdlValueInt: 32
+    HdlDirection: INTERNAL
+
+
+CommitId: 81c25150f8fa5a17988b122aa568562de8808e85
+Change default mapping.
+--- a/rtl/wb_mmu.v
++++ b/rtl/wb_mmu.v
+@@ -160,18 +154,18 @@ module wb_mmu(
+                 endcase
+ 
+             if(wbs_rd) begin
+-                case(wbs_sel_i) // Wishbone Read, decode byte enables to determine register offset.
+-                    4'b0001: begin   // Data L Register
+-                        wbs_dat_o <= {20'b0, mmu_lut[adr_index[3:0]]};
++                case(wbs_adr_i) // Wishbone Read, decode byte enables to determine register offset.
++                    2'h0: begin   // Data L Register
++                        wbs_dat_o <= mmu_lut[adr_index[3:0]][7:0];
+                     end
+-                    4'b0010: begin   // Data H Register
+-                        wbs_dat_o <= {20'b0, mmu_lut[adr_index[3:0]]};
++                    2'h1: begin   // Data H Register
++                        wbs_dat_o <= { 4'h0, mmu_lut[adr_index[3:0]][11:8] };
+                     end
+-                    4'b0100: begin   // Index Register
+-                        wbs_dat_o <= {20'b0, adr_index, 8'b0};
++                    2'h2: begin   // Index Register
++                        wbs_dat_o <= {4'b0, adr_index};
+                     end
+-                    4'b1000: begin   // Lock Register
+-                        wbs_dat_o <= {4'h5, 3'b0, mmu_lock, 24'b0};
++                    2'h3: begin   // Lock Register
++                        wbs_dat_o <= {4'h5, 3'b0, mmu_lock};
+                     end
+                 endcase
+             end
+ParseResult:
+UPD HdlStmCase@@wbs_sel_i to wbs_adr_i
+
+UPD HdlStmCase@@wbs_sel_i to wbs_sel_i
+    UPD HdlValueId@@wbs_sel_i to wbs_adr_i
+    UPD HdlValueInt@@0001 to 0
+    UPD HdlValueInt@@0010 to 1
+    UPD HdlValueInt@@0100 to 2
+    UPD HdlValueInt@@1000 to 3
+
+UPD HdlStmCase@@wbs_sel_i to wbs_adr_i
+
+UPD HdlStmCase@@wbs_sel_i to wbs_sel_i
+    UPD HdlValueId@@wbs_sel_i to wbs_adr_i
+    UPD HdlValueInt@@0001 to 0
+    UPD HdlValueInt@@0010 to 1
+    UPD HdlValueInt@@0100 to 2
+    UPD HdlValueInt@@1000 to 3
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL list@@body from SEQ
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL list@@body from SEQ
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD list@@ops to body
+        MOV list@@ops to CONCAT
+        list: ops
+            HdlOp: CONCAT
+                list: ops
+                    HdlValueInt: 0
+                    HdlValueId: adr_index
+            HdlValueInt: 0
+        MOV HdlOp@@CONCAT to ops
+        HdlOp: CONCAT
+            list: ops
+                HdlValueInt: 0
+                HdlValueId: adr_index
+        DEL HdlValueInt@@0 from ops
+    DEL HdlOp@@CONCAT from 
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD list@@ops to body
+        MOV list@@ops to CONCAT
+        list: ops
+            HdlOp: CONCAT
+                list: ops
+                    HdlOp: CONCAT
+                        list: ops
+                            HdlValueInt: 5
+                            HdlValueInt: 0
+                    HdlValueId: mmu_lock
+            HdlValueInt: 0
+        MOV HdlOp@@CONCAT to ops
+        HdlOp: CONCAT
+            list: ops
+                HdlOp: CONCAT
+                    list: ops
+                        HdlValueInt: 5
+                        HdlValueInt: 0
+                HdlValueId: mmu_lock
+        DEL HdlValueInt@@0 from ops
+    DEL HdlOp@@CONCAT from 
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlOp: CONCAT
+        list: ops
+            HdlOp: CONCAT
+                list: ops
+                    HdlValueInt: 0
+                    HdlValueId: adr_index
+            HdlValueInt: 0
+    HdlValueId: wbs_dat_o
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlOp: CONCAT
+        list: ops
+            HdlOp: CONCAT
+                list: ops
+                    HdlOp: CONCAT
+                        list: ops
+                            HdlValueInt: 5
+                            HdlValueInt: 0
+                    HdlValueId: mmu_lock
+            HdlValueInt: 0
+    HdlValueId: wbs_dat_o
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlOp@@INDEX to INDEX
+                MOV HdlOp@@DOWNTO to ops
+                HdlOp: DOWNTO
+                    list: ops
+                        HdlValueInt: 3
+                        HdlValueInt: 0
+        DEL HdlValueInt@@0 from ops
+    UPD HdlOp@@CONCAT to INDEX
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlOp@@INDEX to INDEX
+                MOV HdlOp@@DOWNTO to ops
+                HdlOp: DOWNTO
+                    list: ops
+                        HdlValueInt: 3
+                        HdlValueInt: 0
+        MOV HdlOp@@INDEX to ops
+        HdlOp: INDEX
+            list: ops
+                HdlValueId: mmu_lut
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: adr_index
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 3
+                                HdlValueInt: 0
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        INS HdlOp@@DOWNTO to ops
+        HdlOp: DOWNTO
+            list: ops
+                HdlValueInt: 7
+                HdlValueInt: 0
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlOp@@INDEX to INDEX
+                INS HdlOp@@DOWNTO to ops
+                HdlOp: DOWNTO
+                    list: ops
+                        HdlValueInt: 3
+                        HdlValueInt: 0
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        INS HdlOp@@INDEX to ops
+        UPD HdlOp@@INDEX to INDEX
+            INS list@@ops to INDEX
+            INS HdlOp@@DOWNTO to ops
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 11
+                    HdlValueInt: 8
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlOp@@INDEX to INDEX
+                    INS HdlOp@@DOWNTO to ops
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 3
+                            HdlValueInt: 0
+
+
+CommitId: 9bd0da20d84abd5f6906ca4b7c08b9cd092dd973
+Fix dat width
+--- a/rtl/wb_vhdfd.v
++++ b/rtl/wb_vhdfd.v
+@@ -192,7 +192,7 @@ module wb_vhdfd (clk_i, nrst_i, wbs_adr_i, wbs_dat_o, wbs_dat_i, wbs_sel_i, wbs_
+     //
+     // generate ack_o
+     always @(posedge clk_i)
+-        wbs_ack_o <= #1 wbs_acc & !wbs_ack_o;
++        wbs_ack_o <= wbs_acc & !wbs_ack_o;
+ 
+ // Instantiate the module
+ vhdfd_disk disks (
+ParseResult:
+UPD HdlStmAssign@@body to body
+    DEL HdlValueInt@@1 from body
+
+
+CommitId: bbf9b838d8c867aa4b200f084c09463c1a4dd004
+Fix Address Width parameter
+--- a/rtl/wb_sram.v
++++ b/rtl/wb_sram.v
+@@ -39,7 +39,8 @@ module wb_sram
+ #(
+     parameter mem_file_name = "none",
+     parameter adr_width = 14,
+-    parameter dat_width = 8
++    parameter dat_width = 8,
++    parameter dw = 32 //number of data-bits
+ ) (
+     // Generic synchronous single-port RAM interface
+     clk_i, nrst_i, wb_adr_i, wb_dat_o, wb_dat_i, wb_sel_i, wb_we_i,
+
+ParseResult:
+UPD HdlIdDef@@wb_adr_i to wb_adr_i
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlOp@@SUB to SUB
+                UPD HdlValueId@@aw to adr_width
+
+
+CommitId: bbf9b838d8c867aa4b200f084c09463c1a4dd004
+Fix Address Width parameter
+--- a/rtl/wb_sram.v
++++ b/rtl/wb_sram.v
+@@ -49,15 +50,13 @@ module wb_sram
+     //
+     // Default address and data buses width
+     //
+-    parameter aw = 15; //number of address-bits
+-    parameter dw = 32; //number of data-bits
+ 
+     //
+     // Generic synchronous single-port RAM interface
+     //
+     input            clk_i;
+     input            nrst_i;
+-    input   [aw-1:0] wb_adr_i;
++    input   [adr_width-1:0] wb_adr_i;
+     output  [dw-1:0] wb_dat_o;
+     input   [dw-1:0] wb_dat_i;
+     input      [3:0] wb_sel_i;
+ParseResult:
+DEL HdlIdDef@@aw from params
+HdlIdDef: aw
+    HdlValueInt: 15
+    HdlDirection: INTERNAL
+
+
+CommitId: b606c6bc34b09caf703cc79bf1c944ec977991a1
+Fix UART to work as Bitstreamer serial ports.
+--- a/rtl/uart.v
++++ b/rtl/uart.v
+@@ -124,29 +124,34 @@ begin
+ 	if (reset) begin
+ 		tx_busy     <= 0;
+ 		uart_txd    <= 1;
++		tx_count16  <= 0;
+ 	end else begin
+ 		if (tx_wr && !tx_busy) begin
+ 			txd_reg     <= tx_data;
+ 			tx_bitcount <= 0;
+-			tx_count16  <= 1;
++			tx_count16  <= 0;
+ 			tx_busy     <= 1;
+-			uart_txd    <= 0;
+-		end else if (enable16 && tx_busy) begin
++		end 
++
++		if (enable16) begin
+ 			tx_count16  <= tx_count16 + 1;
+ 
+-			if (tx_count16 == 0) begin
++			if ((tx_count16 == 0) && tx_busy) begin
+ 				tx_bitcount <= tx_bitcount + 1;
+ 				
+-				if (tx_bitcount == 8) begin
+-					uart_txd <= 'b1;
+-				end else if (tx_bitcount == 9) begin
++				if (tx_bitcount == 0) begin
++					uart_txd <= 'b0;
++				end else if (tx_bitcount ==  9) begin
+ 					uart_txd <= 'b1;
++				end else if (tx_bitcount == 10) begin
++					tx_bitcount <= 0;
+ 					tx_busy  <= 0;
+ 				end else begin
+ 					uart_txd <= txd_reg[0];
+ 					txd_reg  <= { 1'b0, txd_reg[7:1] };
+ 				end
+ 			end
++
+ 		end
+ 	end
+ end
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV list@@body to SEQ
+        list: body
+            HdlStmIf
+                HdlOp: AND_LOG
+                    list: ops
+                        HdlValueId: tx_wr
+                        HdlOp: NEG_LOG
+                            list: ops
+                                HdlValueId: tx_busy
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmAssign
+                            HdlValueId: tx_data
+                            HdlValueId: txd_reg
+                        HdlStmAssign
+                            HdlValueInt: 0
+                            HdlValueId: tx_bitcount
+                        HdlStmAssign
+                            HdlValueInt: 1
+                            HdlValueId: tx_count16
+                        HdlStmAssign
+                            HdlValueInt: 1
+                            HdlValueId: tx_busy
+                        HdlStmAssign
+                            HdlValueInt: 0
+                            HdlValueId: uart_txd
+                list: elifs
+                    tuple
+                        HdlOp: AND_LOG
+                            list: ops
+                                HdlValueId: enable16
+                                HdlValueId: tx_busy
+                        HdlStmBlock: SEQ
+                            list: body
+                                HdlStmAssign
+                                    HdlOp: ADD
+                                        list: ops
+                                            HdlValueId: tx_count16
+                                            HdlValueInt: 1
+                                    HdlValueId: tx_count16
+                                HdlStmIf
+                                    HdlOp: EQ
+                                        list: ops
+                                            HdlValueId: tx_count16
+                                            HdlValueInt: 0
+                                    HdlStmBlock: SEQ
+                                        list: body
+                                            HdlStmAssign
+                                                HdlOp: ADD
+                                                    list: ops
+                                                        HdlValueId: tx_bitcount
+                                                        HdlValueInt: 1
+                                                HdlValueId: tx_bitcount
+                                            HdlStmIf
+                                                HdlOp: EQ
+                                                    list: ops
+                                                        HdlValueId: tx_bitcount
+                                                        HdlValueInt: 8
+                                                HdlStmBlock: SEQ
+                                                    list: body
+                                                        HdlStmAssign
+                                                            HdlValueInt: 1
+                                                            HdlValueId: uart_txd
+                                                list: elifs
+                                                    tuple
+                                                        HdlOp: EQ
+                                                            list: ops
+                                                                HdlValueId: tx_bitcount
+                                                                HdlValueInt: 9
+                                                        HdlStmBlock: SEQ
+                                                            list: body
+                                                                HdlStmAssign
+                                                                    HdlValueInt: 1
+                                                                    HdlValueId: uart_txd
+                                                                HdlStmAssign
+                                                                    HdlValueInt: 0
+                                                                    HdlValueId: tx_busy
+                                                HdlStmBlock: SEQ
+                                                    list: body
+                                                        HdlStmAssign
+                                                            HdlOp: INDEX
+                                                                list: ops
+                                                                    HdlValueId: txd_reg
+                                                                    HdlValueInt: 0
+                                                            HdlValueId: uart_txd
+                                                        HdlStmAssign
+                                                            HdlOp: CONCAT
+                                                                list: ops
+                                                                    HdlValueInt: 0
+                                                                    HdlOp: INDEX
+                                                                        list: ops
+                                                                            HdlValueId: txd_reg
+                                                                            HdlOp: DOWNTO
+                                                                                list: ops
+                                                                                    HdlValueInt: 7
+                                                                                    HdlValueInt: 1
+                                                            HdlValueId: txd_reg
+                                    list: elifs
+    MOV HdlValueId@@reset to 
+    HdlValueId: reset
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: tx_busy
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: uart_txd
+    MOV list@@elifs to 
+    list: elifs
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlOp: AND_LOG
+                    list: ops
+                        HdlValueId: tx_wr
+                        HdlOp: NEG_LOG
+                            list: ops
+                                HdlValueId: tx_busy
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmAssign
+                            HdlValueId: tx_data
+                            HdlValueId: txd_reg
+                        HdlStmAssign
+                            HdlValueInt: 0
+                            HdlValueId: tx_bitcount
+                        HdlStmAssign
+                            HdlValueInt: 1
+                            HdlValueId: tx_count16
+                        HdlStmAssign
+                            HdlValueInt: 1
+                            HdlValueId: tx_busy
+                        HdlStmAssign
+                            HdlValueInt: 0
+                            HdlValueId: uart_txd
+                list: elifs
+                    tuple
+                        HdlOp: AND_LOG
+                            list: ops
+                                HdlValueId: enable16
+                                HdlValueId: tx_busy
+                        HdlStmBlock: SEQ
+                            list: body
+                                HdlStmAssign
+                                    HdlOp: ADD
+                                        list: ops
+                                            HdlValueId: tx_count16
+                                            HdlValueInt: 1
+                                    HdlValueId: tx_count16
+                                HdlStmIf
+                                    HdlOp: EQ
+                                        list: ops
+                                            HdlValueId: tx_count16
+                                            HdlValueInt: 0
+                                    HdlStmBlock: SEQ
+                                        list: body
+                                            HdlStmAssign
+                                                HdlOp: ADD
+                                                    list: ops
+                                                        HdlValueId: tx_bitcount
+                                                        HdlValueInt: 1
+                                                HdlValueId: tx_bitcount
+                                            HdlStmIf
+                                                HdlOp: EQ
+                                                    list: ops
+                                                        HdlValueId: tx_bitcount
+                                                        HdlValueInt: 8
+                                                HdlStmBlock: SEQ
+                                                    list: body
+                                                        HdlStmAssign
+                                                            HdlValueInt: 1
+                                                            HdlValueId: uart_txd
+                                                list: elifs
+                                                    tuple
+                                                        HdlOp: EQ
+                                                            list: ops
+                                                                HdlValueId: tx_bitcount
+                                                                HdlValueInt: 9
+                                                        HdlStmBlock: SEQ
+                                                            list: body
+                                                                HdlStmAssign
+                                                                    HdlValueInt: 1
+                                                                    HdlValueId: uart_txd
+                                                                HdlStmAssign
+                                                                    HdlValueInt: 0
+                                                                    HdlValueId: tx_busy
+                                                HdlStmBlock: SEQ
+                                                    list: body
+                                                        HdlStmAssign
+                                                            HdlOp: INDEX
+                                                                list: ops
+                                                                    HdlValueId: txd_reg
+                                                                    HdlValueInt: 0
+                                                            HdlValueId: uart_txd
+                                                        HdlStmAssign
+                                                            HdlOp: CONCAT
+                                                                list: ops
+                                                                    HdlValueInt: 0
+                                                                    HdlOp: INDEX
+                                                                        list: ops
+                                                                            HdlValueId: txd_reg
+                                                                            HdlOp: DOWNTO
+                                                                                list: ops
+                                                                                    HdlValueInt: 7
+                                                                                    HdlValueInt: 1
+                                                            HdlValueId: txd_reg
+                                    list: elifs
+
+UPD HdlStmIf@@ to 
+    UPD list@@elifs to body
+    MOV list@@elifs to 
+    list: elifs
+        tuple
+            HdlOp: AND_LOG
+                list: ops
+                    HdlValueId: enable16
+                    HdlValueId: tx_busy
+            HdlStmBlock: SEQ
+                list: body
+                    HdlStmAssign
+                        HdlOp: ADD
+                            list: ops
+                                HdlValueId: tx_count16
+                                HdlValueInt: 1
+                        HdlValueId: tx_count16
+                    HdlStmIf
+                        HdlOp: EQ
+                            list: ops
+                                HdlValueId: tx_count16
+                                HdlValueInt: 0
+                        HdlStmBlock: SEQ
+                            list: body
+                                HdlStmAssign
+                                    HdlOp: ADD
+                                        list: ops
+                                            HdlValueId: tx_bitcount
+                                            HdlValueInt: 1
+                                    HdlValueId: tx_bitcount
+                                HdlStmIf
+                                    HdlOp: EQ
+                                        list: ops
+                                            HdlValueId: tx_bitcount
+                                            HdlValueInt: 8
+                                    HdlStmBlock: SEQ
+                                        list: body
+                                            HdlStmAssign
+                                                HdlValueInt: 1
+                                                HdlValueId: uart_txd
+                                    list: elifs
+                                        tuple
+                                            HdlOp: EQ
+                                                list: ops
+                                                    HdlValueId: tx_bitcount
+                                                    HdlValueInt: 9
+                                            HdlStmBlock: SEQ
+                                                list: body
+                                                    HdlStmAssign
+                                                        HdlValueInt: 1
+                                                        HdlValueId: uart_txd
+                                                    HdlStmAssign
+                                                        HdlValueInt: 0
+                                                        HdlValueId: tx_busy
+                                    HdlStmBlock: SEQ
+                                        list: body
+                                            HdlStmAssign
+                                                HdlOp: INDEX
+                                                    list: ops
+                                                        HdlValueId: txd_reg
+                                                        HdlValueInt: 0
+                                                HdlValueId: uart_txd
+                                            HdlStmAssign
+                                                HdlOp: CONCAT
+                                                    list: ops
+                                                        HdlValueInt: 0
+                                                        HdlOp: INDEX
+                                                            list: ops
+                                                                HdlValueId: txd_reg
+                                                                HdlOp: DOWNTO
+                                                                    list: ops
+                                                                        HdlValueInt: 7
+                                                                        HdlValueInt: 1
+                                                HdlValueId: txd_reg
+                        list: elifs
+    MOV HdlOp@@AND_LOG to 
+    HdlOp: AND_LOG
+        list: ops
+            HdlValueId: tx_wr
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlValueId: tx_busy
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueId: tx_data
+                HdlValueId: txd_reg
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: tx_bitcount
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: tx_count16
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: tx_busy
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: uart_txd
+    UPD HdlOp@@AND_LOG to AND_LOG
+        MOV HdlValueId@@enable16 to ops
+        HdlValueId: enable16
+        DEL HdlValueId@@tx_busy from ops
+        DEL list@@ops from AND_LOG
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlOp: ADD
+                    list: ops
+                        HdlValueId: tx_count16
+                        HdlValueInt: 1
+                HdlValueId: tx_count16
+            HdlStmIf
+                HdlOp: EQ
+                    list: ops
+                        HdlValueId: tx_count16
+                        HdlValueInt: 0
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmAssign
+                            HdlOp: ADD
+                                list: ops
+                                    HdlValueId: tx_bitcount
+                                    HdlValueInt: 1
+                            HdlValueId: tx_bitcount
+                        HdlStmIf
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: tx_bitcount
+                                    HdlValueInt: 8
+                            HdlStmBlock: SEQ
+                                list: body
+                                    HdlStmAssign
+                                        HdlValueInt: 1
+                                        HdlValueId: uart_txd
+                            list: elifs
+                                tuple
+                                    HdlOp: EQ
+                                        list: ops
+                                            HdlValueId: tx_bitcount
+                                            HdlValueInt: 9
+                                    HdlStmBlock: SEQ
+                                        list: body
+                                            HdlStmAssign
+                                                HdlValueInt: 1
+                                                HdlValueId: uart_txd
+                                            HdlStmAssign
+                                                HdlValueInt: 0
+                                                HdlValueId: tx_busy
+                            HdlStmBlock: SEQ
+                                list: body
+                                    HdlStmAssign
+                                        HdlOp: INDEX
+                                            list: ops
+                                                HdlValueId: txd_reg
+                                                HdlValueInt: 0
+                                        HdlValueId: uart_txd
+                                    HdlStmAssign
+                                        HdlOp: CONCAT
+                                            list: ops
+                                                HdlValueInt: 0
+                                                HdlOp: INDEX
+                                                    list: ops
+                                                        HdlValueId: txd_reg
+                                                        HdlOp: DOWNTO
+                                                            list: ops
+                                                                HdlValueInt: 7
+                                                                HdlValueInt: 1
+                                        HdlValueId: txd_reg
+                list: elifs
+    DEL HdlOp@@AND_LOG from 
+    DEL tuple@@ from elifs
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: tx_count16
+
+INS HdlStmIf@@ to body
+
+MOV HdlStmIf@@ to body
+HdlStmIf
+    HdlValueId: reset
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: tx_busy
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: uart_txd
+    list: elifs
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlOp: AND_LOG
+                    list: ops
+                        HdlValueId: tx_wr
+                        HdlOp: NEG_LOG
+                            list: ops
+                                HdlValueId: tx_busy
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmAssign
+                            HdlValueId: tx_data
+                            HdlValueId: txd_reg
+                        HdlStmAssign
+                            HdlValueInt: 0
+                            HdlValueId: tx_bitcount
+                        HdlStmAssign
+                            HdlValueInt: 1
+                            HdlValueId: tx_count16
+                        HdlStmAssign
+                            HdlValueInt: 1
+                            HdlValueId: tx_busy
+                        HdlStmAssign
+                            HdlValueInt: 0
+                            HdlValueId: uart_txd
+                list: elifs
+                    tuple
+                        HdlOp: AND_LOG
+                            list: ops
+                                HdlValueId: enable16
+                                HdlValueId: tx_busy
+                        HdlStmBlock: SEQ
+                            list: body
+                                HdlStmAssign
+                                    HdlOp: ADD
+                                        list: ops
+                                            HdlValueId: tx_count16
+                                            HdlValueInt: 1
+                                    HdlValueId: tx_count16
+                                HdlStmIf
+                                    HdlOp: EQ
+                                        list: ops
+                                            HdlValueId: tx_count16
+                                            HdlValueInt: 0
+                                    HdlStmBlock: SEQ
+                                        list: body
+                                            HdlStmAssign
+                                                HdlOp: ADD
+                                                    list: ops
+                                                        HdlValueId: tx_bitcount
+                                                        HdlValueInt: 1
+                                                HdlValueId: tx_bitcount
+                                            HdlStmIf
+                                                HdlOp: EQ
+                                                    list: ops
+                                                        HdlValueId: tx_bitcount
+                                                        HdlValueInt: 8
+                                                HdlStmBlock: SEQ
+                                                    list: body
+                                                        HdlStmAssign
+                                                            HdlValueInt: 1
+                                                            HdlValueId: uart_txd
+                                                list: elifs
+                                                    tuple
+                                                        HdlOp: EQ
+                                                            list: ops
+                                                                HdlValueId: tx_bitcount
+                                                                HdlValueInt: 9
+                                                        HdlStmBlock: SEQ
+                                                            list: body
+                                                                HdlStmAssign
+                                                                    HdlValueInt: 1
+                                                                    HdlValueId: uart_txd
+                                                                HdlStmAssign
+                                                                    HdlValueInt: 0
+                                                                    HdlValueId: tx_busy
+                                                HdlStmBlock: SEQ
+                                                    list: body
+                                                        HdlStmAssign
+                                                            HdlOp: INDEX
+                                                                list: ops
+                                                                    HdlValueId: txd_reg
+                                                                    HdlValueInt: 0
+                                                            HdlValueId: uart_txd
+                                                        HdlStmAssign
+                                                            HdlOp: CONCAT
+                                                                list: ops
+                                                                    HdlValueInt: 0
+                                                                    HdlOp: INDEX
+                                                                        list: ops
+                                                                            HdlValueId: txd_reg
+                                                                            HdlOp: DOWNTO
+                                                                                list: ops
+                                                                                    HdlValueInt: 7
+                                                                                    HdlValueInt: 1
+                                                            HdlValueId: txd_reg
+                                    list: elifs
+
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueInt@@1 to 0
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@AND_LOG to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        INS list@@ops to AND_LOG
+        INS HdlValueId@@tx_busy to ops
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@EQ to 
+    HdlOp: EQ
+        list: ops
+            HdlValueId: tx_count16
+            HdlValueInt: 0
+
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+    INS tuple@@ to elifs
+    INS HdlOp@@EQ to 
+    HdlOp: EQ
+        list: ops
+            HdlValueId: tx_bitcount
+            HdlValueInt: 10
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@EQ to EQ
+        UPD HdlValueInt@@8 to 0
+    MOV HdlOp@@EQ to 
+    HdlOp: EQ
+        list: ops
+            HdlValueId: tx_bitcount
+            HdlValueInt: 9
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: uart_txd
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: uart_txd
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueInt@@1 to 0
+    UPD HdlValueId@@uart_txd to tx_bitcount
+
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL list@@body from SEQ
+
+
+CommitId: b606c6bc34b09caf703cc79bf1c944ec977991a1
+Fix UART to work as Bitstreamer serial ports.
+--- a/rtl/wb_uart.v
++++ b/rtl/wb_uart.v
+@@ -12,7 +12,7 @@
+ //---------------------------------------------------------------------------
+ 
+ module wb_uart #(
+-	parameter          clk_freq = 50000000,
++	parameter          clk_freq = 25000000,
+ 	parameter          baud     = 115200
+ ) (
+ 	input              clk,
+
+ParseResult:
+UPD HdlIdDef@@clk_freq to clk_freq
+    UPD HdlValueInt@@50000000 to 25000000
+
+
+CommitId: b606c6bc34b09caf703cc79bf1c944ec977991a1
+Fix UART to work as Bitstreamer serial ports.
+--- a/rtl/wb_uart.v
++++ b/rtl/wb_uart.v
+@@ -53,21 +51,25 @@ wire       tx_busy[0:3];
+ 
+ wire	rx_extended;
+ wire	rx_released;
+-wire	rx_shift_key_on;
++wire	rx_shift_key_on;
++wire	rx_ctrl_key_on;
+ wire	[7:0] rx_scan_code;
+ wire	rx_data_ready;
+ wire	tx_write_ack_o;
+ wire	tx_error_no_keyboard_ack;
+ 
+ // Instantiate the module
+-ps2_keyboard_interface ps2_kbd (
++ps2_keyboard_interface #(
++    .TRAP_SHIFT_KEYS_PP(1)
++) ps2_kbd (
+     .clk(clk), 
+     .reset(reset), 
+     .ps2_clk(ps2_clk), 
+     .ps2_data(ps2_data), 
+     .rx_extended(rx_extended), 
+     .rx_released(rx_released), 
+-    .rx_shift_key_on(rx_shift_key_on), 
++    .rx_shift_key_on(rx_shift_key_on), 
++    .rx_ctrl_key_on(rx_ctrl_key_on),     
+     .rx_scan_code(rx_scan_code), 
+     .rx_ascii(rx_data[0]), 
+     .rx_data_ready(rx_avail[0]), 
+
+ParseResult:
+INS HdlIdDef@@rx_ctrl_key_on to objs
+HdlIdDef: rx_ctrl_key_on
+    HdlDirection: INTERNAL
+
+
+CommitId: b606c6bc34b09caf703cc79bf1c944ec977991a1
+Fix UART to work as Bitstreamer serial ports.
+--- a/rtl/wb_uart.v
++++ b/rtl/wb_uart.v
+@@ -138,14 +140,15 @@ uart #(
+ //---------------------------------------------------------------------------
+ // 
+ //---------------------------------------------------------------------------
+-wire [7:0] ucr = { wb_adr_i[4:3], 3'b0, rx_error[wb_adr_i[4:3]], rx_avail[wb_adr_i[4:3]], ~tx_busy[wb_adr_i[4:3]] };
++wire    [1:0] sel_port = wb_adr_i[2:1];
++
++wire [7:0] ucr = { 5'b0, rx_error[sel_port], rx_avail[sel_port], ~tx_busy[sel_port] };
+ 
+ wire	key_ready = (~rx_released) & rx_avail[0];
+ wire	[7:0] kbdsr = {1'b0, key_ready, 5'b0, ~key_ready};
+ 
+-
+ wire wb_rd = wb_stb_i & wb_cyc_i & ~wb_we_i;
+-wire wb_wr = wb_stb_i & wb_cyc_i &  wb_we_i; // & wb_sel_i[0];
++wire wb_wr = wb_stb_i & wb_cyc_i &  wb_we_i;
+ 
+ reg  ack;
+ 
+
+ParseResult:
+INS HdlIdDef@@sel_port to objs
+
+INS HdlIdDef@@ucr to objs
+
+UPD HdlIdDef@@sel_port to sel_port
+    INS HdlOp@@PARAMETRIZATION to sel_port
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 1
+                    HdlValueInt: 0
+    INS HdlDirection@@INTERNAL to sel_port
+
+UPD HdlIdDef@@ucr to ucr
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@CONCAT to CONCAT
+                UPD HdlOp@@CONCAT to CONCAT
+                    MOV HdlOp@@INDEX to ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: wb_adr_i
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 4
+                                    HdlValueInt: 3
+                    UPD HdlOp@@INDEX to INDEX
+                        UPD HdlOp@@DOWNTO to DOWNTO
+                            UPD HdlValueInt@@4 to 2
+                            UPD HdlValueInt@@3 to 1
+                    DEL HdlValueInt@@0 from ops
+                    DEL list@@ops from CONCAT
+                DEL HdlOp@@CONCAT from ops
+                DEL HdlOp@@INDEX from ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: rx_error
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: wb_adr_i
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 4
+                                        HdlValueInt: 3
+                DEL list@@ops from CONCAT
+            UPD HdlOp@@INDEX to CONCAT
+            MOV HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: rx_avail
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: wb_adr_i
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 4
+                                    HdlValueInt: 3
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueId@@wb_adr_i to rx_avail
+                    DEL HdlOp@@DOWNTO from ops
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 4
+                            HdlValueInt: 3
+                UPD HdlValueId@@rx_avail to rx_error
+                MOV HdlValueId@@rx_avail to ops
+                HdlValueId: rx_avail
+            DEL HdlOp@@CONCAT from ops
+            DEL list@@ops from CONCAT
+        MOV HdlOp@@NEG to ops
+        HdlOp: NEG
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: tx_busy
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: wb_adr_i
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 4
+                                        HdlValueInt: 3
+        UPD HdlOp@@NEG to NEG
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueId@@wb_adr_i to sel_port
+                    MOV HdlValueId@@wb_adr_i to ops
+                    HdlValueId: wb_adr_i
+                    DEL HdlOp@@DOWNTO from ops
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 4
+                            HdlValueInt: 3
+                    DEL list@@ops from INDEX
+                DEL HdlOp@@INDEX from ops
+        DEL HdlOp@@CONCAT from ops
+        DEL list@@ops from CONCAT
+    MOV HdlOp@@PARAMETRIZATION to ucr
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 7
+                    HdlValueInt: 0
+    MOV HdlDirection@@INTERNAL to ucr
+    HdlDirection: INTERNAL
+    DEL HdlOp@@CONCAT from ucr
+
+UPD HdlIdDef@@ucr to ucr
+    INS HdlOp@@CONCAT to ucr
+    UPD HdlOp@@CONCAT to CONCAT
+        INS list@@ops to CONCAT
+        UPD HdlOp@@CONCAT to CONCAT
+            INS HdlOp@@CONCAT to ops
+            UPD HdlOp@@CONCAT to CONCAT
+                INS list@@ops to CONCAT
+                INS HdlValueInt@@0 to ops
+                INS HdlOp@@INDEX to ops
+                UPD HdlOp@@INDEX to INDEX
+                    INS list@@ops to INDEX
+                    INS HdlValueId@@sel_port to ops
+            UPD HdlOp@@INDEX to INDEX
+                INS HdlValueId@@sel_port to ops
+
+DEL HdlIdDef@@ucr from objs
+
+
+CommitId: b606c6bc34b09caf703cc79bf1c944ec977991a1
+Fix UART to work as Bitstreamer serial ports.
+--- a/rtl/wb_uart.v
++++ b/rtl/wb_uart.v
+@@ -186,26 +189,30 @@ begin
+ 				wb_dat_o[7:0] <= kbdsr;
+ 			end
+ 			3'b001: begin
+-				wb_dat_o[7:0] <= rx_data[wb_adr_i[4:3]];
+-				rx_ack[wb_adr_i[4:3]]        <= 1;
++				if(rx_ctrl_key_on) begin
++                    wb_dat_o[7:0] <= { 2'b00, rx_data[sel_port][5:0] };
++                end else begin
++                    wb_dat_o[7:0] <= rx_data[sel_port];
++                end
++				rx_ack[sel_port]        <= 1;
+ 			end
+ 			3'b010: begin
+-				wb_dat_o[7:0] <= rx_data[wb_adr_i[4:3]];
+-				rx_ack[wb_adr_i[4:3]]        <= 1;
++				wb_dat_o[7:0] <= rx_data[sel_port];
++				rx_ack[sel_port]        <= 1;
+ 			end
+ 			3'b011: begin
+ 				wb_dat_o[7:0] <= ucr;
+ 			end
+ 			3'b100: begin
+-				wb_dat_o[7:0] <= rx_data[wb_adr_i[4:3]];
+-				rx_ack[wb_adr_i[4:3]]        <= 1;
++				wb_dat_o[7:0] <= rx_data[sel_port];
++				rx_ack[sel_port]        <= 1;
+ 			end
+ 			3'b101: begin
+ 				wb_dat_o[7:0] <= ucr;
+ 			end
+ 			3'b110: begin
+-				wb_dat_o[7:0] <= rx_data[wb_adr_i[4:3]];
+-				rx_ack[wb_adr_i[4:3]]        <= 1;
++				wb_dat_o[7:0] <= rx_data[sel_port];
++				rx_ack[sel_port]        <= 1;
+ 			end
+ 			3'b111: begin
+ 				wb_dat_o[7:0] <= ucr;
+
+ParseResult:
+INS HdlStmIf@@ to body
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 1
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: rx_ack
+            HdlValueId: sel_port
+
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@rx_ctrl_key_on to 
+    INS HdlStmBlock@@SEQ to 
+    INS list@@elifs to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD list@@ops to body
+        MOV list@@ops to INDEX
+        list: ops
+            HdlValueId: rx_ack
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: wb_adr_i
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 4
+                            HdlValueInt: 3
+        MOV HdlOp@@INDEX to ops
+        HdlOp: INDEX
+            list: ops
+                HdlValueId: wb_adr_i
+                HdlOp: DOWNTO
+                    list: ops
+                        HdlValueInt: 4
+                        HdlValueInt: 3
+        UPD HdlValueId@@rx_ack to rx_data
+        MOV HdlValueId@@rx_ack to ops
+        HdlValueId: rx_ack
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@wb_adr_i to wb_dat_o
+            UPD HdlOp@@DOWNTO to DOWNTO
+                UPD HdlValueInt@@4 to 7
+                UPD HdlValueInt@@3 to 0
+    DEL HdlValueInt@@1 from 
+    DEL HdlOp@@INDEX from 
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: rx_data
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: wb_adr_i
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 4
+                            HdlValueInt: 3
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: wb_dat_o
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 7
+                    HdlValueInt: 0
+
+INS HdlStmAssign@@ to body
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@wb_adr_i to sel_port
+            MOV HdlValueId@@wb_adr_i to ops
+            HdlValueId: wb_adr_i
+            DEL HdlOp@@DOWNTO from ops
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 4
+                    HdlValueInt: 3
+            DEL list@@ops from INDEX
+        DEL HdlOp@@INDEX from ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@wb_adr_i to sel_port
+            MOV HdlValueId@@wb_adr_i to ops
+            HdlValueId: wb_adr_i
+            DEL HdlOp@@DOWNTO from ops
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 4
+                    HdlValueInt: 3
+            DEL list@@ops from INDEX
+        DEL HdlOp@@INDEX from ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@wb_adr_i to sel_port
+            MOV HdlValueId@@wb_adr_i to ops
+            HdlValueId: wb_adr_i
+            DEL HdlOp@@DOWNTO from ops
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 4
+                    HdlValueInt: 3
+            DEL list@@ops from INDEX
+        DEL HdlOp@@INDEX from ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@wb_adr_i to sel_port
+            MOV HdlValueId@@wb_adr_i to ops
+            HdlValueId: wb_adr_i
+            DEL HdlOp@@DOWNTO from ops
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 4
+                    HdlValueInt: 3
+            DEL list@@ops from INDEX
+        DEL HdlOp@@INDEX from ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@wb_adr_i to sel_port
+            MOV HdlValueId@@wb_adr_i to ops
+            HdlValueId: wb_adr_i
+            DEL HdlOp@@DOWNTO from ops
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 4
+                    HdlValueInt: 3
+            DEL list@@ops from INDEX
+        DEL HdlOp@@INDEX from ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@wb_adr_i to sel_port
+            MOV HdlValueId@@wb_adr_i to ops
+            HdlValueId: wb_adr_i
+            DEL HdlOp@@DOWNTO from ops
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 4
+                    HdlValueInt: 3
+            DEL list@@ops from INDEX
+        DEL HdlOp@@INDEX from ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to CONCAT
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@wb_adr_i to rx_data
+            MOV HdlValueId@@wb_adr_i to ops
+            HdlValueId: wb_adr_i
+            UPD HdlOp@@DOWNTO to DOWNTO
+                UPD HdlValueInt@@4 to 5
+                UPD HdlValueInt@@3 to 0
+        DEL HdlValueId@@rx_data from ops
+
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@INDEX to 
+    UPD HdlOp@@INDEX to INDEX
+        INS list@@ops to INDEX
+        INS HdlValueId@@sel_port to ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        INS HdlValueInt@@00 to ops
+        UPD HdlOp@@INDEX to INDEX
+            INS HdlOp@@INDEX to ops
+            UPD HdlOp@@INDEX to INDEX
+                INS list@@ops to INDEX
+                INS HdlValueId@@sel_port to ops
+
+DEL HdlStmAssign@@ from body
+
+
+CommitId: b606c6bc34b09caf703cc79bf1c944ec977991a1
+Fix UART to work as Bitstreamer serial ports.
+--- a/rtl/wb_uart.v
++++ b/rtl/wb_uart.v
+@@ -218,8 +225,8 @@ begin
+ 		end else if (wb_wr & ~ack ) begin
+ 			ack <= 1;
+ 
+-			if ((wb_adr_i[2] == 2'b0) && ~tx_busy[wb_adr_i[4:3]]) begin
+-				tx_wr[wb_adr_i[4:3]] <= 1;
++			if ((wb_adr_i[0] == 1'b0) && ~tx_busy[sel_port]) begin
++				tx_wr[sel_port] <= 1;
+ 			end
+ 		end
+ 	end
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@wb_adr_i to sel_port
+            MOV HdlValueId@@wb_adr_i to ops
+            HdlValueId: wb_adr_i
+            DEL HdlOp@@DOWNTO from ops
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 4
+                    HdlValueInt: 3
+            DEL list@@ops from INDEX
+        DEL HdlOp@@INDEX from ops
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@EQ to EQ
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlValueInt@@2 to 0
+        UPD HdlOp@@NEG to NEG
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueId@@wb_adr_i to sel_port
+                    MOV HdlValueId@@wb_adr_i to ops
+                    HdlValueId: wb_adr_i
+                    DEL HdlOp@@DOWNTO from ops
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 4
+                            HdlValueInt: 3
+                    DEL list@@ops from INDEX
+                DEL HdlOp@@INDEX from ops
+
+

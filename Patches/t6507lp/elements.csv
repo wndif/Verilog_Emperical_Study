@@ -1,0 +1,5 @@
+,HdlOp-Assignment,HdlOp-MemberAccessing,HdlOp-FunctionCall,HdlOp-InfixExpression,HdlOp-FALLING,HdlOp-PrefixExpression
+insert,48,21.0,64.0,1.0,,
+move,36,3.0,,,,
+delete,91,,89.0,,,
+update,477,72.0,1.0,218.0,1.0,9.0

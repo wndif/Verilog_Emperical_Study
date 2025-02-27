@@ -1,0 +1,1927 @@
+CommitId: a56166230168d41528db5525bba69837c357ceb7
+bug fixes.
+--- a/rtl/verilog/irda_mir_rx.v
++++ b/rtl/verilog/irda_mir_rx.v
+@@ -152,7 +152,7 @@ begin
+ 		  begin
+ 			  clrcrc <= #1 0;
+ 			  //// DEBUG
+-			  $display("%m, %t Received #%d: %b", $time, bit_pos, bds_o); 
++	//		  $display("%m, %t Received #%d: %b", $time, bit_pos, bds_o); 
+ 			  //// END DEBUG
+ 				if (std_st_detected) begin  /// end of frame (STO) detected
+ 					/// DEBUG
+ParseResult:
+UPD HdlStmCase@@rxstate to rxstate
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlOp: CALL
+                    list: ops
+                        HdlValueId: $time
+                HdlValueId: bit_pos
+                HdlValueId: bds_o
+
+
+CommitId: a56166230168d41528db5525bba69837c357ceb7
+bug fixes.
+--- a/rtl/verilog/irda_master_register.v
++++ b/rtl/verilog/irda_master_register.v
+@@ -1,13 +1,20 @@
+ `include "irda_defines.v"
+ 
+-module irda_master_register (clk, wb_rst_i, wb_addr_i, wb_dat_i, we_i, master, 
+-		fast_mode, mir_mode, mir_half, fir_mode, tx_select, loopback_enable, use_dma);
+-
+-input				clk;
++module irda_master_register (/*AUTOARG*/
++// Outputs
++master, mir_mode, mir_half, fir_mode, fast_mode, tx_select, 
++loopback_enable, use_dma, 
++// Inputs
++wb_clk_i, wb_rst_i, wb_adr_i, wb_dat_i, wb_we_i, wb_stb_i, wb_cyc_i
++);
++
++input				wb_clk_i;
+ input				wb_rst_i;
+-input		[3:0]	wb_addr_i;
++input		[3:0]	wb_adr_i;
+ input		[7:1]	wb_dat_i;
+-input				we_i;
++input				wb_we_i;
++input				wb_stb_i;
++input				wb_cyc_i;
+ output	[7:1]	master;
+ output			mir_mode;	// MIR mode selected (fast or slow)
+ output			mir_half;	// 1 if half speed MIR is selected
+
+ParseResult:
+MOV HdlIdDef@@clk to ports
+HdlIdDef: clk
+    HdlDirection: IN
+
+MOV HdlIdDef@@wb_rst_i to ports
+HdlIdDef: wb_rst_i
+    HdlDirection: IN
+
+INS HdlIdDef@@we_i to objs
+HdlIdDef: we_i
+    HdlOp: AND
+        list: ops
+            HdlOp: AND
+                list: ops
+                    HdlValueId: wb_we_i
+                    HdlValueId: wb_stb_i
+            HdlValueId: wb_cyc_i
+    HdlDirection: INTERNAL
+
+UPD HdlIdDef@@clk to wb_clk_i
+
+UPD HdlStmProcess@@ to 
+    UPD HdlOp@@RISING to RISING
+        UPD HdlValueId@@clk to wb_clk_i
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@EQ to EQ
+            UPD HdlValueId@@wb_addr_i to wb_adr_i
+
+
+CommitId: a56166230168d41528db5525bba69837c357ceb7
+bug fixes.
+--- a/rtl/verilog/irda_master_register.v
++++ b/rtl/verilog/irda_master_register.v
+@@ -17,18 +24,18 @@ output			tx_select;  // 1 - transmitter mode selected, 0 - receiver mode]
+ output			loopback_enable; // loopback mode enable output
+ output			use_dma;    // bit 7 (DMA use)
+ 
+-
+-
+ reg		[7:1]	master;
+-wire		[3:0]	wb_addr_i;
++wire		[3:0]	wb_adr_i;
+ wire		[7:1]	wb_dat_i;
+ 
+-always @(posedge clk or posedge wb_rst_i)
++wire 				we_i = wb_we_i & wb_stb_i & wb_cyc_i;
++
++always @(posedge wb_clk_i or posedge wb_rst_i)
+ begin
+ 	if (wb_rst_i) begin
+ 		master	<= #1 0;
+ 	end else begin
+-		if (we_i && wb_addr_i == `IRDA_MASTER)
++		if (we_i && wb_adr_i == `IRDA_MASTER)
+ 			master	<= #1 wb_dat_i;
+ 	end
+ end
+ParseResult:
+INS HdlIdDef@@wb_stb_i to ports
+HdlIdDef: wb_stb_i
+    HdlDirection: IN
+
+INS HdlIdDef@@wb_cyc_i to ports
+HdlIdDef: wb_cyc_i
+    HdlDirection: IN
+
+
+CommitId: 27c6cb80dfae672d2dcf7c022fb9b071f814a756
+Debugged.
+--- a/rtl/verilog/irda_mir_rx.v
++++ b/rtl/verilog/irda_mir_rx.v
+@@ -102,7 +102,6 @@ begin
+ 		temp31 			  <= #1 0;
+ 		mir_crc_error 	  <= #1 0;
+ 		bitcount 		  <= #1 0;
+-		rxfifo_add 		  <= #1 0;
+ 		std_restart 	  <= #1 1;
+ 		clrcrc 			  <= #1 0;
+ 		bds_restart 	  <= #1 0;	
+
+ParseResult:
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: rxfifo_add
+    HdlValueInt: 1
+
+
+CommitId: 27c6cb80dfae672d2dcf7c022fb9b071f814a756
+Debugged.
+--- a/rtl/verilog/irda_mir_rx.v
++++ b/rtl/verilog/irda_mir_rx.v
+@@ -160,7 +158,6 @@ begin
+ 					/// END DEBUG
+ 					rxstate 			 <= #1 st_sto_detected;
+ 					rxfifo_dat_i 	 <= #1 {bds_o, temp31}; // push to fifo
+-					rxfifo_add 		 <= #1 1;
+ 				end else
+ 				if (bds_is_data_bit) begin  // if good bit
+ 					bitcount <= #1 bitcount + 1;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: rxfifo_add
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: rxfifo_dat_i
+                HdlValueInt: 1
+
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 1
+    HdlValueId: rxfifo_add
+    HdlValueInt: 1
+
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: rxfifo_add
+    HdlValueInt: 1
+
+
+CommitId: 27c6cb80dfae672d2dcf7c022fb9b071f814a756
+Debugged.
+--- a/rtl/verilog/irda_mir_rx.v
++++ b/rtl/verilog/irda_mir_rx.v
+@@ -169,23 +166,19 @@ begin
+ 						$display("%m, %t, Pushing %b", $time,{bds_o, temp31} );
+ 						/// END DEBUG						
+ 						 rxfifo_dat_i 	 <= #1 {bds_o, temp31}; // push to fifo
+-						rxfifo_add 		 <= #1 1;
+ 						bit_pos 			 <= #1 0;
+ 						temp31 			 <= #1 0;
+ 					end else begin 
+ 						temp31[bit_pos] 	 <= #1 bds_o;
+ 						bit_pos 				 <= #1 bit_pos + 1;
+-						rxfifo_add 			 <= #1 0;
+ 						rxfifo_dat_i 		 <= #1 0;
+ 					end
+ 				end else begin
+-					rxfifo_add 		 <= #1 0;
+ 					rxfifo_dat_i 	 <= #1 0;
+ 				end // else: !if(bds_is_data_bit)
+ 		  end
+ 		st_sto_detected :
+ 			begin
+-				rxfifo_add 	  <= #1 0;
+ 				if (crc16_par_o==16'b0001_1101_0000_1111) begin // if the crc is correct
+ 					mir_crc_error 	  <= #1 0;
+ 				end else begin
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+
+UPD HdlStmProcess@@ to 
+    INS list@@sensitivity to 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+        HdlOp: RISING
+            list: ops
+                HdlValueId: wb_rst_i
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+INS HdlStmIf@@ to body
+
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@wb_rst_i to 
+    INS HdlStmBlock@@SEQ to 
+    INS list@@elifs to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+    INS tuple@@ to elifs
+    INS tuple@@ to elifs
+    INS tuple@@ to elifs
+    INS HdlOp@@OR to 
+    HdlOp: OR
+        list: ops
+            HdlValueId: brd_active
+            HdlValueId: mir_rx_restart
+    INS HdlStmBlock@@SEQ to 
+    INS HdlValueId@@rxfifo_add to 
+    INS HdlStmBlock@@SEQ to 
+    INS HdlOp@@AND_LOG to 
+    HdlOp: AND_LOG
+        list: ops
+            HdlValueId: mir_rxbit_enable
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: rxstate
+                    HdlValueId: st_data
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: rxfifo_add
+    HdlValueInt: 1
+
+INS HdlStmIf@@ to body
+
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@std_st_detected to 
+    INS HdlStmBlock@@SEQ to 
+    INS list@@elifs to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+    INS tuple@@ to elifs
+    INS HdlOp@@AND_LOG to 
+    HdlOp: AND_LOG
+        list: ops
+            HdlValueId: bds_is_data_bit
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: bit_pos
+                    HdlValueInt: 31
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+UPD HdlStmIf@@ to 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: rxfifo_add
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: rxfifo_dat_i
+                HdlValueInt: 1
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: rxfifo_dat_i
+    HdlValueInt: 1
+
+
+CommitId: ec40d4c8c6938f486e3ba642fba2a331e38d01da
+Bug fixes
+--- a/rtl/verilog/irda_mir_rx.v
++++ b/rtl/verilog/irda_mir_rx.v
+@@ -88,6 +88,9 @@ reg [4:0] 	bit_pos; //
+ reg [1:0] 	rxstate;
+ reg [18:0] 	bitcount;
+ 
++// break detection handling 
++wire			brd_active = brd_o && (rxstate != st_idle); // break detection has only meaning when receiver is not idle
++
+ always @(posedge clk or posedge wb_rst_i)
+ begin
+ 	if (wb_rst_i) begin
+
+ParseResult:
+INS HdlIdDef@@brd_active to objs
+HdlIdDef: brd_active
+    HdlOp: AND_LOG
+        list: ops
+            HdlValueId: brd_o
+            HdlOp: NE
+                list: ops
+                    HdlValueId: rxstate
+                    HdlValueId: st_idle
+    HdlDirection: INTERNAL
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@OR to OR
+        UPD HdlValueId@@brd_o to brd_active
+
+
+CommitId: ec40d4c8c6938f486e3ba642fba2a331e38d01da
+Bug fixes
+--- a/rtl/verilog/irda_mir_rx.v
++++ b/rtl/verilog/irda_mir_rx.v
+@@ -103,14 +106,13 @@ begin
+ 		clrcrc 			  <= #1 0;
+ 		bds_restart 	  <= #1 0;	
+ 	end
+-	else if (brd_o | mir_rx_restart) begin
++	else if (brd_active | mir_rx_restart) begin
+ 		rxstate 			  <= #1 st_idle;
+ 		counter8 		  <= #1 0;
+ 		bit_pos 			  <= #1 0;
+ 		rxfifo_dat_i 	  <= #1 0;
+ 		temp31 			  <= #1 0;
+ 		mir_crc_error 	  <= #1 0;
+-		bitcount 		  <= #1 0;
+ 		rxfifo_add 		  <= #1 0;
+ 		clrcrc 			  <= #1 0;
+ 		std_restart 	  <= #1 1;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@OR to OR
+        UPD HdlValueId@@brd_o to brd_active
+
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: bitcount
+    HdlValueInt: 1
+
+
+CommitId: ec40d4c8c6938f486e3ba642fba2a331e38d01da
+Bug fixes
+--- a/rtl/verilog/irda_mir_rx.v
++++ b/rtl/verilog/irda_mir_rx.v
+@@ -126,10 +128,10 @@ begin
+ 			  begin
+ 				  clrcrc 	  <= #1 1;
+ 				  rxstate 	  <= #1 st_stx_detected;
++				  bitcount 	  <= #1 0;
+ 				  counter8 	  <= #1 7;
+ 			  end
+ 			  mir_crc_error 	 <= #1 0;
+-			  bitcount 			 <= #1 0;
+ 		  end
+ 		st_stx_detected :
+ 		  begin
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@OR to OR
+        UPD HdlValueId@@brd_o to brd_active
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: bitcount
+    HdlValueInt: 1
+
+
+CommitId: ec40d4c8c6938f486e3ba642fba2a331e38d01da
+Bug fixes
+--- a/rtl/verilog/irda_mir_rx.v
++++ b/rtl/verilog/irda_mir_rx.v
+@@ -196,8 +198,10 @@ begin
+ 
+ end
+ 
++
++
+ assign mir_ifdlr_o = bitcount[18:3];
+ assign mir_sto_detected = (rxstate == st_sto_detected);
+-assign mir_rx_error = brd_o;
++assign mir_rx_error = brd_active;
+ 
+ endmodule
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@brd_o to brd_active
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_out_mux.v
++++ b/rtl/verilog/irda_out_mux.v
+@@ -1,6 +1,6 @@
+ `include "irda_defines.v"
+ module irda_out_mux (clk, wb_rst_i, sir_enc_o, mir_enc_o, fir_tx_o, sip_gen_o, 
+-			fast_mode, tx_select, mir_mode, tx_pad_o);
++			fast_mode, tx_select, mir_mode, negate_tx, tx_pad_o);
+ // sampled mux for IrDA main output 
+ input		clk;
+ input		wb_rst_i;
+
+ParseResult:
+UPD HdlStmAssign@@if_true to if_true
+    INS HdlOp@@XOR to if_true
+    UPD HdlOp@@XOR to XOR
+        INS list@@ops to XOR
+        INS HdlValueId@@negate_tx to ops
+
+UPD HdlStmAssign@@if_true to if_true
+    MOV HdlValueId@@sir_enc_o to if_true
+    HdlValueId: sir_enc_o
+
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@XOR to 
+    UPD HdlOp@@XOR to XOR
+        INS list@@ops to XOR
+        INS HdlValueId@@negate_tx to ops
+
+UPD HdlStmAssign@@if_false to if_false
+    MOV HdlOp@@OR to if_false
+    HdlOp: OR
+        list: ops
+            HdlValueId: fir_tx_o
+            HdlValueId: sip_gen_o
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@OR to 
+    HdlOp: OR
+        list: ops
+            HdlValueId: mir_enc_o
+            HdlValueId: sip_gen_o
+
+
+CommitId: a56166230168d41528db5525bba69837c357ceb7
+bug fixes.
+--- a/rtl/verilog/irda_wb.v
++++ b/rtl/verilog/irda_wb.v
+@@ -1,6 +1,6 @@
+ `include "irda_defines.v"
+ 
+-module irda_wb (clk, wb_rst_i, wb_stb_i, wb_cyc_i,  wb_we_i, wb_ack_o, we_i);
++module irda_wb (clk, wb_rst_i, wb_stb_i, wb_cyc_i,  wb_we_i, wb_ack_o, we_i, re_i);
+ 
+ input			clk;
+ input			wb_rst_i;
+
+ParseResult:
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: AND
+        list: ops
+            HdlOp: AND
+                list: ops
+                    HdlOp: NEG
+                        list: ops
+                            HdlValueId: wb_we_i
+                    HdlValueId: wb_stb_i
+            HdlValueId: wb_cyc_i
+    HdlValueId: re_i
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_fir_bit_sync.v
++++ b/rtl/verilog/irda_fir_bit_sync.v
+@@ -1,5 +1,5 @@
+ `include "irda_defines.v"
+-module irda_fir_bit_sync (clk, wb_rst_i, bs_restart, rx_i, fast_enable, bs_o);
++module irda_fir_bit_sync (clk, wb_rst_i, bs_restart, rx_i, fast_enable, fir_rx4_enable, fir_rx8_enable, bs_o);
+ // synchronizes to bit level. the 40Mhz clock is used to sample on the third clock of each bit
+ // syncronyzation starts on bs_restart
+ 
+
+ParseResult:
+INS HdlIdDef@@bs_o_tmp to objs
+HdlIdDef: bs_o_tmp
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@bs_o to bs_o_tmp
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@bs_o to bs_o_tmp
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_fir_bit_sync.v
++++ b/rtl/verilog/irda_fir_bit_sync.v
+@@ -8,10 +8,13 @@ input		wb_rst_i;
+ input		bs_restart;
+ input		rx_i;		// input from the led
+ input		fast_enable; // 40Mhz clock
++input 	fir_rx4_enable;
++input 	fir_rx8_enable;
+ 
+ output	bs_o;	// bit output
+ 
+-reg		bs_o;
++//reg		bs_o; // synchronised to 4Mhz clock output
++reg 		bs_o_tmp; // temporary register for non-syncronised to 4Mhz signal
+ 
+ // Bit synchronizer FSM
+ 
+
+ParseResult:
+UPD HdlIdDef@@bs_o to work_delayed
+
+MOV HdlIdDef@@bs_o to ports
+HdlIdDef: bs_o
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: OUT
+
+INS HdlIdDef@@fir_rx4_enable to ports
+HdlIdDef: fir_rx4_enable
+    HdlDirection: IN
+
+INS HdlIdDef@@fir_rx8_enable to ports
+HdlIdDef: fir_rx8_enable
+    HdlDirection: IN
+
+INS HdlIdDef@@bs_o to ports
+HdlIdDef: bs_o
+    HdlDirection: OUT
+
+UPD HdlIdDef@@bs_o to bs_o
+    UPD HdlDirection@@OUT to INTERNAL
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_fir_bit_sync.v
++++ b/rtl/verilog/irda_fir_bit_sync.v
+@@ -22,19 +25,19 @@ reg	[3:0]	state;
+ always @(posedge clk or posedge wb_rst_i)
+ begin
+ 	if (wb_rst_i) begin
+-		state <= #1 st0;
+-		bs_o <= #1 0;
++		state 		<= #1 st0;
++		bs_o_tmp 	<= #1 0;
+ 	end else if (bs_restart) begin
+-		state <= #1 st0;
+-		bs_o <= #1 0;
++		state 	<= #1 st0;
++		bs_o_tmp	<= #1 0;
+ 	end else if (fast_enable) begin
+ 	case (state)
+ 		st0 : if (rx_i==0) state <= #1 st1;
+ 		st1 : if (rx_i==1) state <= #1 st2;
+ 		st2 : if (rx_i==1) state <= #1 st3; else state <= #1 st0;
+ 		st3 : if (rx_i==1) begin
+-					state <= #1 st4;
+-					bs_o <= #1 1;
++					state		<= #1 st4;
++					bs_o_tmp <= #1 1;
+ 				end else
+ 					state <= #1 st0;
+ 		st4 : state <= #1 st5;
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@bs_o to bs_o_tmp
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_fir_bit_sync.v
++++ b/rtl/verilog/irda_fir_bit_sync.v
+@@ -42,8 +45,8 @@ begin
+ 		st6 : state <= #1 st7;
+ 		st7 : state <= #1 st8;
+ 		st8 : begin
+-					state <= #1 st9;
+-					bs_o <= #1 rx_i;
++					state		<= #1 st9;
++					bs_o_tmp <= #1 rx_i;
+ 				end
+ 		st9 : state <= #1 st5;
+ 		default :
+
+ParseResult:
+INS HdlIdDef@@phase to objs
+HdlIdDef: phase
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+        HdlOp: RISING
+            list: ops
+                HdlValueId: wb_rst_i
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: wb_rst_i
+                HdlStmAssign: if_true
+                    HdlValueInt: 0
+                    HdlValueId: phase
+                    HdlValueInt: 1
+                list: elifs
+                    tuple
+                        HdlValueId: fir_rx8_enable
+                        HdlStmIf
+                            HdlValueId: fir_rx4_enable
+                            HdlStmAssign: if_true
+                                HdlValueInt: 1
+                                HdlValueId: phase
+                                HdlValueInt: 1
+                            list: elifs
+                            HdlStmAssign: if_false
+                                HdlValueInt: 0
+                                HdlValueId: phase
+                                HdlValueInt: 1
+
+
+CommitId: 27c6cb80dfae672d2dcf7c022fb9b071f814a756
+Debugged.
+--- a/rtl/verilog/irda_mir_tx.v
++++ b/rtl/verilog/irda_mir_tx.v
+@@ -115,13 +115,13 @@ begin
+ 	case (state)
+ 	st_idle :  // between frames
+ 	  begin
+-		  dc_restart <= #1 0;
+-		  bs_restart <= #1 1;
++		  dc_restart 	 <= #1 0;
++		  bs_restart 	 <= #1 1;
++		  sip_o 			 <= #1 0;
+ 			if (data_available) begin
+ 				state 		  <= #1 st_sta_count;
+ 				mux_select 	  <= #1 2'b01; // ST signal selection
+ 				ofdl_c 		  <= #1 0;
+-				sip_o 		  <= #1 0;
+ 				st_restart 	  <= #1 0;
+ 				st_shift 	  <= #1 1;
+ 				counter 		  <= #1 15; // two start flags in each frame
+
+ParseResult:
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: mux_select
+    HdlValueInt: 1
+
+UPD HdlStmCase@@state to state
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlOp: CALL
+                    list: ops
+                        HdlValueId: $time
+                HdlValueId: mir_tx_o
+
+
+CommitId: 27c6cb80dfae672d2dcf7c022fb9b071f814a756
+Debugged.
+--- a/rtl/verilog/irda_mir_tx.v
++++ b/rtl/verilog/irda_mir_tx.v
+@@ -129,6 +129,7 @@ begin
+ 			else begin
+ 				st_restart 	  <= #1 1;
+ 				st_shift 	  <= #1 0;
++				mux_select 	  <= #1 2'b0; /// break
+ 			end
+ 			crcndata <= #1 0;
+ 		end
+
+ParseResult:
+UPD HdlStmCase@@state to state
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlOp: CALL
+                    list: ops
+                        HdlValueId: $time
+                HdlValueId: mir_tx_o
+
+
+CommitId: 27c6cb80dfae672d2dcf7c022fb9b071f814a756
+Debugged.
+--- a/rtl/verilog/irda_mir_tx.v
++++ b/rtl/verilog/irda_mir_tx.v
+@@ -152,7 +153,7 @@ begin
+ 	st_send_data :
+ 	  begin
+ 		  //// DEBUG
+-		  $display("%m, %t, sending: %b", $time, mir_tx_o);
++		 /// $display("%m, %t, sending: %b", $time, mir_tx_o);
+ 		  //// END DEBUG
+ 			st_restart <= #1 1;
+ 			// conditions for next step (CRC)
+ParseResult:
+UPD HdlStmCase@@state to state
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlOp: CALL
+                    list: ops
+                        HdlValueId: $time
+                HdlValueId: mir_tx_o
+
+
+CommitId: 1f9c31626417b16fe51bfb7620df36f19b4f402b
+top level port names change and minor bug fix.
+--- a/rtl/verilog/irda_mir_st_det.v
++++ b/rtl/verilog/irda_mir_st_det.v
+@@ -56,7 +56,7 @@ begin
+ 	if (wb_rst_i)
+ 	  std_is_good_bit <= #1 0;
+ 	else
+-	  std_is_good_bit = ( front == 0);
++	  std_is_good_bit <= #1 ( front == 0);
+ end
+ 
+ endmodule
+ParseResult:
+INS HdlStmAssign@@if_false to 
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@ASSIGN to ASSIGN
+        MOV HdlOp@@EQ to ops
+        HdlOp: EQ
+            list: ops
+                HdlValueId: front
+                HdlValueInt: 0
+        DEL HdlValueId@@std_is_good_bit from ops
+        DEL list@@ops from ASSIGN
+    DEL HdlOp@@ASSIGN from 
+
+UPD HdlStmAssign@@if_false to if_false
+    INS HdlValueId@@std_is_good_bit to if_false
+    INS HdlValueInt@@1 to if_false
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_mir_decoder.v
++++ b/rtl/verilog/irda_mir_decoder.v
+@@ -1,12 +1,13 @@
+ `include "irda_defines.v"
+-module irda_mir_decoder (clk, wb_rst_i, fast_enable, mir_mode, tx_select, rx_i, mir_dec_o);
++module irda_mir_decoder (clk, wb_rst_i, fast_enable, mir_mode, tx_select, rx_pad_i, negate_rx, mir_dec_o);
+ 
+ input		clk;
+ input		wb_rst_i;
+ input		fast_enable;
+ input		mir_mode;
+ input		tx_select;
+-input		rx_i;
++input		negate_rx;
++input		rx_pad_i;
+ 
+ output	mir_dec_o;
+ reg		mir_dec_o;
+
+ParseResult:
+INS HdlIdDef@@rx_i to objs
+HdlIdDef: rx_i
+    HdlOp: XOR
+        list: ops
+            HdlValueId: rx_pad_i
+            HdlValueId: negate_rx
+    HdlDirection: INTERNAL
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_mir_decoder.v
++++ b/rtl/verilog/irda_mir_decoder.v
+@@ -17,6 +18,8 @@ parameter st0=0, st1=1, st2=2, st3=3;
+ reg	[1:0] state;
+ reg	zero; // zero output (a high condition was encountered in the four bits)
+ 
++wire 	rx_i = rx_pad_i ^ negate_rx;
++
+ always @(posedge clk or posedge wb_rst_i)
+ begin
+ 	if (wb_rst_i) begin
+ParseResult:
+UPD HdlIdDef@@rx_i to rx_pad_i
+
+INS HdlIdDef@@negate_rx to ports
+HdlIdDef: negate_rx
+    HdlDirection: IN
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_mir_rx.v
++++ b/rtl/verilog/irda_mir_rx.v
+@@ -128,24 +142,34 @@ begin
+ 				  clrcrc 	  <= #1 1;
+ 				  rxstate 	  <= #1 st_stx_detected;
+ 				  bitcount 	  <= #1 0;
+-				  counter8 	  <= #1 7;
++				  counter16   <= #1 7;
+ 			  end
+-			  mir_crc_error 	 <= #1 0;
++			  mir_crc_error <= #1 0;
+ 		  end
+ 		st_stx_detected :
+ 		  begin
+-			  if (counter8!=0)
+-				 counter8 	  <= #1 counter8 - 1;
++			  if (counter16!=0)
++				 counter16 	  <= #1 counter16 - 1;
+ 			  else
+ 				if (std_st_detected)
+-				  counter8 	  <= #1 7;
++				  counter16	  <= #1 7;
+ 				else begin
+-					rxstate 	  <= #1 st_data;
+-					bit_pos 	  <= #1 0;
+-					temp31 	  <= #1 0;
+-					clrcrc 	  <= #1 0;
++					rxstate 		 <= #1 st_wait16;
++					counter16 	 <= #1 15;
++					clrcrc <= #1 0;
+ 				end
+-		  end
++		  end // case: st_stx_detected
++	  st_wait16 : // fill the shr16 shift register
++		 begin
++			 if (counter16!=0)
++			    counter16  <= #1 counter16 - 1;
++			 else begin
++				 rxstate 	<= #1 st_data;
++				 bit_pos 	<= #1 0;
++				 temp31 		<= #1 0;
++//				 clrcrc 		<= #1 0;
++			 end
++  		 end
+ 	  st_data :
+ 		  begin
+ 			  clrcrc <= #1 0;
+
+ParseResult:
+UPD HdlStmCase@@rxstate to rxstate
+    INS tuple@@ to cases
+    INS HdlValueId@@st_wait16 to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+INS HdlStmIf@@ to body
+
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+INS HdlStmAssign@@if_true to 
+HdlStmAssign: if_true
+    HdlOp: SUB
+        list: ops
+            HdlValueId: counter16
+            HdlValueInt: 1
+    HdlValueId: counter16
+    HdlValueInt: 1
+
+UPD HdlStmIf@@ to 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueId: st_data
+                HdlValueId: rxstate
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: bit_pos
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: temp31
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: clrcrc
+                HdlValueInt: 1
+    UPD HdlOp@@NE to NE
+        UPD HdlValueId@@counter8 to counter16
+
+UPD HdlStmAssign@@if_true to if_true
+    UPD HdlValueId@@counter8 to counter16
+    UPD HdlOp@@SUB to SUB
+        UPD HdlValueId@@counter8 to counter16
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueId: st_wait16
+    HdlValueId: rxstate
+    HdlValueInt: 1
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 15
+    HdlValueId: counter16
+    HdlValueInt: 1
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: clrcrc
+    HdlValueInt: 1
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@counter8 to counter16
+
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@CALL to CALL
+            UPD HdlOp@@CONCAT to CONCAT
+                UPD HdlValueId@@bds_o to shr16_o
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_mir_rx.v
++++ b/rtl/verilog/irda_mir_rx.v
+@@ -154,22 +178,22 @@ begin
+ 			  //// END DEBUG
+ 				if (std_st_detected) begin  /// end of frame (STO) detected
+ 					/// DEBUG
+-					$display("%m, %t, Pushing %b", $time,{bds_o, temp31} );
++					$display("%m, %t, Pushing %b", $time,{shr16_o, temp31} );
+ 					/// END DEBUG
+ 					rxstate 			 <= #1 st_sto_detected;
+-					rxfifo_dat_i 	 <= #1 {bds_o, temp31}; // push to fifo
++					rxfifo_dat_i 	 <= #1 {shr16_o, temp31}; // push to fifo
+ 				end else
+ 				if (bds_is_data_bit) begin  // if good bit
+ 					bitcount <= #1 bitcount + 1;
+ 					if (bit_pos==31) begin // the temporary word is full
+ 						/// DEBUG
+-						$display("%m, %t, Pushing %b", $time,{bds_o, temp31} );
++						$display("%m, %t, Pushing %b", $time,{shr16_o, temp31} );
+ 						/// END DEBUG						
+-						 rxfifo_dat_i 	 <= #1 {bds_o, temp31}; // push to fifo
++						rxfifo_dat_i 	 <= #1 {shr16_o, temp31}; // push to fifo
+ 						bit_pos 			 <= #1 0;
+ 						temp31 			 <= #1 0;
+ 					end else begin 
+-						temp31[bit_pos] 	 <= #1 bds_o;
++						temp31[bit_pos] 	 <= #1 shr16_o;
+ 						bit_pos 				 <= #1 bit_pos + 1;
+ 						rxfifo_dat_i 		 <= #1 0;
+ 					end
+
+ParseResult:
+UPD HdlStmCase@@rxstate to rxstate
+    INS tuple@@ to cases
+    INS HdlValueId@@st_wait16 to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@NE to 
+    HdlOp: NE
+        list: ops
+            HdlValueId: counter16
+            HdlValueInt: 0
+    INS list@@elifs to 
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlValueId@@bds_o to shr16_o
+
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@CALL to CALL
+            UPD HdlOp@@CONCAT to CONCAT
+                UPD HdlValueId@@bds_o to shr16_o
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@bds_o to shr16_o
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlValueId@@bds_o to shr16_o
+
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@CALL to CALL
+            UPD HdlOp@@CONCAT to CONCAT
+                UPD HdlValueId@@bds_o to shr16_o
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_mir_rx.v
++++ b/rtl/verilog/irda_mir_rx.v
+@@ -178,8 +202,8 @@ begin
+ 				end // else: !if(bds_is_data_bit)
+ 		  end
+ 		st_sto_detected :
+-			begin
+-				if (crc16_par_o==16'b0001_1101_0000_1111) begin // if the crc is correct
++		  begin
++				if (crc16_par_o == 16'b0001_1101_0000_1111) begin // if the crc is correct
+ 					mir_crc_error 	  <= #1 0;
+ 				end else begin
+ 					mir_crc_error 	  <= #1 1;
+ParseResult:
+UPD HdlStmCase@@rxstate to rxstate
+    INS tuple@@ to cases
+    INS HdlValueId@@st_wait16 to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+
+CommitId: ec40d4c8c6938f486e3ba642fba2a331e38d01da
+Bug fixes
+--- a/rtl/verilog/irda_sir_decoder.v
++++ b/rtl/verilog/irda_sir_decoder.v
+@@ -16,19 +16,20 @@ reg		zero;
+ always @(posedge clk or posedge wb_rst_i)
+ begin
+ 	if (wb_rst_i) begin
+-		zero <= #1 0;
+-		cnt16 <= #1 0;
+-		sir_dec_o <= #1 0;
++		zero 			 <= #1 0;
++		cnt16 		 <= #1 0;
++		sir_dec_o 	 <= #1 1;
+ 	end else if (fast_mode) begin
+-		zero <= #1 0;
+-		cnt16 <= #1 0;
++		zero 			 <= #1 0;
++		cnt16 		 <= #1 0;
++		sir_dec_o 	 <= #1 1;
+ 	end else if (~tx_select && fast_enable) begin
+ 		cnt16 <= #1 cnt16 + 1;
+ 		if (cnt16==15)	begin
+-				sir_dec_o <= #1 zero;
+-				zero <= #1 0;
++			sir_dec_o 	 <= #1 ~zero;
++			zero 			 <= #1 0;
+ 		end else
+-				zero <= #1 zero | rx_i;
++		  zero <= #1 zero | rx_i;
+ 	end
+ end
+ 
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlValueInt@@0 to 1
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 1
+    HdlValueId: sir_dec_o
+    HdlValueInt: 1
+
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@NEG to 
+    UPD HdlOp@@NEG to NEG
+        INS list@@ops to NEG
+
+UPD HdlStmAssign@@ to 
+    MOV HdlValueId@@zero to 
+    HdlValueId: zero
+
+
+CommitId: 1f9c31626417b16fe51bfb7620df36f19b4f402b
+top level port names change and minor bug fix.
+--- a/rtl/verilog/irda_top.v
++++ b/rtl/verilog/irda_top.v
+@@ -1,15 +1,15 @@
+ `include "irda_defines.v"
+ 
+-module irda_top (clk, wb_rst_i, wb_addr_i, wb_dat_i, wb_dat_o, wb_we_i, wb_stb_i, wb_cyc_i,
++module irda_top (wb_clk_i, wb_rst_i, wb_adr_i, wb_dat_i, wb_dat_o, wb_we_i, wb_stb_i, wb_cyc_i,
+ 	wb_ack_o, int_o, dma_req_t_o, dma_ack_t_i, dma_req_r_o, dma_ack_r_i,
+ 	tx_pad_o, rx_pad_i);
+ 
+ parameter 							 irda_addr_width = 4;
+ parameter 							 irda_data_width = 32;
+ 
+-input 								 clk;
++input 								 wb_clk_i;
+ input 								 wb_rst_i;
+-input [irda_addr_width-1:0] 	 wb_addr_i;
++input [irda_addr_width-1:0] 	 wb_adr_i;
+ input [irda_data_width-1:0] 	 wb_dat_i;
+ output [irda_data_width-1:0] 	 wb_dat_o;
+ input 								 wb_we_i;
+
+ParseResult:
+UPD HdlIdDef@@clk to wb_clk_i
+
+UPD HdlIdDef@@wb_addr_i to wb_adr_i
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_fir_flag_gen.v
++++ b/rtl/verilog/irda_fir_flag_gen.v
+@@ -1,5 +1,6 @@
+ `include "irda_defines.v"
+-module irda_fir_flag_gen (clk, wb_rst_i, fir_tx4_enable, fir_tx8_enable, fir_gen_start, fir_flag, flag_gen_o, eof);
++module irda_fir_flag_gen (clk, wb_rst_i, fir_tx4_enable, fir_tx8_enable,
++		fir_gen_start, fir_flag, flag_gen_o, eof, gen_signal);
+ // generates PA/STA/STO flags
+ // fir_flag == 00 => 0 constant
+ // fir_flag == 01 => PA
+
+ParseResult:
+MOV HdlIdDef@@start to objs
+HdlIdDef: start
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+UPD HdlIdDef@@start to sending_pa
+
+UPD HdlIdDef@@flag to flag
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlValueId@@reg to wire
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_fir_flag_gen.v
++++ b/rtl/verilog/irda_fir_flag_gen.v
+@@ -15,6 +16,7 @@ input [1:0]	fir_flag;
+ 
+ output		flag_gen_o;
+ output		eof;  // end of flag signal
++output		gen_signal;
+ 
+ // mux outputs (not from flip flop)
+ reg			flag_gen_o;
+
+ParseResult:
+INS HdlIdDef@@gen_signal to ports
+HdlIdDef: gen_signal
+    HdlDirection: OUT
+
+DEL HdlStmProcess@@ from objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+        HdlOp: RISING
+            list: ops
+                HdlValueId: wb_rst_i
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: wb_rst_i
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmAssign
+                            HdlValueInt: 00
+                            HdlValueId: flag
+                            HdlValueInt: 1
+                        HdlStmAssign
+                            HdlValueInt: 0
+                            HdlValueId: start
+                            HdlValueInt: 1
+                list: elifs
+                    tuple
+                        HdlOp: AND_LOG
+                            list: ops
+                                HdlValueId: fir_tx4_enable
+                                HdlValueId: fir_gen_start
+                        HdlStmBlock: SEQ
+                            list: body
+                                HdlStmAssign
+                                    HdlValueId: fir_flag
+                                    HdlValueId: flag
+                                    HdlValueInt: 1
+                                HdlStmAssign
+                                    HdlValueInt: 1
+                                    HdlValueId: start
+                                    HdlValueInt: 1
+                HdlStmAssign: if_false
+                    HdlValueInt: 0
+                    HdlValueId: start
+                    HdlValueInt: 1
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_fir_flag_gen.v
++++ b/rtl/verilog/irda_fir_flag_gen.v
+@@ -120,12 +148,27 @@ always @(flag or st or pa)
+ 	endcase
+ 
+ // flag generator end of flag output
++reg tmp_eof;
+ always @(flag or st_end or pa_end)
+ 	case (flag)
+-		2'b00 : eof = 0;
+-		2'b01 : eof = pa_end;
++		2'b00 : tmp_eof = 0;
++		2'b01 : tmp_eof = pa_end;
+ 		2'b10,
+-		2'b11 : eof = st_end;
++		2'b11 : tmp_eof = st_end;
+ 	endcase
+ 
+-endmodule
++// eof signal is held for one 4Mhz clock
++// needed because tmp_eof is held for 8Mhz clock period only
++//always @(posedge clk or posedge wb_rst_i)
++//	if (wb_rst_i)
++//		eof <= #1 0;
++//	else if (fir_tx8_enable)
++//		eof <= #1 tmp_eof;
++
++always @(tmp_eof)
++begin
++	eof = tmp_eof;
++end
++
++
++endmodule
+\ No newline at end of file
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlValueId: tmp_eof
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: eof
+                    HdlValueId: tmp_eof
+
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+UPD HdlStmCase@@flag to flag
+    UPD HdlOp@@ASSIGN to ASSIGN
+        UPD HdlValueId@@eof to tmp_eof
+    UPD HdlOp@@ASSIGN to ASSIGN
+        UPD HdlValueId@@eof to tmp_eof
+    UPD HdlOp@@ASSIGN to ASSIGN
+        UPD HdlValueId@@eof to tmp_eof
+    UPD HdlOp@@ASSIGN to ASSIGN
+        UPD HdlValueId@@eof to tmp_eof
+
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: st_end
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: st
+                HdlValueInt: 1
+
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: st
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: st_symbol_count
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: st_end
+                HdlValueInt: 1
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_sir_decoder.v
++++ b/rtl/verilog/irda_sir_decoder.v
+@@ -1,9 +1,10 @@
+ `include "irda_defines.v"
+-module irda_sir_decoder (clk, wb_rst_i, rx_i, fast_enable, sir_dec_o, tx_select, fast_mode);
++module irda_sir_decoder (clk, wb_rst_i, rx_pad_i, negate_rx, fast_enable, sir_dec_o, tx_select, fast_mode);
+ 
+ input		clk;
+ input		wb_rst_i;
+-input		rx_i;
++input		rx_pad_i;
++input		negate_rx;
+ input		fast_enable;
+ input		tx_select;
+ input		fast_mode;
+
+ParseResult:
+INS HdlIdDef@@rx_i to objs
+HdlIdDef: rx_i
+    HdlOp: XOR
+        list: ops
+            HdlValueId: rx_pad_i
+            HdlValueId: negate_rx
+    HdlDirection: INTERNAL
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_sir_decoder.v
++++ b/rtl/verilog/irda_sir_decoder.v
+@@ -14,6 +15,8 @@ reg		sir_dec_o;
+ reg	[3:0] cnt16;
+ reg		zero;
+ 
++wire 		rx_i = rx_pad_i ^ negate_rx;
++
+ always @(posedge clk or posedge wb_rst_i)
+ begin
+ 	if (wb_rst_i) begin
+ParseResult:
+INS HdlIdDef@@negate_rx to ports
+HdlIdDef: negate_rx
+    HdlDirection: IN
+
+
+CommitId: ec40d4c8c6938f486e3ba642fba2a331e38d01da
+Bug fixes
+--- a/rtl/verilog/irda_wb_router.v
++++ b/rtl/verilog/irda_wb_router.v
+@@ -53,21 +53,22 @@ output [31:0]	wb_dat_o;
+ //
+ 
+ 	// outputs to fast mode
+-assign f_wb_stb_i = fast_mode ? wb_stb_i : 0;
+-assign f_wb_cyc_i = fast_mode ? wb_cyc_i : 0;
+-assign f_wb_we_i =  fast_mode ? wb_we_i  : 0;
+-assign f_wb_dat_i = fast_mode ? wb_dat_i : 32'b0;
+-assign f_wb_addr_i = fast_mode ? wb_addr_i : 4'b0;
++assign f_wb_stb_i 	= fast_mode ? wb_stb_i : 0;
++assign f_wb_cyc_i 	= fast_mode ? wb_cyc_i : 0;
++assign f_wb_we_i 		=  fast_mode ? wb_we_i  : 0;
++assign f_wb_dat_i 	= fast_mode ? wb_dat_i : 32'b0;
++assign f_wb_addr_i 	= fast_mode ? wb_addr_i : 4'b0;
+ 
+ 	// outputs to uart
+-assign u_wb_stb_i = ~fast_mode ? wb_stb_i : 0;
+-assign u_wb_cyc_i = ~fast_mode ? wb_cyc_i : 0;
+-assign u_wb_we_i =  ~fast_mode ? wb_we_i  : 0;
+-assign u_wb_dat_i = ~fast_mode ? wb_dat_i : 8'b0;
+-assign u_wb_addr_i = ~fast_mode ? wb_addr_i : 3'b0;
++// the check for zeros is when we write into MASTER register
++assign u_wb_stb_i 	= (~fast_mode) ? wb_stb_i : 0;
++assign u_wb_cyc_i 	= (~fast_mode) ? wb_cyc_i : 0;
++assign u_wb_we_i 		= (~fast_mode && wb_addr_i[3]==0) ? wb_we_i  : 0;
++assign u_wb_dat_i 	= (~fast_mode) ? wb_dat_i : 8'b0;
++assign u_wb_addr_i 	= (~fast_mode) ? wb_addr_i : 3'b0;
+ 
+ 	// outputs to wishbone
+-assign wb_ack_o = fast_mode ? f_wb_ack_o : u_wb_ack_o;
+-assign wb_dat_o = fast_mode ? f_wb_dat_o : {24'b0, u_wb_dat_o};
++assign wb_ack_o 		= fast_mode ? f_wb_ack_o : u_wb_ack_o;
++assign wb_dat_o 		= fast_mode ? f_wb_dat_o : {24'b0, u_wb_dat_o};
+ 
+ endmodule
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        INS HdlOp@@AND_LOG to ops
+        UPD HdlOp@@AND_LOG to AND_LOG
+            INS list@@ops to AND_LOG
+            INS HdlOp@@EQ to ops
+            HdlOp: EQ
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: wb_addr_i
+                            HdlValueInt: 3
+                    HdlValueInt: 0
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        MOV HdlOp@@NEG to ops
+        HdlOp: NEG
+            list: ops
+                HdlValueId: fast_mode
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_fir_rx.v
++++ b/rtl/verilog/irda_fir_rx.v
+@@ -1,6 +1,6 @@
+ `include "irda_defines.v"
+ module irda_fir_rx (clk, wb_rst_i, fast_enable, fir_rx8_enable, fir_rx_restart,
+-		fir_rx4_enable, rx_i, fir_ifdlr_o, rxfifo_dat_i, rxfifo_add, crc32_error, fir_sto_detected, fir_rx_error);
++		fir_rx4_enable, rx_pad_i, negate_rx, fir_ifdlr_o, rxfifo_dat_i, rxfifo_add, crc32_error, fir_sto_detected, fir_rx_error);
+ 
+ input					clk;
+ input					wb_rst_i;
+
+ParseResult:
+INS HdlIdDef@@clrcrc to objs
+HdlIdDef: clrcrc
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@ppmd_restart to objs
+HdlIdDef: ppmd_restart
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@rx_i to objs
+HdlIdDef: rx_i
+    HdlOp: XOR
+        list: ops
+            HdlValueId: rx_pad_i
+            HdlValueId: negate_rx
+    HdlDirection: INTERNAL
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_fir_rx.v
++++ b/rtl/verilog/irda_fir_rx.v
+@@ -8,7 +8,8 @@ input					fast_enable;
+ input					fir_rx8_enable;
+ input					fir_rx4_enable;
+ input					fir_rx_restart;
+-input					rx_i;
++input					rx_pad_i;
++input					negate_rx;
+ 
+ output	[15:0]	fir_ifdlr_o;
+ output	[31:0]	rxfifo_dat_i;
+
+ParseResult:
+UPD HdlIdDef@@rx_i to rx_pad_i
+
+INS HdlIdDef@@negate_rx to ports
+HdlIdDef: negate_rx
+    HdlDirection: IN
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_fir_rx.v
++++ b/rtl/verilog/irda_fir_rx.v
+@@ -57,30 +63,30 @@ irda_fir_4ppm_decoder ppm_dec(
+ 		.ppmd_restart(		ppmd_restart	),
+ 		.fd_o (				fd_o 				),
+ 		.ppmd_o(				ppmd_o			),
+-		.ppmd_bad_chip(	ppmd_bad_chip	)
++		.ppmd_bad_chip(	ppmd_bad_chip	),
++		.fd_data_bit(	fd_data_bit)					
+ 	);
+ 
+ // CRC32 for receiver
+ irda_crc32_rx crc32rx(
+ 		.clk(					clk				),
+ 		.wb_rst_i(			wb_rst_i			),
+-		.clrcrc(				clrcrc			), /// <===
++		.clrcrc(				clrcrc			),
+ 		.fir_rx4_enable(	fir_rx4_enable	),
+ 		.txdin(				txdin				),
+ 		.crcndata(			1'b0				),
+-		.txdout(				txdout			),
++		.txdout(							),
+ 		.bdcrc(				1'b0				),
+ 		.crc32_par_o(		crc32_par_o		)
+ 	);
+ 
+-assign fir_rx_error = ppmd_bad_chip | break_det;
+-assign txdin = ppmd_o;
+-assign bs_restart = fir_rx_restart;
+-assign ppmd_restart = fir_rx_restart;
+-assign fd_restart = fir_rx_restart;
++assign 		txdin = ppmd_o;
++assign 		bs_restart = fir_rx_restart;
++//assign ppmd_restart = fir_rx_restart;
++assign 		fd_restart = fir_rx_restart;
+ 
+ /// STO signal delay for 2 4Mhz clocks
+-reg	[1:0] sto_det_delay;
++reg [1:0] 	sto_det_delay;
+ always @(posedge clk or posedge wb_rst_i)
+ begin
+ 	if (wb_rst_i) begin
+
+ParseResult:
+MOV HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: OR
+        list: ops
+            HdlValueId: ppmd_bad_chip
+            HdlValueId: break_det
+    HdlValueId: fir_rx_error
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@OR to 
+    HdlOp: OR
+        list: ops
+            HdlValueId: ppmd_bad_chip
+            HdlValueId: break_det
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlValueId: fir_rx_restart
+    HdlValueId: ppmd_restart
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_fir_rx.v
++++ b/rtl/verilog/irda_fir_rx.v
+@@ -177,12 +199,19 @@ begin
+ 		rxfifo_dat_i <= #1 0;
+ 	end else if (fir_rx4_enable && state==st_data && (count32==31 || fir_sto_detected)) begin
+ 		rxfifo_add <= #1 1;
+-		rxfifo_dat_i <= #1 {rx_i, temp32};
++		rxfifo_dat_i <= #1 {ppmd_o, temp32};
+ 	end else begin
+ 		rxfifo_add <= #1 0;
+ 		rxfifo_dat_i <= #1 0;
+ 	end
+-end
++end // always @ (posedge clk or posedge wb_rst_i)
++
++// DEBUG
++always @(rxfifo_add)
++	if (rxfifo_add) begin
++		#1 $display("%m, Pushing %h", rxfifo_dat_i);
++	end
++
+ 
+ assign fir_ifdlr_o = bitcount[18:3];
+ 
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlValueId: rxfifo_add
+    HdlStmIf: body
+        HdlValueId: rxfifo_add
+        HdlStmBlock: SEQ
+            list: body
+                HdlStmProcess
+                    HdlStmBlock: SEQ
+                        list: body
+                            HdlStmWait:
+                                list: val
+                                    HdlValueInt: 1
+                            HdlOp: CALL
+                                list: ops
+                                    HdlValueId: $display
+                                    str
+                                    HdlValueId: rxfifo_dat_i
+        list: elifs
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@OR_LOG to OR_LOG
+        UPD HdlOp@@AND_LOG to AND_LOG
+            INS HdlOp@@AND_LOG to ops
+            UPD HdlOp@@AND_LOG to AND_LOG
+                INS list@@ops to AND_LOG
+                INS HdlOp@@EQ to ops
+                HdlOp: EQ
+                    list: ops
+                        HdlValueId: state
+                        HdlValueId: st_data
+
+UPD HdlStmCase@@state to state
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@fir_rx4_enable to 
+    INS list@@elifs to 
+
+
+CommitId: 27c6cb80dfae672d2dcf7c022fb9b071f814a756
+Debugged.
+--- a/rtl/verilog/irda_sip_gen.v
++++ b/rtl/verilog/irda_sip_gen.v
+@@ -1,21 +1,25 @@
+ `include "irda_defines.v"
+-module irda_sip_gen (clk, wb_rst_i, fast_enable, sip_o, sip_end_i, sip_gen_o);
++module irda_sip_gen (clk, wb_rst_i, mir_sip_o, fir_sip_o, sip_end_i, sip_gen_o);
+ 
+-input		clk;
+-input		wb_rst_i;
+-input		fast_enable;
+-input		sip_o;		// sip request
+-output	sip_end_i;	// end of sip generation signal
+-output	sip_gen_o;  // the SIP signal output
++parameter 	 high_clocks=320;
++parameter 	 low_clocks=1420;
++parameter 	 sip_end_clocks=200; // 1 us
+ 
+-reg		sip_end_i;
+-reg		sip_gen_o;
++input 		 clk;
++input 		 wb_rst_i;
++input 		 mir_sip_o;		// mir mode sip request
++input 		 fir_sip_o;		// fir mode sip request
++output 		 sip_end_i;	// end of sip generation signal
++output 		 sip_gen_o;  // the SIP signal output
+ 
+-reg	[8:0] sip_counter;
+-reg			sip_delay;
++reg 			 sip_end_i;
++reg 			 sip_gen_o;
+ 
+-wire	sip_req; // request for SIP after rise detection
++reg [10:0] 	 sip_counter;
++reg 			 sip_delay;
+ 
++wire 			 sip_req; // request for SIP after rise detection
++wire 			 sip_o = mir_sip_o | fir_sip_o;
+ // rise detection for sip_o input
+ always @(posedge clk or posedge wb_rst_i)
+ begin
+
+ParseResult:
+INS HdlIdDef@@sip_o to objs
+HdlIdDef: sip_o
+    HdlOp: OR
+        list: ops
+            HdlValueId: mir_sip_o
+            HdlValueId: fir_sip_o
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@high_clocks to params
+HdlIdDef: high_clocks
+    HdlValueInt: 320
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@low_clocks to params
+HdlIdDef: low_clocks
+    HdlValueInt: 1420
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@sip_end_clocks to params
+HdlIdDef: sip_end_clocks
+    HdlValueInt: 200
+    HdlDirection: INTERNAL
+
+UPD HdlIdDef@@fast_enable to mir_sip_o
+
+UPD HdlIdDef@@sip_o to fir_sip_o
+
+
+CommitId: 27c6cb80dfae672d2dcf7c022fb9b071f814a756
+Debugged.
+--- a/rtl/verilog/irda_sip_gen.v
++++ b/rtl/verilog/irda_sip_gen.v
+@@ -37,9 +41,10 @@ begin
+ 		sip_end_i 		<= #1 0;
+ 		sip_counter 	<= #1 0;
+ 		sip_gen_o 		<= #1 0;
+-	end else if (sip_req) begin
+-		state 			<= #1 st_high;
+-		sip_counter 	<= #1 63;
++		state 			<= #1 st_idle;
++	end else if (sip_req) begin /// start the SIP 
++		state 			<= #1 st_high; // Enter high state
++		sip_counter 	<= #1 high_clocks; 
+ 	end else
+ 	case (state)
+ 		st_idle :
+
+ParseResult:
+UPD HdlIdDef@@sip_counter to sip_counter
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueInt@@8 to 10
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueId@@high_clocks to 
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@63 from 
+
+
+CommitId: 27c6cb80dfae672d2dcf7c022fb9b071f814a756
+Debugged.
+--- a/rtl/verilog/irda_sip_gen.v
++++ b/rtl/verilog/irda_sip_gen.v
+@@ -54,7 +59,7 @@ begin
+ 					sip_counter <= #1 sip_counter - 1;
+ 				else begin
+ 					state 			<= #1 st_low;
+-					sip_counter 	<= #1 283;
++					sip_counter 	<= #1 low_clocks;
+ 				end
+ 			end
+ 		st_low :
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@283 from 
+
+
+CommitId: 27c6cb80dfae672d2dcf7c022fb9b071f814a756
+Debugged.
+--- a/rtl/verilog/irda_sip_gen.v
++++ b/rtl/verilog/irda_sip_gen.v
+@@ -65,7 +70,7 @@ begin
+ 				else begin
+ 					state 			<= #1 st_send_end;
+ 					sip_end_i 		<= #1 1;
+-					sip_counter 	<= #1 70;
++					sip_counter 	<= #1 sip_end_clocks;
+ 				end
+ 			end
+ 		st_send_end :
+ParseResult:
+UPD HdlStmAssign@@ to 
+    INS HdlValueId@@low_clocks to 
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@70 from 
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_fir_tx.v
++++ b/rtl/verilog/irda_fir_tx.v
+@@ -75,7 +76,7 @@ irda_crc32 crctx(
+ 	);
+ 
+ assign txdin = data_o;
+-assign ppm_restart = do_ppm_restart | restart_tx;
++assign ppm_restart = do_ppm_restart;// | restart_tx;
+ 
+ 
+ ////////////////////////////
+
+ParseResult:
+UPD HdlIdDef@@ofdl_c to ofdl_c
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueInt@@18 to 19
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_fir_tx.v
++++ b/rtl/verilog/irda_fir_tx.v
+@@ -86,9 +87,9 @@ parameter	st_idle=0, st_send_pa=1, st_send_sta=2, st_data=3,
+ 
+ reg	[2:0]		state;
+ 
+-reg	[18:0]	ofdl_c;	// outgoing frame data length counter (it counts bits here)
++reg	[19:0]	ofdl_c;	// outgoing frame data length counter (it counts bits here)
+ reg	[1:0]		mux_select; // output mux select signal
+-reg	[4:0]		counter;
++reg	[5:0]		counter;
+ 
+ always @(posedge clk or posedge wb_rst_i)
+ begin
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlValueId@@fir_tx4_enable to fir_tx8_enable
+
+
+CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
+major bug fixes. some code rewrite.
+--- a/rtl/verilog/irda_fir_tx.v
++++ b/rtl/verilog/irda_fir_tx.v
+@@ -181,20 +192,20 @@ begin
+ 				if (counter != 0)
+ 					counter <= #1 counter - 1;
+ 				else begin
+-					crcndata <= #1 0;
+-					mux_select <= #1 2'b00; // flag generator
+-					state <= #1 st_send_sto;
+-					fir_gen_start <= #1 1;
+-					fir_flag <= #1 2'b11; // STO signal
++					crcndata 		  <= #1 0;
++					mux_select 		  <= #1 2'b00; // flag generator
++					state 			  <= #1 st_send_sto;
++					fir_gen_start 	  <= #1 1;
++					fir_flag 		  <= #1 2'b11; // STO signal
+ 				end
+ 			end
+ 		st_send_sto :
+ 			begin
+ 				fir_gen_start <= #1 0;
+ 				if (eof) begin
+-					state <= #1 st_send_sip;
+-					fir_flag <= #1 0;
+-					mux_select <= #1 2'b10;
++					state 		  <= #1 st_send_sip;
++					fir_flag 	  <= #1 0;
++					mux_select 	  <= #1 2'b10;
+ 				end
+ 			end
+ 		st_break_out :
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlValueId@@fir_tx4_enable to fir_tx8_enable
+
+
+CommitId: 1f9c31626417b16fe51bfb7620df36f19b4f402b
+top level port names change and minor bug fix.
+--- a/rtl/verilog/irda_mir_tx.v
++++ b/rtl/verilog/irda_mir_tx.v
+@@ -159,7 +159,7 @@ begin
+ 			if((count_mode && (ofdl_c[18:3]==f_ofdlr)) || (!count_mode && !data_available && underrun_action==1) ) begin
+ 				state 		  <= #1 st_crc_out1;
+ 				/// DEBUG
+-				$display("%m, %t CRCOUT: %x", $time, ~crc16.nxtxcrc);
++//				$display("%m, %t CRCOUT: %x", $time, ~crc16.nxtxcrc);
+ 				/// END DEBUG
+ 				crcndata 	  <= #1 1;
+ 				mux_select 	  <= #1 2'b10;
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlOp: CALL
+                    list: ops
+                        HdlValueId: $time
+                HdlOp: NEG
+                    list: ops
+                        HdlOp: DOT
+                            list: ops
+                                HdlValueId: crc16
+                                HdlValueId: nxtxcrc
+
+

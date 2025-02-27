@@ -1,0 +1,22 @@
+CommitId: 7655d4024c4150be874922abdb7f34dd52d8e724
+One bug fixed
+--- a/rtl/verilog/ps2_wb_if.v
++++ b/rtl/verilog/ps2_wb_if.v
+@@ -314,6 +317,7 @@ begin
+                   current_command_gets_parameter = 1'b1 ;
+               end
+         8'hD2:begin
++                  current_command_returns_value   = 1'b1 ;
+                   current_command_gets_parameter  = 1'b1 ;
+                   current_command_output          = output_buffer ;
+                   current_command_output_valid    = write_output_buffer_reg_previous ;
+ParseResult:
+UPD HdlStmCase@@current_command to current_command
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: current_command_returns_value
+                HdlValueInt: 1
+
+

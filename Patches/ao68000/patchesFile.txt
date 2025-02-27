@@ -1,0 +1,20 @@
+CommitId: d5cdf42acaec9e36159ac3f822c5821866ece19d
+Set SEL_O signal when reading. Change the reset signal to an asynchronous one. Fix for ModelSim.
+--- a/rtl/verilog/ao68000/altera_specific/alu_mult_div.v
++++ b/rtl/verilog/ao68000/altera_specific/alu_mult_div.v
+@@ -39,7 +39,6 @@
+  */
+ module alu_mult_div(
+ 	input clock,
+-	input reset,
+ 
+ 	input [31:0] operand1,
+ 	input [31:0] operand2,
+
+ParseResult:
+DEL HdlIdDef@@reset from ports
+HdlIdDef: reset
+    HdlValueId: wire
+    HdlDirection: IN
+
+

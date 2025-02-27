@@ -1,0 +1,1583 @@
+CommitId: d5a5312d8d2887c555a6ba7664e8f3fc7c9cb772
+Fixed several minor bugs in scoreboard, adjusted usage width in sd_fifo_b,
+--- a/rtl/verilog/buffers/sd_fifo_tail_b.v
++++ b/rtl/verilog/buffers/sd_fifo_tail_b.v
+@@ -57,7 +57,7 @@ module sd_fifo_tail_b
+      output reg           mem_re,
+      input                mem_we,
+ 
+-     output reg [usz:0]   p_usage,
++     output reg [usz-1:0] p_usage,
+      
+      output               p_srdy,
+      input                p_drdy,
+
+ParseResult:
+UPD HdlIdDef@@p_usage to p_usage
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            INS HdlOp@@SUB to ops
+            UPD HdlOp@@SUB to SUB
+                INS list@@ops to SUB
+                INS HdlValueInt@@1 to ops
+
+UPD HdlIdDef@@p_usage to p_usage
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            MOV HdlValueId@@usz to ops
+            HdlValueId: usz
+
+
+CommitId: d5a5312d8d2887c555a6ba7664e8f3fc7c9cb772
+Fixed several minor bugs in scoreboard, adjusted usage width in sd_fifo_b,
+--- a/rtl/verilog/memory/behave1p_mem.v
++++ b/rtl/verilog/memory/behave1p_mem.v
+@@ -38,4 +38,15 @@ module behave1p_mem
+ 
+   assign d_out = array[r_addr];
+ 
++  genvar g;
++
++  generate
++    for (g=0; g<depth; g=g+1)
++      begin : breakout
++	wire [width-1:0] brk;
++
++	assign brk=array[g];
++      end
++  endgenerate
++
+ endmodule
+ParseResult:
+INS HdlIdDef@@g to objs
+HdlIdDef: g
+    HdlValueId: genvar
+    HdlDirection: INTERNAL
+
+INS HdlStmFor@@ to objs
+HdlStmFor
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: g
+    HdlOp: LT
+        list: ops
+            HdlValueId: g
+            HdlValueId: depth
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: g
+            HdlOp: ADD
+                list: ops
+                    HdlValueId: g
+                    HdlValueInt: 1
+    HdlStmBlock: SEQ
+        list: body
+            HdlIdDef: brk
+                HdlOp: PARAMETRIZATION
+                    list: ops
+                        HdlValueId: wire
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlOp: SUB
+                                    list: ops
+                                        HdlValueId: width
+                                        HdlValueInt: 1
+                                HdlValueInt: 0
+                HdlDirection: INTERNAL
+            HdlStmAssign
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: array
+                        HdlValueId: g
+                HdlValueId: brk
+
+
+CommitId: c5b08d2836d4a742f06fddf4717a916ad4b09c4c
+Added ports & fixed signal propagation
+--- a/rtl/verilog/utility/sd_bpdrop.v
++++ b/rtl/verilog/utility/sd_bpdrop.v
+@@ -31,7 +31,9 @@ module sd_bpdrop
+    input               clk,
+    input               reset,
+ 
++   input               g_enable,
+    input [cnt_sz-1:0]  g_max_count,
++   output reg          g_drop,     // token frame was sunk
+   
+    input               c_srdy,
+    input               c_fr_start, // start of frame signal
+
+ParseResult:
+INS HdlIdDef@@g_enable to ports
+HdlIdDef: g_enable
+    HdlValueId: wire
+    HdlDirection: IN
+
+INS HdlIdDef@@g_drop to ports
+HdlIdDef: g_drop
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: OUT
+
+
+CommitId: c5b08d2836d4a742f06fddf4717a916ad4b09c4c
+Added ports & fixed signal propagation
+--- a/rtl/verilog/utility/sd_bpdrop.v
++++ b/rtl/verilog/utility/sd_bpdrop.v
+@@ -53,17 +55,22 @@ module sd_bpdrop
+       np_srdy = 0;
+       nxt_state = state;
+       nxt_count = count;
++      g_drop = 0;
+       
+       case (state)
+         s_idle :
+           begin
+-            
+-            if (c_srdy & c_fr_start)
++            if (!g_enable)
++              begin
++                nc_drdy = p_drdy;
++                np_srdy = c_srdy;
++              end
++            else if (c_srdy & c_fr_start)
+               begin
++                np_srdy = 1;
+                 if (p_drdy)
+                   begin
+                     nc_drdy = 1;
+-                    np_srdy = 1;
+                     nxt_state = s_xfer;
+                   end
+                 else
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: g_drop
+                HdlValueInt: 0
+
+UPD HdlStmCase@@state to state
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: np_srdy
+                HdlValueId: c_srdy
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS HdlValueId@@p_drdy to ops
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@NEG_LOG to 
+    HdlOp: NEG_LOG
+        list: ops
+            HdlValueId: g_enable
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: nc_drdy
+                    HdlValueId: p_drdy
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: np_srdy
+                    HdlValueId: c_srdy
+    INS list@@elifs to 
+    INS tuple@@ to elifs
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@AND to 
+    HdlOp: AND
+        list: ops
+            HdlValueId: c_srdy
+            HdlValueId: c_fr_start
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: p_drdy
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: nc_drdy
+                                HdlValueInt: 1
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: np_srdy
+                                HdlValueInt: 1
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: nxt_state
+                                HdlValueId: s_xfer
+                list: elifs
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: nxt_count
+                                HdlOp: ADD
+                                    list: ops
+                                        HdlValueId: count
+                                        HdlValueInt: 1
+                        HdlStmIf
+                            HdlOp: GE
+                                list: ops
+                                    HdlValueId: count
+                                    HdlValueId: g_max_count
+                            HdlStmBlock: SEQ
+                                list: body
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: nc_drdy
+                                            HdlValueInt: 1
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: nxt_state
+                                            HdlValueId: s_sink
+                            list: elifs
+    DEL list@@elifs from 
+
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: np_srdy
+                HdlValueInt: 1
+
+
+CommitId: c5b08d2836d4a742f06fddf4717a916ad4b09c4c
+Added ports & fixed signal propagation
+--- a/rtl/verilog/utility/sd_bpdrop.v
++++ b/rtl/verilog/utility/sd_bpdrop.v
+@@ -73,6 +80,7 @@ module sd_bpdrop
+                       begin
+                         nc_drdy = 1;
+                         nxt_state = s_sink;
++                        g_drop = 1;
+                       end
+                   end
+               end
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: g_drop
+                HdlValueInt: 0
+
+UPD HdlStmCase@@state to state
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: np_srdy
+                HdlValueId: c_srdy
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS HdlValueId@@p_drdy to ops
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@NEG_LOG to 
+    HdlOp: NEG_LOG
+        list: ops
+            HdlValueId: g_enable
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: nc_drdy
+                    HdlValueId: p_drdy
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: np_srdy
+                    HdlValueId: c_srdy
+    INS list@@elifs to 
+    INS tuple@@ to elifs
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@AND to 
+    HdlOp: AND
+        list: ops
+            HdlValueId: c_srdy
+            HdlValueId: c_fr_start
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: p_drdy
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: nc_drdy
+                                HdlValueInt: 1
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: np_srdy
+                                HdlValueInt: 1
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: nxt_state
+                                HdlValueId: s_xfer
+                list: elifs
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: nxt_count
+                                HdlOp: ADD
+                                    list: ops
+                                        HdlValueId: count
+                                        HdlValueInt: 1
+                        HdlStmIf
+                            HdlOp: GE
+                                list: ops
+                                    HdlValueId: count
+                                    HdlValueId: g_max_count
+                            HdlStmBlock: SEQ
+                                list: body
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: nc_drdy
+                                            HdlValueInt: 1
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: nxt_state
+                                            HdlValueId: s_sink
+                            list: elifs
+    DEL list@@elifs from 
+
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: np_srdy
+                HdlValueInt: 1
+
+
+CommitId: c5b08d2836d4a742f06fddf4717a916ad4b09c4c
+Added ports & fixed signal propagation
+--- a/rtl/verilog/utility/sd_bpdrop.v
++++ b/rtl/verilog/utility/sd_bpdrop.v
+@@ -89,14 +97,11 @@ module sd_bpdrop
+         s_xfer :
+           begin
+             nxt_count = 0;
+-            if (c_srdy & p_drdy)
+-              begin
+-                nc_drdy = 1;
+-                np_srdy = 1;
+-                if (c_fr_end)
+-                  nxt_state = s_idle;
+-              end
+-          end // case: s_xfer
++            np_srdy = c_srdy;
++            nc_drdy = p_drdy;
++            if (c_srdy & p_drdy & c_fr_end)
++              nxt_state = s_idle;
++         end // case: s_xfer
+ 
+         s_sink :
+           begin
+ParseResult:
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: g_drop
+                HdlValueInt: 0
+
+UPD HdlStmCase@@state to state
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: np_srdy
+                HdlValueId: c_srdy
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS HdlValueId@@p_drdy to ops
+
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: nc_drdy
+                HdlValueInt: 1
+        UPD HdlOp@@ASSIGN to ASSIGN
+            DEL HdlValueInt@@1 from ops
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: np_srdy
+                HdlValueInt: 1
+        DEL list@@body from SEQ
+    MOV HdlOp@@AND to 
+    HdlOp: AND
+        list: ops
+            HdlValueId: c_srdy
+            HdlValueId: p_drdy
+    DEL HdlStmBlock@@SEQ from 
+    DEL list@@elifs from 
+
+INS HdlStmIf@@ to body
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@NEG_LOG to 
+    HdlOp: NEG_LOG
+        list: ops
+            HdlValueId: g_enable
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: nc_drdy
+                    HdlValueId: p_drdy
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: np_srdy
+                    HdlValueId: c_srdy
+    INS list@@elifs to 
+    INS tuple@@ to elifs
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@ASSIGN to 
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: nxt_state
+            HdlValueId: s_idle
+    MOV list@@elifs to 
+    list: elifs
+    MOV HdlValueId@@c_fr_end to 
+    HdlValueId: c_fr_end
+
+DEL HdlStmIf@@ from body
+
+DEL HdlStmIf@@ from body
+
+
+CommitId: dbeeaa37dfde3bf0ee332b02519ee8cddc2a9e80
+Fixed FIFO Full condition for large fifo, added separate
+--- a/rtl/verilog/buffers/sd_fifo_tail_b.v
++++ b/rtl/verilog/buffers/sd_fifo_tail_b.v
+@@ -53,6 +53,7 @@ module sd_fifo_tail_b
+      output reg [asz-1:0]   com_rdptr,
+      input  [asz-1:0]       wrptr,
+      output reg           mem_re,
++     input                mem_we,
+ 
+      output reg [asz:0]   usage,
+      
+
+ParseResult:
+INS HdlIdDef@@mem_we to ports
+HdlIdDef: mem_we
+    HdlValueId: wire
+    HdlDirection: IN
+
+
+CommitId: 2ac95f81b8c8ea3f65558926a861a1836447ba01
+Updated bridge example to fix a number of small bugs.
+--- a/rtl/verilog/buffers/sd_fifo_tail_b.v
++++ b/rtl/verilog/buffers/sd_fifo_tail_b.v
+@@ -131,11 +131,11 @@ module sd_fifo_tail_b
+ 	cur_rdptr <= `SDLIB_DELAY nxt_cur_rdptr;
+     end
+ 
++  reg [asz-1:0]  rdaddr_s0, rdaddr_a, rdaddr_b;
++  reg [asz-1:0]  nxt_com_rdptr;
+   generate
+     if (commit == 1)
+       begin : gen_s0
+-	reg [asz-1:0]  rdaddr_s0, rdaddr_a, rdaddr_b;
+-	reg [asz-1:0]  nxt_com_rdptr;
+ 
+ 	always @(posedge clk)
+ 	  begin
+
+ParseResult:
+MOV HdlIdDef@@rdaddr_s0 to body
+HdlIdDef: rdaddr_s0
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: asz
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@rdaddr_a to body
+HdlIdDef: rdaddr_a
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: asz
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@rdaddr_b to body
+HdlIdDef: rdaddr_b
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: asz
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@nxt_com_rdptr to body
+HdlIdDef: nxt_com_rdptr
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: asz
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+
+CommitId: 3169283e6d03ee12942671532645cda18fc35ab3
+Changed fifo head/tail to have separate usage counters for producer and consumer
+--- a/rtl/verilog/buffers/sd_fifo_head_b.v
++++ b/rtl/verilog/buffers/sd_fifo_head_b.v
+@@ -29,7 +29,8 @@
+ module sd_fifo_head_b
+   #(parameter depth=16,
+     parameter commit=0,
+-    parameter asz=$clog2(depth)
++    parameter asz=$clog2(depth),
++    parameter usz=$clog2(depth+1)
+   )
+   (
+    input       clk,
+
+ParseResult:
+INS HdlIdDef@@usz to params
+HdlIdDef: usz
+    HdlOp: CALL
+        list: ops
+            HdlValueId: $clog2
+            HdlOp: ADD
+                list: ops
+                    HdlValueId: depth
+                    HdlValueInt: 1
+    HdlDirection: INTERNAL
+
+
+CommitId: 3169283e6d03ee12942671532645cda18fc35ab3
+Changed fifo head/tail to have separate usage counters for producer and consumer
+--- a/rtl/verilog/buffers/sd_fifo_head_b.v
++++ b/rtl/verilog/buffers/sd_fifo_head_b.v
+@@ -46,6 +47,7 @@ module sd_fifo_head_b
+    input [asz-1:0]      rdptr,
+    output reg [asz-1:0] cur_wrptr,
+    output reg [asz-1:0] com_wrptr,
++   output reg [usz-1:0] c_usage,
+    output reg         mem_we
+    );
+   
+
+ParseResult:
+INS HdlIdDef@@c_usage to ports
+HdlIdDef: c_usage
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: usz
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: OUT
+
+
+CommitId: 3169283e6d03ee12942671532645cda18fc35ab3
+Changed fifo head/tail to have separate usage counters for producer and consumer
+--- a/rtl/verilog/buffers/sd_fifo_head_b.v
++++ b/rtl/verilog/buffers/sd_fifo_head_b.v
+@@ -54,6 +56,10 @@ module sd_fifo_head_b
+   reg 			empty;
+   reg                   full, nxt_full;
+   reg [asz-1:0]         nxt_com_wrptr;
++  reg [usz:0] 		tmp_usage;
++  wire [usz-1:0] 	fifo_size;
++
++  assign fifo_size = bound_high - bound_low + 1;
+ 
+   assign 		c_drdy = !nxt_full & enable;
+   
+
+ParseResult:
+INS HdlIdDef@@tmp_usage to objs
+HdlIdDef: tmp_usage
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueId: usz
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@fifo_size to objs
+HdlIdDef: fifo_size
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: usz
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: ADD
+        list: ops
+            HdlOp: SUB
+                list: ops
+                    HdlValueId: bound_high
+                    HdlValueId: bound_low
+            HdlValueInt: 1
+    HdlValueId: fifo_size
+
+
+CommitId: 3169283e6d03ee12942671532645cda18fc35ab3
+Changed fifo head/tail to have separate usage counters for producer and consumer
+--- a/rtl/verilog/buffers/sd_fifo_head_b.v
++++ b/rtl/verilog/buffers/sd_fifo_head_b.v
+@@ -93,6 +99,12 @@ module sd_fifo_head_b
+ 	  nxt_wrptr = cur_wrptr;
+           mem_we = 0;
+         end
++
++      tmp_usage = cur_wrptr[asz-1:0] - rdptr[asz-1:0];
++      if (~tmp_usage[usz])
++        c_usage = tmp_usage[usz-1:0];
++      else
++        c_usage = fifo_size - (rdptr[asz-1:0] - cur_wrptr[asz-1:0]);  
+     end
+ 
+   always @(posedge clk)
+ParseResult:
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: tmp_usage
+                HdlOp: SUB
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: cur_wrptr
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlOp: SUB
+                                            list: ops
+                                                HdlValueId: asz
+                                                HdlValueInt: 1
+                                        HdlValueInt: 0
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: rdptr
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlOp: SUB
+                                            list: ops
+                                                HdlValueId: asz
+                                                HdlValueInt: 1
+                                        HdlValueInt: 0
+
+INS HdlStmIf@@ to body
+HdlStmIf
+    HdlOp: NEG
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: tmp_usage
+                    HdlValueId: usz
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: c_usage
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: tmp_usage
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlOp: SUB
+                                list: ops
+                                    HdlValueId: usz
+                                    HdlValueInt: 1
+                            HdlValueInt: 0
+    list: elifs
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: c_usage
+            HdlOp: SUB
+                list: ops
+                    HdlValueId: fifo_size
+                    HdlOp: SUB
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: rdptr
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlOp: SUB
+                                                list: ops
+                                                    HdlValueId: asz
+                                                    HdlValueInt: 1
+                                            HdlValueInt: 0
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: cur_wrptr
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlOp: SUB
+                                                list: ops
+                                                    HdlValueId: asz
+                                                    HdlValueInt: 1
+                                            HdlValueInt: 0
+
+
+CommitId: 3169283e6d03ee12942671532645cda18fc35ab3
+Changed fifo head/tail to have separate usage counters for producer and consumer
+--- a/rtl/verilog/buffers/sd_fifo_tail_b.v
++++ b/rtl/verilog/buffers/sd_fifo_tail_b.v
+@@ -40,7 +40,9 @@ module sd_fifo_tail_b
+   #(parameter width=8,
+     parameter depth=16,
+     parameter commit=0,
+-    parameter asz=$clog2(depth))
++    parameter asz=$clog2(depth),
++    parameter usz=$clog2(depth+1)
++    )
+     (
+      input       clk,
+      input       reset,
+
+ParseResult:
+INS HdlIdDef@@usz to params
+HdlIdDef: usz
+    HdlOp: CALL
+        list: ops
+            HdlValueId: $clog2
+            HdlOp: ADD
+                list: ops
+                    HdlValueId: depth
+                    HdlValueInt: 1
+    HdlDirection: INTERNAL
+
+
+CommitId: 3169283e6d03ee12942671532645cda18fc35ab3
+Changed fifo head/tail to have separate usage counters for producer and consumer
+--- a/rtl/verilog/buffers/sd_fifo_tail_b.v
++++ b/rtl/verilog/buffers/sd_fifo_tail_b.v
+@@ -55,7 +57,7 @@ module sd_fifo_tail_b
+      output reg           mem_re,
+      input                mem_we,
+ 
+-     output reg [asz:0]   usage,
++     output reg [usz:0]   p_usage,
+      
+      output               p_srdy,
+      input                p_drdy,
+
+ParseResult:
+UPD HdlIdDef@@usage to p_usage
+
+UPD HdlIdDef@@usage to usage
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueId@@asz to usz
+
+
+CommitId: 3169283e6d03ee12942671532645cda18fc35ab3
+Changed fifo head/tail to have separate usage counters for producer and consumer
+--- a/rtl/verilog/buffers/sd_fifo_tail_b.v
++++ b/rtl/verilog/buffers/sd_fifo_tail_b.v
+@@ -74,8 +76,8 @@ module sd_fifo_tail_b
+   reg [width-1:0]       hold_a, hold_b;
+   reg                   valid_a, valid_b;
+   reg                   prev_re;
+-  reg [asz:0]           tmp_usage;
+-  reg [asz:0]           fifo_size;
++  reg [usz:0]           tmp_usage;
++  reg [usz:0]           fifo_size;
+   wire 			rbuf1_drdy;
+   wire 			ip_srdy, ip_drdy;
+   wire [width-1:0] 	ip_data;
+
+ParseResult:
+UPD HdlIdDef@@tmp_usage to tmp_usage
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueId@@asz to usz
+
+UPD HdlIdDef@@fifo_size to fifo_size
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueId@@asz to usz
+
+
+CommitId: 3169283e6d03ee12942671532645cda18fc35ab3
+Changed fifo head/tail to have separate usage counters for producer and consumer
+--- a/rtl/verilog/buffers/sd_fifo_tail_b.v
++++ b/rtl/verilog/buffers/sd_fifo_tail_b.v
+@@ -118,10 +120,10 @@ module sd_fifo_tail_b
+ 
+       fifo_size = (bound_high - bound_low + 1);
+       tmp_usage = wrptr[asz-1:0] - cur_rdptr[asz-1:0];
+-      if (~tmp_usage[asz])
+-        usage = tmp_usage[asz-1:0];
++      if (~tmp_usage[usz])
++        p_usage = tmp_usage[usz-1:0];
+       else
+-        usage = fifo_size - (cur_rdptr[asz-1:0] - wrptr[asz-1:0]);  
++        p_usage = fifo_size - (cur_rdptr[asz-1:0] - wrptr[asz-1:0]);  
+     end // always @ *
+ 
+ /* -----\/----- EXCLUDED -----\/-----
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@ASSIGN to ASSIGN
+        UPD HdlValueId@@usage to p_usage
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlOp@@DOWNTO to DOWNTO
+                UPD HdlOp@@SUB to SUB
+                    UPD HdlValueId@@asz to usz
+    UPD HdlOp@@ASSIGN to ASSIGN
+        UPD HdlValueId@@usage to p_usage
+    UPD HdlOp@@NEG to NEG
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@asz to usz
+
+
+CommitId: d5a5312d8d2887c555a6ba7664e8f3fc7c9cb772
+Fixed several minor bugs in scoreboard, adjusted usage width in sd_fifo_b,
+--- a/env/verilog/scoreboard/sb_bench.v
++++ b/env/verilog/scoreboard/sb_bench.v
+@@ -10,7 +10,6 @@ module sb_bench;
+   localparam txid_sz = asz;
+ 
+   reg clk, reset;
+-  wire p_drdy = 1'b1;
+ 
+   initial
+     begin
+
+ParseResult:
+DEL HdlIdDef@@p_drdy from objs
+HdlIdDef: p_drdy
+    HdlValueInt: 1
+    HdlDirection: INTERNAL
+
+
+CommitId: d5a5312d8d2887c555a6ba7664e8f3fc7c9cb772
+Fixed several minor bugs in scoreboard, adjusted usage width in sd_fifo_b,
+--- a/env/verilog/scoreboard/sb_bench.v
++++ b/env/verilog/scoreboard/sb_bench.v
+@@ -20,16 +19,17 @@ module sb_bench;
+   
+   /*AUTOWIRE*/
+   // Beginning of automatic wires (for undeclared instantiated-module outputs)
+-  wire [width-1:0]      c_data;                 // From driver of sb_driver.v
+-  wire                  c_drdy;                 // From sboard of sd_scoreboard.v
+-  wire [asz-1:0]        c_itemid;               // From driver of sb_driver.v
+-  wire [width-1:0]      c_mask;                 // From driver of sb_driver.v
+-  wire                  c_req_type;             // From driver of sb_driver.v
+-  wire                  c_srdy;                 // From driver of sb_driver.v
+-  wire [txid_sz-1:0]    c_txid;                 // From driver of sb_driver.v
+-  wire [width-1:0]      p_data;                 // From sboard of sd_scoreboard.v
+-  wire                  p_srdy;                 // From sboard of sd_scoreboard.v
+-  wire [txid_sz-1:0]    p_txid;                 // From sboard of sd_scoreboard.v
++  wire [width-1:0]	c_data;			// From driver of sb_driver.v
++  wire			c_drdy;			// From sboard of sd_scoreboard.v
++  wire [asz-1:0]	c_itemid;		// From driver of sb_driver.v
++  wire [width-1:0]	c_mask;			// From driver of sb_driver.v
++  wire			c_req_type;		// From driver of sb_driver.v
++  wire			c_srdy;			// From driver of sb_driver.v
++  wire [txid_sz-1:0]	c_txid;			// From driver of sb_driver.v
++  wire [width-1:0]	p_data;			// From sboard of sd_scoreboard.v
++  wire			p_drdy;			// From monitor of sb_monitor.v
++  wire			p_srdy;			// From sboard of sd_scoreboard.v
++  wire [txid_sz-1:0]	p_txid;			// From sboard of sd_scoreboard.v
+   // End of automatics
+ 
+ /* sb_driver AUTO_TEMPLATE
+
+ParseResult:
+INS HdlIdDef@@p_drdy to objs
+HdlIdDef: p_drdy
+    HdlDirection: INTERNAL
+
+
+CommitId: d5a5312d8d2887c555a6ba7664e8f3fc7c9cb772
+Fixed several minor bugs in scoreboard, adjusted usage width in sd_fifo_b,
+--- a/env/verilog/scoreboard/sb_bench.v
++++ b/env/verilog/scoreboard/sb_bench.v
+@@ -151,15 +151,31 @@ module sb_bench;
+         end
+ 
+       // mix updates with requests
+-      for (i=0; i<1024; i=i+1)
++      for (i=0; i<4096; i=i+1)
+         begin
+-          entry = {$random} % items;
++	  // choose random entry but space requests apart
++	  //entry = {$random} % items;
++	  case (i%2)
++	    0 : entry = {$random} % (items/2);
++	    1 : entry = {$random} % (items/2) + items/2;
++	    //2 : entry = {$random} % (items/4) + 2*(items/4);
++	    //3 : entry = {$random} % (items/4) + 3*(items/4);
++	  endcase
+ 
+           op = {$random} % 8;
+ 
++	  case (i)
++	    512  : monitor.drdy_pat = 8'h55;
++	    1024 : monitor.drdy_pat = 8'h0F;
++	    1500 : monitor.drdy_pat = 8'h82;
++	    2000 : monitor.drdy_pat = 8'hFE;
++	  endcase
++
+           if (op == 0)
+             driver.send (1, {width{1'b1}}, $random, entry);
+           else if (op == 1)
++            driver.send (1, 32'h0000FFFF, $random, entry);            
++          else if (op == 2)
+             driver.send (1, $random, $random, entry);            
+           else
+             driver.send (0, 0, 0, entry);
+ParseResult:
+UPD HdlStmFor@@ to 
+    UPD HdlOp@@LT to LT
+        UPD HdlValueInt@@1024 to 4096
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: entry
+                HdlOp: MOD
+                    list: ops
+                        HdlOp: CALL
+                            list: ops
+                                HdlValueId: $random
+                        HdlValueId: items
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@MOD to MOD
+                MOV HdlValueId@@items to ops
+                HdlValueId: items
+
+INS HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'MOD',  'ops': ['i', {'__class__': 'HdlValueInt', 'base': 10, 'val': '2'}]}  to body
+
+INS HdlStmCase@@i to body
+HdlStmCase: i
+    HdlStmCaseType: CASE
+    HdlValueId: i
+    list: cases
+        tuple
+            HdlValueInt: 512
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: monitor
+                    HdlValueInt: 55
+        tuple
+            HdlValueInt: 1024
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: monitor
+                    HdlValueInt: 0f
+        tuple
+            HdlValueInt: 1500
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: monitor
+                    HdlValueInt: 82
+        tuple
+            HdlValueInt: 2000
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: monitor
+                    HdlValueInt: fe
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@EQ to 
+    HdlOp: EQ
+        list: ops
+            HdlValueId: op
+            HdlValueInt: 1
+
+
+CommitId: d5a5312d8d2887c555a6ba7664e8f3fc7c9cb772
+Fixed several minor bugs in scoreboard, adjusted usage width in sd_fifo_b,
+--- a/rtl/verilog/utility/sd_scoreboard_fsm.v
++++ b/rtl/verilog/utility/sd_scoreboard_fsm.v
+@@ -81,7 +81,11 @@ module sd_scoreboard_fsm
+       
+       if (state[s_idle])
+         begin
+-          if (ip_srdy & (ip_req_type==1))
++	  if (state[s_read] & !ic_drdy)
++	    begin
++	      // output is busy, stall
++	    end
++          else if (ip_srdy & (ip_req_type==1))
+             begin
+               if ((use_mask==0) | (ip_mask=={width{1'b1}}))
+                 begin
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@OR to OR
+            UPD HdlOp@@NEG_LOG to AND
+            MOV HdlOp@@NEG_LOG to ops
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: state
+                            HdlValueId: s_read
+            DEL HdlValueId@@ic_drdy from ops
+            DEL list@@ops from OR
+        MOV HdlOp@@AND to ops
+        HdlOp: AND
+            list: ops
+                HdlValueId: ip_srdy
+                HdlOp: EQ
+                    list: ops
+                        HdlValueId: ip_req_type
+                        HdlValueInt: 0
+        DEL HdlOp@@OR from ops
+        DEL list@@ops from AND
+    MOV tuple@@ to elifs
+    tuple
+        HdlOp: AND
+            list: ops
+                HdlOp: AND
+                    list: ops
+                        HdlValueId: ip_srdy
+                        HdlOp: EQ
+                            list: ops
+                                HdlValueId: ip_req_type
+                                HdlValueInt: 0
+                HdlOp: OR
+                    list: ops
+                        HdlOp: NEG_LOG
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: state
+                                        HdlValueId: s_read
+                        HdlValueId: ic_drdy
+        HdlStmBlock: SEQ
+            list: body
+                HdlOp: ASSIGN
+                    list: ops
+                        HdlValueId: rd_en
+                        HdlValueInt: 1
+                HdlOp: ASSIGN
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: nxt_state
+                                HdlValueId: s_read
+                        HdlValueInt: 1
+                HdlOp: ASSIGN
+                    list: ops
+                        HdlValueId: nxt_txid
+                        HdlValueId: ip_txid
+                HdlOp: ASSIGN
+                    list: ops
+                        HdlValueId: ip_drdy
+                        HdlValueInt: 1
+    MOV HdlOp@@AND to 
+    HdlOp: AND
+        list: ops
+            HdlValueId: ip_srdy
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: ip_req_type
+                    HdlValueInt: 1
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlOp: OR
+                    list: ops
+                        HdlOp: EQ
+                            list: ops
+                                HdlValueId: use_mask
+                                HdlValueInt: 0
+                        HdlOp: EQ
+                            list: ops
+                                HdlValueId: ip_mask
+                                HdlOp: REPL_CONCAT
+                                    list: ops
+                                        HdlValueId: width
+                                        HdlValueInt: 1
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: ip_drdy
+                                HdlValueInt: 1
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: wr_en
+                                HdlValueInt: 1
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: d_in
+                                HdlValueId: ip_data
+                list: elifs
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: rd_en
+                                HdlValueInt: 1
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: nxt_state
+                                        HdlValueId: s_rdmod
+                                HdlValueInt: 1
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: nxt_state
+                                        HdlValueId: s_idle
+                                HdlValueInt: 0
+    DEL HdlOp@@AND from 
+    DEL list@@elifs from 
+
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+    INS list@@elifs to 
+    INS tuple@@ to elifs
+    UPD HdlOp@@AND to AND
+        INS HdlOp@@NEG_LOG to ops
+        HdlOp: NEG_LOG
+            list: ops
+                HdlValueId: ic_drdy
+
+
+CommitId: d5a5312d8d2887c555a6ba7664e8f3fc7c9cb772
+Fixed several minor bugs in scoreboard, adjusted usage width in sd_fifo_b,
+--- a/rtl/verilog/utility/sd_scoreboard_fsm.v
++++ b/rtl/verilog/utility/sd_scoreboard_fsm.v
+@@ -96,7 +100,7 @@ module sd_scoreboard_fsm
+                   nxt_state[s_idle]  = 0;
+                 end
+             end
+-          else if (ip_srdy & (ip_req_type==0) & (!state[s_read] | ic_drdy))
++          else if (ip_srdy & (ip_req_type==0))
+             begin
+               rd_en = 1;
+               nxt_state[s_read] = 1;
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@OR to OR
+            UPD HdlOp@@NEG_LOG to AND
+            MOV HdlOp@@NEG_LOG to ops
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: state
+                            HdlValueId: s_read
+            DEL HdlValueId@@ic_drdy from ops
+            DEL list@@ops from OR
+        MOV HdlOp@@AND to ops
+        HdlOp: AND
+            list: ops
+                HdlValueId: ip_srdy
+                HdlOp: EQ
+                    list: ops
+                        HdlValueId: ip_req_type
+                        HdlValueInt: 0
+        DEL HdlOp@@OR from ops
+        DEL list@@ops from AND
+    MOV tuple@@ to elifs
+    tuple
+        HdlOp: AND
+            list: ops
+                HdlOp: AND
+                    list: ops
+                        HdlValueId: ip_srdy
+                        HdlOp: EQ
+                            list: ops
+                                HdlValueId: ip_req_type
+                                HdlValueInt: 0
+                HdlOp: OR
+                    list: ops
+                        HdlOp: NEG_LOG
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: state
+                                        HdlValueId: s_read
+                        HdlValueId: ic_drdy
+        HdlStmBlock: SEQ
+            list: body
+                HdlOp: ASSIGN
+                    list: ops
+                        HdlValueId: rd_en
+                        HdlValueInt: 1
+                HdlOp: ASSIGN
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: nxt_state
+                                HdlValueId: s_read
+                        HdlValueInt: 1
+                HdlOp: ASSIGN
+                    list: ops
+                        HdlValueId: nxt_txid
+                        HdlValueId: ip_txid
+                HdlOp: ASSIGN
+                    list: ops
+                        HdlValueId: ip_drdy
+                        HdlValueInt: 1
+    MOV HdlOp@@AND to 
+    HdlOp: AND
+        list: ops
+            HdlValueId: ip_srdy
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: ip_req_type
+                    HdlValueInt: 1
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlOp: OR
+                    list: ops
+                        HdlOp: EQ
+                            list: ops
+                                HdlValueId: use_mask
+                                HdlValueInt: 0
+                        HdlOp: EQ
+                            list: ops
+                                HdlValueId: ip_mask
+                                HdlOp: REPL_CONCAT
+                                    list: ops
+                                        HdlValueId: width
+                                        HdlValueInt: 1
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: ip_drdy
+                                HdlValueInt: 1
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: wr_en
+                                HdlValueInt: 1
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: d_in
+                                HdlValueId: ip_data
+                list: elifs
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: rd_en
+                                HdlValueInt: 1
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: nxt_state
+                                        HdlValueId: s_rdmod
+                                HdlValueInt: 1
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: nxt_state
+                                        HdlValueId: s_idle
+                                HdlValueInt: 0
+    DEL HdlOp@@AND from 
+    DEL list@@elifs from 
+
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+    INS list@@elifs to 
+    INS tuple@@ to elifs
+    UPD HdlOp@@AND to AND
+        INS HdlOp@@NEG_LOG to ops
+        HdlOp: NEG_LOG
+            list: ops
+                HdlValueId: ic_drdy
+
+
+CommitId: dbeeaa37dfde3bf0ee332b02519ee8cddc2a9e80
+Fixed FIFO Full condition for large fifo, added separate
+--- a/rtl/verilog/buffers/sd_fifo_head_b.v
++++ b/rtl/verilog/buffers/sd_fifo_head_b.v
+@@ -66,7 +66,7 @@ module sd_fifo_head_b
+         wrptr_p1 = cur_wrptr + 1;
+       
+       empty = (cur_wrptr == rdptr) & !full;
+-      nxt_full = (wrptr_p1 == rdptr);
++      nxt_full = ((wrptr_p1 == rdptr) | (full & (cur_wrptr == rdptr)));
+ 
+       if ((commit == 1) && c_abort)
+         begin
+ParseResult:
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS list@@ops to ASSIGN
+            INS HdlValueId@@nxt_full to ops
+            UPD HdlOp@@OR to OR
+                INS HdlOp@@AND to ops
+                UPD HdlOp@@AND to AND
+                    INS list@@ops to AND
+                    INS HdlOp@@EQ to ops
+                    HdlOp: EQ
+                        list: ops
+                            HdlValueId: cur_wrptr
+                            HdlValueId: rdptr
+
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to OR
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: nxt_full
+                HdlOp: EQ
+                    list: ops
+                        HdlValueId: wrptr_p1
+                        HdlValueId: rdptr
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueId@@nxt_full to full
+            MOV HdlValueId@@nxt_full to ops
+            HdlValueId: nxt_full
+
+
+CommitId: d5a5312d8d2887c555a6ba7664e8f3fc7c9cb772
+Fixed several minor bugs in scoreboard, adjusted usage width in sd_fifo_b,
+--- a/rtl/verilog/buffers/sd_fifo_b.v
++++ b/rtl/verilog/buffers/sd_fifo_b.v
+@@ -25,7 +25,8 @@ module sd_fifo_b
+     parameter depth=256,
+     parameter rd_commit=0,
+     parameter wr_commit=0,
+-    parameter asz=$clog2(depth)
++    parameter asz=$clog2(depth),
++    parameter usz=$clog2(depth+1)
+     )
+     (
+      input       clk,
+
+ParseResult:
+INS HdlIdDef@@usz to params
+HdlIdDef: usz
+    HdlOp: CALL
+        list: ops
+            HdlValueId: $clog2
+            HdlOp: ADD
+                list: ops
+                    HdlValueId: depth
+                    HdlValueInt: 1
+    HdlDirection: INTERNAL
+
+
+CommitId: d5a5312d8d2887c555a6ba7664e8f3fc7c9cb772
+Fixed several minor bugs in scoreboard, adjusted usage width in sd_fifo_b,
+--- a/rtl/verilog/buffers/sd_fifo_b.v
++++ b/rtl/verilog/buffers/sd_fifo_b.v
+@@ -43,8 +44,8 @@ module sd_fifo_b
+      input       p_abort,
+      output [width-1:0] p_data,
+ 
+-     output [asz:0] p_usage,
+-     output [asz:0] c_usage
++     output [usz-1:0] p_usage,
++     output [usz-1:0] c_usage
+      );
+ 
+   wire [asz-1:0]	com_rdptr;		// From tail of sd_fifo_tail_b.v
+
+ParseResult:
+UPD HdlIdDef@@p_usage to p_usage
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            INS HdlOp@@SUB to ops
+            UPD HdlOp@@SUB to SUB
+                INS list@@ops to SUB
+                INS HdlValueInt@@1 to ops
+
+UPD HdlIdDef@@c_usage to c_usage
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            INS HdlOp@@SUB to ops
+            UPD HdlOp@@SUB to SUB
+                INS list@@ops to SUB
+                INS HdlValueInt@@1 to ops
+
+UPD HdlIdDef@@p_usage to p_usage
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueId@@asz to usz
+            MOV HdlValueId@@asz to ops
+            HdlValueId: asz
+
+UPD HdlIdDef@@c_usage to c_usage
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueId@@asz to usz
+            MOV HdlValueId@@asz to ops
+            HdlValueId: asz
+
+
+CommitId: d5a5312d8d2887c555a6ba7664e8f3fc7c9cb772
+Fixed several minor bugs in scoreboard, adjusted usage width in sd_fifo_b,
+--- a/rtl/verilog/buffers/sd_fifo_b.v
++++ b/rtl/verilog/buffers/sd_fifo_b.v
+@@ -54,7 +55,6 @@ module sd_fifo_b
+   wire [width-1:0]	mem_rd_data;
+   wire			mem_re;			// From tail of sd_fifo_tail_b.v
+   wire			mem_we;			// From head of sd_fifo_head_b.v
+-  wire [asz:0]		usage;			// From tail of sd_fifo_tail_b.v
+   wire [asz-1:0] 	bound_high;
+ 
+   assign bound_high = depth-1;
+ParseResult:
+DEL HdlIdDef@@usage from objs
+HdlIdDef: usage
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueId: asz
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+
+CommitId: 3169283e6d03ee12942671532645cda18fc35ab3
+Changed fifo head/tail to have separate usage counters for producer and consumer
+--- a/rtl/verilog/buffers/sd_fifo_b.v
++++ b/rtl/verilog/buffers/sd_fifo_b.v
+@@ -43,7 +43,8 @@ module sd_fifo_b
+      input       p_abort,
+      output [width-1:0] p_data,
+ 
+-     output [asz:0] usage
++     output [asz:0] p_usage,
++     output [asz:0] c_usage
+      );
+ 
+   wire [asz-1:0]	com_rdptr;		// From tail of sd_fifo_tail_b.v
+
+ParseResult:
+INS HdlIdDef@@p_usage to ports
+HdlIdDef: p_usage
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueId: asz
+                    HdlValueInt: 0
+    HdlDirection: OUT
+
+UPD HdlIdDef@@usage to c_usage
+
+
+CommitId: 6c558f0019ddfd8699dabe05bae28ef26330c342
+Fixed "locked" variable in rrslow
+--- a/rtl/verilog/forks/sd_rrslow.v
++++ b/rtl/verilog/forks/sd_rrslow.v
+@@ -75,7 +76,7 @@ module sd_rrslow
+ 
+     if (mode == 2)
+       begin : tp_gen
+-        reg rr_locked, nxt_rr_locked;
++        reg nxt_rr_locked;
+         
+         assign trig_pattern = (rr_mux_grid[data_ind] & eod_mask) == eod_pattern;
+         always @*
+
+ParseResult:
+MOV HdlIdDef@@rr_locked to body
+HdlIdDef: rr_locked
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+
+CommitId: 6c558f0019ddfd8699dabe05bae28ef26330c342
+Fixed "locked" variable in rrslow
+--- a/rtl/verilog/forks/sd_rrslow.v
++++ b/rtl/verilog/forks/sd_rrslow.v
+@@ -125,7 +126,7 @@ module sd_rrslow
+         nxt_rr_state = rr_state;
+       else if ((mode == 0) & !p_drdy)
+         nxt_rr_state = rr_state;
+-      else if ((mode == 2) & (locked | (c_srdy & rr_state)))
++      else if ((mode == 2) & (rr_locked | (c_srdy & rr_state)))
+         nxt_rr_state = rr_state;
+       else
+         nxt_rr_state = { rr_state[0], rr_state[inputs-1:1] };
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@OR to OR
+            UPD HdlValueId@@locked to rr_locked
+
+

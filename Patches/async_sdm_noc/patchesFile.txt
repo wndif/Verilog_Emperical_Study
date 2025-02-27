@@ -1,0 +1,725 @@
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/router.v
++++ b/vc/src/router.v
+@@ -27,7 +27,7 @@ module router (/*AUTOARG*/
+    si0, si1, si2, si3, wi0, wi1, wi2, wi3, ni0, ni1, ni2, ni3, ei0,
+    ei1, ei2, ei3, li0, li1, li2, li3, sift, wift, nift, eift, lift,
+    sivc, wivc, nivc, eivc, livc, sica, wica, nica, eica, lica, soa,
+-   woa, noa, eoa, loa, soc, woc, noc, eoc, loc, addrx, addry, rstn
++   woa, noa, eoa, loa, soc, woc, noc, eoc, loc, addrx, addry, rst_n
+    );
+ 
+    parameter VCN = 2;		// number of VCs per direction
+
+ParseResult:
+UPD HdlModuleDec@@router to router
+    INS list@@objs to router
+
+INS HdlIdDef@@rst_n to ports
+HdlIdDef: rst_n
+    HdlDirection: IN
+
+DEL HdlIdDef@@rstn from ports
+HdlIdDef: rstn
+    HdlDirection: IN
+
+UPD HdlModuleDec@@router to router
+    DEL list@@objs from router
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/router.v
++++ b/vc/src/router.v
+@@ -65,7 +65,7 @@ module router (/*AUTOARG*/
+    // local address, in 1-of-4 format
+    input [7:0] 	      addrx, addry;
+    // active-low reset
+-   input 	      rstn;
++   input 	      rst_n;
+ 
+    //----------------------------------
+    // input to crossbar
+
+ParseResult:
+UPD HdlModuleDec@@router to router
+    INS list@@objs to router
+
+UPD HdlModuleDec@@router to router
+    DEL list@@objs from router
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/router.v
++++ b/vc/src/router.v
+@@ -129,7 +129,7 @@ module router (/*AUTOARG*/
+ 	.swrt  ( siswrt  ), 
+ 	.addrx ( addrx   ), 
+ 	.addry ( addry   ),
+-	.rstn  ( rstn    )
++	.rst_n ( rst_n   )
+ 	);
+ 
+    // west input buffer
+
+ParseResult:
+UPD HdlModuleDec@@router to router
+    INS list@@objs to router
+
+UPD HdlModuleDec@@router to router
+    DEL list@@objs from router
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/router.v
++++ b/vc/src/router.v
+@@ -157,7 +157,7 @@ module router (/*AUTOARG*/
+ 	.swrt  ( wiswrt  ), 
+ 	.addrx ( addrx   ), 
+ 	.addry ( addry   ),
+-	.rstn  ( rstn    )
++	.rst_n ( rst_n   )
+ 	);
+    
+    // north input buffer
+
+ParseResult:
+UPD HdlModuleDec@@router to router
+    INS list@@objs to router
+
+UPD HdlModuleDec@@router to router
+    DEL list@@objs from router
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/router.v
++++ b/vc/src/router.v
+@@ -185,7 +185,7 @@ module router (/*AUTOARG*/
+ 	.swrt  ( niswrt  ), 
+ 	.addrx ( addrx   ), 
+ 	.addry ( addry   ),
+-	.rstn  ( rstn    )
++	.rst_n ( rst_n   )
+ 	);
+    
+    // east input buffer
+
+ParseResult:
+UPD HdlModuleDec@@router to router
+    INS list@@objs to router
+
+UPD HdlModuleDec@@router to router
+    DEL list@@objs from router
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/router.v
++++ b/vc/src/router.v
+@@ -213,7 +213,7 @@ module router (/*AUTOARG*/
+ 	.swrt  ( eiswrt  ), 
+ 	.addrx ( addrx   ), 
+ 	.addry ( addry   ),
+-	.rstn  ( rstn    )
++	.rst_n ( rst_n   )
+ 	);
+    
+    // local input buffer
+
+ParseResult:
+UPD HdlModuleDec@@router to router
+    INS list@@objs to router
+
+UPD HdlModuleDec@@router to router
+    DEL list@@objs from router
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/router.v
++++ b/vc/src/router.v
+@@ -241,7 +241,7 @@ module router (/*AUTOARG*/
+ 	.swrt  ( liswrt  ), 
+ 	.addrx ( addrx   ), 
+ 	.addry ( addry   ),
+-	.rstn  ( rstn    )
++	.rst_n ( rst_n   )
+ 	);
+ 
+    // south output buffer
+
+ParseResult:
+UPD HdlModuleDec@@router to router
+    INS list@@objs to router
+
+UPD HdlModuleDec@@router to router
+    DEL list@@objs from router
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/router.v
++++ b/vc/src/router.v
+@@ -264,7 +264,7 @@ module router (/*AUTOARG*/
+ 	.doa   ( soa     ), 
+ 	.credit( soc     ), 
+ 	.vcr   ( soswr   ), 
+-	.rstn  ( rstn    )
++	.rst_n ( rst_n   )
+ 	);
+ 
+    // west output buffer
+
+ParseResult:
+UPD HdlModuleDec@@router to router
+    INS list@@objs to router
+
+UPD HdlModuleDec@@router to router
+    DEL list@@objs from router
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/router.v
++++ b/vc/src/router.v
+@@ -287,7 +287,7 @@ module router (/*AUTOARG*/
+ 	.doa   ( woa     ), 
+ 	.credit( woc     ), 
+ 	.vcr   ( woswr   ), 
+-	.rstn  ( rstn    )
++	.rst_n ( rst_n   )
+ 	);
+ 
+    // north output buffer
+
+ParseResult:
+UPD HdlModuleDec@@router to router
+    INS list@@objs to router
+
+UPD HdlModuleDec@@router to router
+    DEL list@@objs from router
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/router.v
++++ b/vc/src/router.v
+@@ -310,7 +310,7 @@ module router (/*AUTOARG*/
+ 	.doa   ( noa     ), 
+ 	.credit( noc     ), 
+ 	.vcr   ( noswr   ), 
+-	.rstn  ( rstn    )
++	.rst_n ( rst_n   )
+ 	);
+ 
+    // east output buffer
+
+ParseResult:
+UPD HdlModuleDec@@router to router
+    INS list@@objs to router
+
+UPD HdlModuleDec@@router to router
+    DEL list@@objs from router
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/router.v
++++ b/vc/src/router.v
+@@ -333,7 +333,7 @@ module router (/*AUTOARG*/
+ 	.doa   ( eoa     ), 
+ 	.credit( eoc     ), 
+ 	.vcr   ( eoswr   ), 
+-	.rstn  ( rstn    )
++	.rst_n ( rst_n   )
+ 	);
+ 
+    // east output buffer
+
+ParseResult:
+UPD HdlModuleDec@@router to router
+    INS list@@objs to router
+
+UPD HdlModuleDec@@router to router
+    DEL list@@objs from router
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/router.v
++++ b/vc/src/router.v
+@@ -356,7 +356,7 @@ module router (/*AUTOARG*/
+ 	.doa   ( loa     ), 
+ 	.credit( loc     ), 
+ 	.vcr   ( loswr   ), 
+-	.rstn  ( rstn    )
++	.rst_n ( rst_n   )
+ 	);
+ 
+    // VC allocator
+
+ParseResult:
+UPD HdlModuleDec@@router to router
+    INS list@@objs to router
+
+UPD HdlModuleDec@@router to router
+    DEL list@@objs from router
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/router.v
++++ b/vc/src/router.v
+@@ -392,7 +392,7 @@ module router (/*AUTOARG*/
+ 	  .nosa    ( noswa   ), 
+ 	  .eosa    ( eoswa   ), 
+ 	  .losa    ( loswa   ), 
+-	  .rstn    ( rstn    )
++	  .rst_n   ( rst_n   )
+ 	  );
+ 
+    // crossbar
+ParseResult:
+UPD HdlModuleDec@@router to router
+    INS list@@objs to router
+
+UPD HdlModuleDec@@router to router
+    DEL list@@objs from router
+
+
+CommitId: 3a29c9496979633b6192f4a4a6f518c715c24a36
+debug
+--- a/common/src/cell_lib.v
++++ b/common/src/cell_lib.v
+@@ -30,7 +30,7 @@ module c2 (a0, a1, q);
+    nand U1 (m[0], a0, a1);
+    nand U2 (m[1], a0, q);
+    nand U3 (m[2], a1, q);
+-   assign q = &m;
++   assign q = ~&m;
+    
+ endmodule
+ 
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND_UNARY to NAND_UNARY
+
+
+CommitId: 3a29c9496979633b6192f4a4a6f518c715c24a36
+debug
+--- a/common/src/cell_lib.v
++++ b/common/src/cell_lib.v
+@@ -46,7 +46,7 @@ module dc2 (d, a, q);
+    nand U1 (m[0], a, d);
+    nand U2 (m[1], d, q);
+    nand U3 (m[2], a, q);
+-   assign q = &m;
++   assign q = ~&m;
+ 
+ endmodule
+ 
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND_UNARY to NAND_UNARY
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/outpbuf.v
++++ b/vc/src/outpbuf.v
+@@ -23,7 +23,7 @@ module outpbuf (/*AUTOARG*/
+    // Outputs
+    dia, do0, do1, do2, do3, dot, dovc, afc, vca,
+    // Inputs
+-   di0, di1, di2, di3, dit, doa, credit, vcr, rstn
++   di0, di1, di2, di3, dit, doa, credit, vcr, rst_n
+    );
+    parameter DW = 32;		// data width
+    parameter VCN = 4;		// VC number
+
+ParseResult:
+UPD HdlIdDef@@rstn to rst_n
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/outpbuf.v
++++ b/vc/src/outpbuf.v
+@@ -79,7 +79,7 @@ module outpbuf (/*AUTOARG*/
+ 	 c2 C (.a0(vcg[i]), .a1(diavcn), .q(vcgl[i]));
+       end
+    endgenerate
+-   assign diavcn = (~diavc)&rstn;
++   assign diavcn = (~diavc)&rst_n;
+ 
+    // output data buffer
+    generate
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlValueId@@rstn to rst_n
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/outpbuf.v
++++ b/vc/src/outpbuf.v
+@@ -97,7 +97,7 @@ module outpbuf (/*AUTOARG*/
+ 	      .i3 ( di3[gsub]    ),
+ 	      .oa ( doan[gsub]   )
+ 	      );
+-	 assign doan[gsub] = (~doa)&rstn;
++	 assign doan[gsub] = (~doa)&rst_n;
+       end // block: SC
+    endgenerate
+ 
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlValueId@@rstn to rst_n
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/rtu.v
++++ b/vc/src/rtu.v
+@@ -22,14 +22,14 @@ module rtu (/*AUTOARG*/
+    // Outputs
+    dia, dort,
+    // Inputs
+-   rstn, di0, di1, di2, di3, dit, divc, addrx, addry, doa
++   rst_n, di0, di1, di2, di3, dit, divc, addrx, addry, doa
+    );
+    parameter VCN = 2;
+    parameter DIR = 0;
+    parameter SN = 4;
+    parameter PD = 2;
+ 
+-   input            rstn;
++   input            rst_n;
+    input [3:0]      di0, di1, di2, di3;
+    input [2:0] 	    dit;
+    input [VCN-1:0]  divc;
+
+ParseResult:
+UPD HdlIdDef@@rstn to rst_n
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/rtu.v
++++ b/vc/src/rtu.v
+@@ -124,7 +124,7 @@ module rtu (/*AUTOARG*/
+    // p2 -> L -> p3
+ 
+    c2 CP2A  ( .a0(p2ad), .a1(p2avc), .q(p2a));
+-   assign p2an = (~p2a) & rstn;
++   assign p2an = (~p2a) & rst_n;
+ 
+    pipen #(.DW(SN))
+    L2R (
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlValueId@@rstn to rst_n
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/rtu.v
++++ b/vc/src/rtu.v
+@@ -152,7 +152,7 @@ module rtu (/*AUTOARG*/
+ 	 .d_out_a ( pda[0])
+ 	 );
+ 
+-   assign p3an = (~p3a) & rstn;
++   assign p3an = (~p3a) & rst_n;
+ 
+    // pd pipeline
+    generate
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlValueId@@rstn to rst_n
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/rtu.v
++++ b/vc/src/rtu.v
+@@ -165,7 +165,7 @@ module rtu (/*AUTOARG*/
+ 	       .d_out   ( pd[gbd+1][gvc]   ),
+ 	       .d_out_a ( pdan[gbd+1][gvc] )
+ 	       );
+-	    assign pdan[gbd+1][gvc] = (~pda[gbd+1][gvc])&rstn;
++	    assign pdan[gbd+1][gvc] = (~pda[gbd+1][gvc])&rst_n;
+ 	 end
+       end // block: RT
+    endgenerate
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlValueId@@rstn to rst_n
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/inpbuf.v
++++ b/vc/src/inpbuf.v
+@@ -24,7 +24,7 @@ module inpbuf (/*AUTOARG*/
+    dia, cor, do0, do1, do2, do3, dot, dortg, vcr, swr,
+    // Inputs
+    di0, di1, di2, di3, dit, divc, coa, doa, vcra, swrt, addrx, addry,
+-   rstn
++   rst_n
+    );
+ 
+    parameter DW = 32;		// data width
+
+ParseResult:
+UPD HdlIdDef@@rstn to rst_n
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/inpbuf.v
++++ b/vc/src/inpbuf.v
+@@ -117,12 +117,12 @@ module inpbuf (/*AUTOARG*/
+    //c2 IVMA (.a0(ivma), .a1(rua), .q(dia)); divc is not checked
+    ctree #(.DW(3)) ACKT(.ci({ivma, rua, (|divcm)}), .co(dia));
+    
+-   assign di0m = rstn ? di0 : 0;
+-   assign di1m = rstn ? di1 : 0;
+-   assign di2m = rstn ? di2 : 0;
+-   assign di3m = rstn ? di3 : 0;
+-   assign ditm = rstn ? dit : 0;
+-   assign divcm = rstn ? divc : 0;
++   assign di0m = rst_n ? di0 : 0;
++   assign di1m = rst_n ? di1 : 0;
++   assign di2m = rst_n ? di2 : 0;
++   assign di3m = rst_n ? di3 : 0;
++   assign ditm = rst_n ? dit : 0;
++   assign divcm = rst_n ? divc : 0;
+ 
+    //---------------------------------------------
+    // the VC buffers
+
+ParseResult:
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: TERNARY
+        list: ops
+            HdlValueId: rst_n
+            HdlValueId: di0
+            HdlValueInt: 0
+    HdlValueId: di0m
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: TERNARY
+        list: ops
+            HdlValueId: rst_n
+            HdlValueId: di1
+            HdlValueInt: 0
+    HdlValueId: di1m
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: TERNARY
+        list: ops
+            HdlValueId: rst_n
+            HdlValueId: di2
+            HdlValueInt: 0
+    HdlValueId: di2m
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: TERNARY
+        list: ops
+            HdlValueId: rst_n
+            HdlValueId: di3
+            HdlValueInt: 0
+    HdlValueId: di3m
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: TERNARY
+        list: ops
+            HdlValueId: rst_n
+            HdlValueId: dit
+            HdlValueInt: 0
+    HdlValueId: ditm
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: TERNARY
+        list: ops
+            HdlValueId: rst_n
+            HdlValueId: divc
+            HdlValueInt: 0
+    HdlValueId: divcm
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlOp: TERNARY
+        list: ops
+            HdlValueId: rstn
+            HdlValueId: di0
+            HdlValueInt: 0
+    HdlValueId: di0m
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlOp: TERNARY
+        list: ops
+            HdlValueId: rstn
+            HdlValueId: di1
+            HdlValueInt: 0
+    HdlValueId: di1m
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlOp: TERNARY
+        list: ops
+            HdlValueId: rstn
+            HdlValueId: di2
+            HdlValueInt: 0
+    HdlValueId: di2m
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlOp: TERNARY
+        list: ops
+            HdlValueId: rstn
+            HdlValueId: di3
+            HdlValueInt: 0
+    HdlValueId: di3m
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlOp: TERNARY
+        list: ops
+            HdlValueId: rstn
+            HdlValueId: dit
+            HdlValueInt: 0
+    HdlValueId: ditm
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlOp: TERNARY
+        list: ops
+            HdlValueId: rstn
+            HdlValueId: divc
+            HdlValueInt: 0
+    HdlValueId: divcm
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/inpbuf.v
++++ b/vc/src/inpbuf.v
+@@ -143,7 +143,7 @@ module inpbuf (/*AUTOARG*/
+ 		   .i3 ( vcd3[gbd][gvc][gsub]   ),
+ 		   .oa ( vcdadn[gbd+1][gvc][gsub] )
+ 		   );
+-	       assign vcdadn[gbd+1][gvc][gsub] = (~vcdad[gbd+1][gvc][gsub])&rstn;
++	       assign vcdadn[gbd+1][gvc][gsub] = (~vcdad[gbd+1][gvc][gsub])&rst_n;
+ 	    end // block: SC
+ 	    
+ 	    pipen #(.DW(FT)) 
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlValueId@@rstn to rst_n
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/inpbuf.v
++++ b/vc/src/inpbuf.v
+@@ -153,7 +153,7 @@ module inpbuf (/*AUTOARG*/
+ 		.d_out   ( vcdt[gbd+1][gvc]   ),
+ 		.d_out_a ( vcdatn[gbd+1][gvc]  )
+ 		);
+-	    assign vcdatn[gbd+1][gvc] = (~vcdat[gbd+1][gvc])&rstn;
++	    assign vcdatn[gbd+1][gvc] = (~vcdat[gbd+1][gvc])&rst_n;
+ 	    
+ 	 end // block: V
+       end // block: BFN
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlValueId@@rstn to rst_n
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/inpbuf.v
++++ b/vc/src/inpbuf.v
+@@ -188,7 +188,7 @@ module inpbuf (/*AUTOARG*/
+ 		   .i3 ( vcd3[gbd][gvc][gsub]     ),
+ 		   .oa ( vcdadn[gbd+1][gvc][gsub] )
+ 		   );
+-	       assign vcdadn[gbd+1][gvc][gsub] = (~vcdad[gbd+1][gvc][gsub])&rstn;
++	       assign vcdadn[gbd+1][gvc][gsub] = (~vcdad[gbd+1][gvc][gsub])&rst_n;
+ 	    end // block: SC
+ 	    
+ 	    pipen #(.DW(FT)) 
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlValueId@@rstn to rst_n
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/inpbuf.v
++++ b/vc/src/inpbuf.v
+@@ -199,7 +199,7 @@ module inpbuf (/*AUTOARG*/
+ 		.d_out_a ( vcdatn[gbd+1][gvc]  )
+ 		);
+ 
+-	    assign vcdatn[gbd+1][gvc] = (~vcdat[gbd+1][gvc])&rstn;
++	    assign vcdatn[gbd+1][gvc] = (~vcdat[gbd+1][gvc])&rst_n;
+ 
+ 	    pipen #(.DW(2))
+ 	    CTP (
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlValueId@@rstn to rst_n
+
+
+CommitId: 0f4168eab45c093b07836436ceb59d92a92e9829
+vc test bench in debugging
+--- a/vc/src/inpbuf.v
++++ b/vc/src/inpbuf.v
+@@ -209,7 +209,7 @@ module inpbuf (/*AUTOARG*/
+ 		.d_out_a ( vcftan[gbd+1][gvc] )
+ 		);
+ 
+-	    assign vcftan[gbd+1][gvc] = (~vcfta[gbd+1][gvc])&rstn;
++	    assign vcftan[gbd+1][gvc] = (~vcfta[gbd+1][gvc])&rst_n;
+ 	 end // block: V
+       end // block: BFL2
+ 
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlValueId@@rstn to rst_n
+
+

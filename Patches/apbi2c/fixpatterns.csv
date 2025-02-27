@@ -1,0 +1,9 @@
+,insert,update,move
+HdlStmAssign-HdlModuleDef,1.0,,
+HdlOp-InfixExpression-HdlStmIf,2.0,2.0,1.0
+HdlOp-InfixExpression-HdlOp-InfixExpression,4.0,4.0,
+HdlOp-MemberAccessing-HdlOp-InfixExpression,1.0,1.0,
+HdlStmCase-HdlStmProcess,,2.0,
+HdlStmIf-HdlStmCase,,3.0,
+HdlStmIf-HdlStmProcess,,2.0,
+HdlStmCase-HdlStmIf,,1.0,

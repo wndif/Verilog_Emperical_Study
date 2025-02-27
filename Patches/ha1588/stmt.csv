@@ -1,0 +1,4 @@
+,HdlIdDef,HdlStmAssign,HdlStmIf,HdlStmRepeat,HdlStmWhile,HdlStmProcess
+update,5.0,15,12.0,8.0,8.0,1.0
+insert,3.0,2,2.0,,,1.0
+move,,1,,,,

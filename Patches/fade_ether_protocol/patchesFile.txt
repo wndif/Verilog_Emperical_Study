@@ -1,0 +1,22 @@
+CommitId: f5acf42cb5e38a5042da4d4756cbf13f19056207
+Corrected small bug in eth_sender8 (which in fact should only
+--- a/FPGA_no_MAC/src/common/eth_sender8.vhd
++++ b/FPGA_no_MAC/src/common/eth_sender8.vhd
+@@ -231,7 +231,7 @@ begin  -- beh1
+           end if;
+         end if;
+       when WST_SEND_CRC =>
+-        v_TxD   := r.crc32(31-r.byte*8 downto 24-r.byte*4);
++        v_TxD   := r.crc32(31-r.byte*8 downto 24-r.byte*8);
+         c.TxD   <= not rev(v_TxD);
+         c.Tx_En <= '1';
+         if r.byte < 3 then
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlOp@@SUB to SUB
+                UPD HdlOp@@MUL to MUL
+                    UPD HdlValueInt@@4 to 8
+
+

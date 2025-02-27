@@ -1,0 +1,497 @@
+CommitId: ded87c1e885c3591dce1ce6d5f573dcf3b895855
+Implemented the RxModule with RAM instead of register, which greatly reduced the register consumptions; fixed the loose-frame bug of TxModule
+--- a/rtl/verilog/TxModule.v
++++ b/rtl/verilog/TxModule.v
+@@ -56,13 +86,13 @@ module TxModule(reset, phy_txd, phy_txen, phy_txclk, phy_txer,
+ 	//reg[175:0] pre_buf=176'h0008_5952_264C_5247_FFFF_FFFF_FFFF_D555_5555_5555_5555;
+ 	
+ 	reg[`tx_data_buf_len-1:0] tx_data_buf[0:1];	//two buffer helps to step over different frame seamlessly
+-	reg pre_toggle, toggle=1'b0;		//helps to decide when to give PC a MAC frame
++	reg pre_toggle1,pre_toggle2, toggle=1'b0;		//helps to decide when to give PC a MAC frame
+ 	reg[`tx_data_len-1:0] tx_data;		//used as FIFO
+ 		
+-	reg[`ff_sink_cnt_len-1:0] ff_cnt=0;		
++	reg[ff_sink_cnt_len-1:0] ff_cnt=0;		
+ 		
+-	reg[`tx_cnt_len-1:0] tx_cnt;
+-	reg data_av;
++	reg[tx_cnt_len-1:0] tx_cnt;
++	wire data_av;
+ 	
+ 	reg Enable_Crc, Initialize_Crc;		//declare the variables for the CRC module
+ 	wire [3:0] Data_Crc;
+
+ParseResult:
+UPD HdlIdDef@@tx_data_buf to tx_data_buf
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+            UPD HdlOp@@DOWNTO to DOWNTO
+                UPD HdlOp@@SUB to SUB
+                    UPD HdlOp@@ADD to ADD
+                        UPD HdlValueInt@@132 to 66
+                        UPD HdlOp@@ADD to ADD
+                            UPD HdlOp@@MUL to MUL
+                                UPD HdlValueInt@@16 to 8
+
+
+CommitId: ded87c1e885c3591dce1ce6d5f573dcf3b895855
+Implemented the RxModule with RAM instead of register, which greatly reduced the register consumptions; fixed the loose-frame bug of TxModule
+--- a/rtl/verilog/TxModule.v
++++ b/rtl/verilog/TxModule.v
+@@ -104,19 +134,23 @@ module TxModule(reset, phy_txd, phy_txen, phy_txclk, phy_txer,
+ 	end
+ 	
+ 	assign phy_txer = 1'b0;
++	assign data_av = pre_toggle1^pre_toggle2;
++	
++	always @ (negedge phy_txclk) begin 	//state machine run to send out the MAC frame
++		pre_toggle1 <= toggle;
++		pre_toggle2 <= pre_toggle1;
++	end
+ 
+ 	// Determine the next state
+ 	always @ (negedge phy_txclk) begin	//state machine run to send out the MAC frame
+ 		if (reset)
+ 			state <= s_idle;
+ 		else begin
+-			if(pre_toggle ^ toggle) data_av<=1'b1;
+ 			case (state)
+ 				s_idle: begin		//wait to be trigged
+ 					test1 <= ~test1;
+ 					if(data_av) begin	//once be trigged, prepare the data to send
+ 						state <= s_pre;
+-						data_av <= 1'b0;
+ 					end
+ 					else state <= s_idle;
+ 				end
+
+ParseResult:
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: XOR
+        list: ops
+            HdlValueId: pre_toggle1
+            HdlValueId: pre_toggle2
+    HdlValueId: data_av
+
+INS HdlStmProcess@@ to objs
+
+UPD HdlIdDef@@ff_cnt to ff_cnt
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlOp@@SUB to SUB
+                INS HdlValueId@@ff_sink_cnt_len to ops
+
+UPD HdlIdDef@@tx_cnt to tx_cnt
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlOp@@SUB to SUB
+                INS HdlValueId@@tx_cnt_len to ops
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@EQ to EQ
+        UPD HdlOp@@SUB to SUB
+            UPD HdlOp@@ADD to ADD
+                UPD HdlValueInt@@132 to 66
+                UPD HdlOp@@ADD to ADD
+                    UPD HdlOp@@MUL to MUL
+                        UPD HdlValueInt@@16 to 8
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlOp@@DOWNTO to DOWNTO
+                UPD HdlOp@@SUB to SUB
+                    UPD HdlOp@@ADD to ADD
+                        UPD HdlValueInt@@132 to 66
+                        UPD HdlOp@@ADD to ADD
+                            UPD HdlOp@@MUL to MUL
+                                UPD HdlValueInt@@16 to 8
+
+DEL HdlStmIf@@ from body
+HdlStmIf
+    HdlOp: XOR
+        list: ops
+            HdlValueId: pre_toggle
+            HdlValueId: toggle
+    HdlStmAssign: if_true
+        HdlValueInt: 1
+        HdlValueId: data_av
+    list: elifs
+
+
+CommitId: ded87c1e885c3591dce1ce6d5f573dcf3b895855
+Implemented the RxModule with RAM instead of register, which greatly reduced the register consumptions; fixed the loose-frame bug of TxModule
+--- a/rtl/verilog/TxModule.v
++++ b/rtl/verilog/TxModule.v
+@@ -150,10 +184,6 @@ module TxModule(reset, phy_txd, phy_txen, phy_txclk, phy_txer,
+ 		end
+ 	end
+ 	
+-	always @ (negedge phy_txclk) begin 	//state machine run to send out the MAC frame
+-		pre_toggle <= toggle;
+-	end
+-	
+ 	always @ (negedge phy_txclk) begin 	//state machine run to send out the MAC frame
+ 		if (reset)
+ 			tx_cnt <= 0;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@EQ to EQ
+        UPD HdlOp@@ADD to ADD
+            UPD HdlOp@@SRL to SRL
+                UPD HdlOp@@ADD to ADD
+                    UPD HdlValueInt@@4 to 6
+                    UPD HdlOp@@ADD to ADD
+                        UPD HdlValueInt@@132 to 66
+                        UPD HdlOp@@ADD to ADD
+                            UPD HdlOp@@MUL to MUL
+                                UPD HdlValueInt@@16 to 8
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@EQ to EQ
+        UPD HdlOp@@ADD to ADD
+            UPD HdlOp@@SRL to SRL
+                UPD HdlOp@@ADD to ADD
+                    UPD HdlValueInt@@4 to 6
+                    UPD HdlOp@@ADD to ADD
+                        UPD HdlValueInt@@132 to 66
+                        UPD HdlOp@@ADD to ADD
+                            UPD HdlOp@@MUL to MUL
+                                UPD HdlValueInt@@16 to 8
+
+
+CommitId: ded87c1e885c3591dce1ce6d5f573dcf3b895855
+Implemented the RxModule with RAM instead of register, which greatly reduced the register consumptions; fixed the loose-frame bug of TxModule
+--- a/rtl/verilog/TxModule.v
++++ b/rtl/verilog/TxModule.v
+@@ -169,7 +199,7 @@ module TxModule(reset, phy_txd, phy_txen, phy_txclk, phy_txer,
+ 		else 
+ 			case (state)
+ 				s_idle: begin
+-					tx_data <= {`append_zero, tx_data_buf[~toggle]};
++					tx_data <= {{`tx_data_madeup{1'b0}}, tx_data_buf[~toggle]};
+ 					//already stored MAC preamble, dest address and source address from right to left. 
+ 					//decide whether should ask PC for new frame
+ 					/*if(empty) preaddlt <= {16'h0008, `MAC_ADD, `PC_MAC_ADD, `Preamble};	
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    MOV list@@sensitivity to 
+    list: sensitivity
+        HdlOp: FALLING
+            list: ops
+                HdlValueId: phy_txclk
+    DEL HdlStmBlock@@SEQ from 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueId: toggle
+                HdlValueId: pre_toggle
+
+UPD HdlStmProcess@@ to 
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueId: toggle
+                HdlValueId: pre_toggle1
+            HdlStmAssign
+                HdlValueId: pre_toggle1
+                HdlValueId: pre_toggle2
+
+DEL HdlStmProcess@@ from objs
+
+
+CommitId: ded87c1e885c3591dce1ce6d5f573dcf3b895855
+Implemented the RxModule with RAM instead of register, which greatly reduced the register consumptions; fixed the loose-frame bug of TxModule
+--- a/rtl/verilog/RxModule.v
++++ b/rtl/verilog/RxModule.v
+@@ -13,18 +13,20 @@
+ 
+ `include "common.v"
+ 
+-`define ff_source_cnt_len	8	//(2^ff_source_cnt_len) must be larger than uframelen
+-`define nibble_cnt_len	10	//(2^nibble_cnt_len) must be larger than eth_buf_len/4
+-`define delay_cnt_len	4	//(2^delay_cnt_len) must be larger than the number of clocks you want TxModule to wait at the beginning
+-`define delay_cnt_config	4'h9	//the initiation value for the delay_cnt
+-`define ff_data_buf_index_len	5	//(2^ff_data_buf_index_len) must be larger than or equal to num_uframe*2
+-`define toggle_lsbs	4'h0		//the length of zeros is ff_data_buf_index_len-1
++`define IDXlen			3		//2^IDXlen should be the number of cyclic queue
++`define queue_len		(1<<3)	//define the length of the cyclic queue
+ 
+-//8 bytes preamble, 12 bytes source address and destination address, 2 bytes length/type, 3bytes frameID
+-`define eth_buf_len (8*(8+6+6+2)+`frameidlen+`uframelen*`num_uframe+8*4)	//the last 4 bytes CRC
++`define da_offset		(8<<1)					//8 byte before
++`define sa_offset		(`da_offset+(6<<1))		//8+6 bytes before
++`define typelen_offset	(`sa_offset+(6<<1))
++`define frameid_offset	(`typelen_offset+(2<<1))//index of first bit of frameid
++`define data_offset		(`frameid_offset+(`frameidlen>>2))	
++												//index of first bit of data
++`define rx_crc_offset		(`data_offset+(`uframelen*`num_uframe/4))	//index of first bit of crc
++`define rx_total_len		(`rx_crc_offset + (4<<1))
++`define rxdata_len		(`uframelen*`num_uframe/4)
+ 
+-`define frameid_offset	176								//index of frameid in eth_buf
+-`define data_offset		(`frameid_offset+`frameidlen)	//index of beginning of data in eth_buf
++`define delay_cnt_config	0	//the initiation value for the delay_cnt
+ 
+ module RxModule(phy_rxd, phy_rxen, phy_rxclk, phy_rxer,
+ 				ff_clk, ff_data, ff_en, 
+
+ParseResult:
+INS HdlModuleDef@@RxModule to objs
+
+INS HdlModuleDec@@RxModule to RxModule
+
+UPD HdlModuleDef@@RxModule to RxModule
+    INS list@@objs to RxModule
+
+UPD HdlModuleDec@@RxModule to RxModule
+    INS list@@params to RxModule
+    INS list@@objs to RxModule
+
+UPD HdlModuleDec@@RxModule to RxModule
+    MOV list@@ports to RxModule
+    list: ports
+        HdlIdDef: phy_rxd
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 3
+                            HdlValueInt: 0
+            HdlDirection: IN
+        HdlIdDef: phy_rxen
+            HdlDirection: IN
+        HdlIdDef: phy_rxclk
+            HdlDirection: IN
+        HdlIdDef: phy_rxer
+            HdlDirection: IN
+        HdlIdDef: ff_clk
+            HdlDirection: IN
+        HdlIdDef: ff_data
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: reg
+            HdlDirection: OUT
+        HdlIdDef: ff_en
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: reg
+            HdlDirection: OUT
+        HdlIdDef: frameid
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlOp: SUB
+                                list: ops
+                                    HdlValueInt: 24
+                                    HdlValueInt: 1
+                            HdlValueInt: 0
+            HdlDirection: OUT
+        HdlIdDef: start
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: reg
+            HdlValueInt: 0
+            HdlDirection: OUT
+    DEL list@@params from RxModule
+    list: params
+        HdlIdDef: transfer
+            HdlValueInt: 0
+            HdlDirection: INTERNAL
+        HdlIdDef: gap
+            HdlValueInt: 1
+            HdlDirection: INTERNAL
+    DEL list@@objs from RxModule
+
+INS HdlIdDef@@test1 to ports
+HdlIdDef: test1
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: OUT
+
+INS HdlIdDef@@test2 to ports
+HdlIdDef: test2
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: OUT
+
+INS HdlIdDef@@test3 to ports
+HdlIdDef: test3
+    HdlDirection: OUT
+
+INS HdlIdDef@@test4 to ports
+HdlIdDef: test4
+    HdlDirection: OUT
+
+UPD HdlIdDef@@frameid to frameid
+    INS HdlOp@@PARAMETRIZATION to frameid
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueInt: 24
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+
+UPD HdlIdDef@@frameid to frameid
+    UPD HdlOp@@PARAMETRIZATION to INDEX
+    MOV HdlOp@@PARAMETRIZATION to frameid
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueInt: 24
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlValueId@@wire to frameid_buf
+        MOV HdlValueId@@wire to ops
+        HdlValueId: wire
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueInt@@0 to 24
+            MOV HdlValueInt@@0 to ops
+            HdlValueInt: 0
+
+DEL HdlModuleDec@@RxModule from RxModule
+
+UPD HdlModuleDef@@RxModule to RxModule
+    DEL list@@objs from RxModule
+
+DEL HdlModuleDef@@RxModule from objs
+
+
+CommitId: ded87c1e885c3591dce1ce6d5f573dcf3b895855
+Implemented the RxModule with RAM instead of register, which greatly reduced the register consumptions; fixed the loose-frame bug of TxModule
+--- a/rtl/verilog/RxModule.v
++++ b/rtl/verilog/RxModule.v
+@@ -33,7 +35,9 @@ module RxModule(phy_rxd, phy_rxen, phy_rxclk, phy_rxer,
+ 					frameid, 
+ 				`endif
+ 				
+-				start);
++				start,
++				test1, test2, test3, test4
++				);
+ 	input phy_rxen, phy_rxclk, phy_rxer;	//MII interface
+ 	input [3:0] phy_rxd;
+ 	
+
+ParseResult:
+INS HdlModuleDef@@RxModule to objs
+
+INS HdlModuleDec@@RxModule to RxModule
+
+UPD HdlModuleDef@@RxModule to RxModule
+    INS list@@objs to RxModule
+
+UPD HdlModuleDec@@RxModule to RxModule
+    INS list@@params to RxModule
+    INS list@@objs to RxModule
+
+UPD HdlModuleDec@@RxModule to RxModule
+    MOV list@@ports to RxModule
+    list: ports
+        HdlIdDef: phy_rxd
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 3
+                            HdlValueInt: 0
+            HdlDirection: IN
+        HdlIdDef: phy_rxen
+            HdlDirection: IN
+        HdlIdDef: phy_rxclk
+            HdlDirection: IN
+        HdlIdDef: phy_rxer
+            HdlDirection: IN
+        HdlIdDef: ff_clk
+            HdlDirection: IN
+        HdlIdDef: ff_data
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: reg
+            HdlDirection: OUT
+        HdlIdDef: ff_en
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: reg
+            HdlDirection: OUT
+        HdlIdDef: frameid
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlOp: SUB
+                                list: ops
+                                    HdlValueInt: 24
+                                    HdlValueInt: 1
+                            HdlValueInt: 0
+            HdlDirection: OUT
+        HdlIdDef: start
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: reg
+            HdlValueInt: 0
+            HdlDirection: OUT
+    DEL list@@params from RxModule
+    list: params
+        HdlIdDef: transfer
+            HdlValueInt: 0
+            HdlDirection: INTERNAL
+        HdlIdDef: gap
+            HdlValueInt: 1
+            HdlDirection: INTERNAL
+    DEL list@@objs from RxModule
+
+DEL HdlModuleDec@@RxModule from RxModule
+
+DEL HdlIdDef@@ff_data_buf from objs
+HdlIdDef: ff_data_buf
+    HdlOp: INDEX
+        list: ops
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: reg
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlOp: SUB
+                                list: ops
+                                    HdlValueInt: 148
+                                    HdlValueInt: 1
+                            HdlValueInt: 0
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 0
+                    HdlOp: SUB
+                        list: ops
+                            HdlOp: MUL
+                                list: ops
+                                    HdlValueInt: 16
+                                    HdlValueInt: 2
+                            HdlValueInt: 1
+    HdlDirection: INTERNAL
+
+UPD HdlModuleDef@@RxModule to RxModule
+    DEL list@@objs from RxModule
+
+DEL HdlModuleDef@@RxModule from objs
+
+

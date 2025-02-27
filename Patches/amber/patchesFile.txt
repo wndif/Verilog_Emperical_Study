@@ -1,0 +1,1570 @@
+CommitId: 4946f08e7d85e7d5a33459f758ec38e495193d70
+Added a second level of buffering to a25_wishbone_buf to fix a lockup 
+--- a/hw/vlog/amber25/a25_wishbone_buf.v
++++ b/hw/vlog/amber25/a25_wishbone_buf.v
+@@ -59,7 +59,7 @@ input       [127:0]         i_wdata,
+ input       [15:0]          i_be,
+ input       [31:0]          i_addr,
+ output      [127:0]         o_rdata,
+-output                      o_ready,
++output                      o_ack,
+ 
+ // Wishbone side
+ output                      o_valid,
+
+ParseResult:
+UPD HdlIdDef@@o_ready to o_ack
+
+
+CommitId: 4946f08e7d85e7d5a33459f758ec38e495193d70
+Added a second level of buffering to a25_wishbone_buf to fix a lockup 
+--- a/hw/vlog/amber25/a25_core.v
++++ b/hw/vlog/amber25/a25_core.v
+@@ -163,7 +163,6 @@ wire     [10:0]           wb_load_rd;
+                
+ wire                      dcache_wb_cached_req;
+ wire                      dcache_wb_uncached_req;
+-wire                      dcache_wb_qword;
+ wire                      dcache_wb_write;
+ wire     [15:0]           dcache_wb_byte_enable;
+ wire     [31:0]           dcache_wb_address;
+
+ParseResult:
+DEL HdlIdDef@@dcache_wb_qword from objs
+HdlIdDef: dcache_wb_qword
+    HdlDirection: INTERNAL
+
+
+CommitId: 443eb682fe047e3e3eb2f71752e0f888580b23de
+Bug fix - a write access was sometimes dropped when it was in a sequence of writes with variable wb_ack delays
+--- a/hw/vlog/amber25/a25_wishbone.v
++++ b/hw/vlog/amber25/a25_wishbone.v
+@@ -141,18 +141,26 @@ wire                        icache_read_req_in;
+ wire                        icache_read_ready;
+ reg                         servicing_dcache_cached_read_r = 'd0;
+ reg                         servicing_dcache_uncached_read_r = 'd0;
++reg                         servicing_dcache_cached_write_r = 'd0;
++reg                         servicing_dcache_uncached_write_r = 'd0;
+ reg                         servicing_icache_r = 'd0;
+-wire                        extra_write;
+-reg                         extra_write_r = 'd0;
+-reg     [31:0]              extra_write_data_r;
+-reg     [31:0]              extra_write_address_r;
+-reg     [3:0]               extra_write_be_r;
++wire                        buffer_write;
++reg                         buffer_write_r = 'd0;
++reg     [31:0]              buffer_write_data_r;
++reg     [31:0]              buffer_write_address_r;
++reg     [3:0]               buffer_write_be_r;
++wire                        write_ack;
++
+ 
+ assign read_ack                 = !o_wb_we && i_wb_ack;
+ 
+ assign dcache_cached_rready     = dcache_cached_rreq_r   && servicing_dcache_cached_read_r   && read_ack;
+ assign dcache_uncached_rready   = dcache_uncached_rreq_r && servicing_dcache_uncached_read_r && read_ack;
+ 
++assign dcache_cached_wready     = (dcache_cached_wreq_c && wishbone_st == WB_IDLE && !dcache_cached_rreq_c)  || 
++                                  (servicing_dcache_cached_write_r && i_wb_ack  && wishbone_st == WB_WAIT_ACK && !dcache_cached_rreq_c);
++assign dcache_uncached_wready   = (dcache_uncached_wreq_c && wishbone_st == WB_IDLE && !dcache_uncached_rreq_c) ||
++                                  (servicing_dcache_uncached_write_r && i_wb_ack  && wishbone_st == WB_WAIT_ACK && !dcache_uncached_rreq_c);
+ 
+ assign o_dcache_cached_ready    = dcache_cached_rready   || dcache_cached_wready;
+ assign o_dcache_uncached_ready  = dcache_uncached_rready || dcache_uncached_wready;
+
+ParseResult:
+INS HdlIdDef@@servicing_dcache_cached_write_r to objs
+HdlIdDef: servicing_dcache_cached_write_r
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@servicing_dcache_uncached_write_r to objs
+HdlIdDef: servicing_dcache_uncached_write_r
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@buffer_write to objs
+HdlIdDef: buffer_write
+    HdlDirection: INTERNAL
+
+UPD HdlIdDef@@extra_write_r to buffer_write_r
+
+UPD HdlIdDef@@extra_write_data_r to buffer_write_data_r
+
+UPD HdlIdDef@@extra_write_address_r to buffer_write_address_r
+
+UPD HdlIdDef@@extra_write_be_r to buffer_write_be_r
+
+INS HdlIdDef@@write_ack to objs
+HdlIdDef: write_ack
+    HdlDirection: INTERNAL
+
+INS HdlStmAssign@@ to objs
+
+INS HdlStmAssign@@ to objs
+
+DEL HdlIdDef@@extra_write from objs
+HdlIdDef: extra_write
+    HdlDirection: INTERNAL
+
+
+CommitId: 443eb682fe047e3e3eb2f71752e0f888580b23de
+Bug fix - a write access was sometimes dropped when it was in a sequence of writes with variable wb_ack delays
+--- a/hw/vlog/amber25/a25_wishbone.v
++++ b/hw/vlog/amber25/a25_wishbone.v
+@@ -162,7 +170,6 @@ assign icache_read_ready        = servicing_icache_r && read_ack;
+ assign o_icache_ready           = icache_read_ready; 
+ assign o_icache_read_data       = i_wb_dat;
+ 
+-
+ assign dcache_cached_rreq_in    = i_dcache_cached_req   && !i_dcache_write;
+ assign dcache_cached_wreq_in    = i_dcache_cached_req   &&  i_dcache_write;
+ assign dcache_uncached_rreq_in  = i_dcache_uncached_req && !i_dcache_write;
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@OR_LOG to 
+    INS HdlValueId@@dcache_cached_wready to 
+    UPD HdlOp@@OR_LOG to OR_LOG
+        INS list@@ops to OR_LOG
+        INS HdlOp@@AND_LOG to ops
+        UPD HdlOp@@AND_LOG to AND_LOG
+            INS list@@ops to AND_LOG
+            INS HdlOp@@NEG_LOG to ops
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlValueId: dcache_cached_rreq_c
+        UPD HdlOp@@AND_LOG to AND_LOG
+            INS HdlOp@@NEG_LOG to ops
+            UPD HdlOp@@NEG_LOG to NEG_LOG
+                INS list@@ops to NEG_LOG
+            UPD HdlOp@@AND_LOG to AND_LOG
+                INS HdlOp@@AND_LOG to ops
+                HdlOp: AND_LOG
+                    list: ops
+                        HdlValueId: servicing_dcache_cached_write_r
+                        HdlValueId: i_wb_ack
+
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@OR_LOG to 
+    INS HdlValueId@@dcache_uncached_wready to 
+    UPD HdlOp@@OR_LOG to OR_LOG
+        INS list@@ops to OR_LOG
+        INS HdlOp@@AND_LOG to ops
+        INS HdlOp@@AND_LOG to ops
+        HdlOp: AND_LOG
+            list: ops
+                HdlOp: AND_LOG
+                    list: ops
+                        HdlOp: AND_LOG
+                            list: ops
+                                HdlValueId: servicing_dcache_uncached_write_r
+                                HdlValueId: i_wb_ack
+                        HdlOp: EQ
+                            list: ops
+                                HdlValueId: wishbone_st
+                                HdlValueId: WB_WAIT_ACK
+                HdlOp: NEG_LOG
+                    list: ops
+                        HdlValueId: dcache_uncached_rreq_c
+        UPD HdlOp@@AND_LOG to AND_LOG
+            INS list@@ops to AND_LOG
+            INS HdlOp@@NEG_LOG to ops
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlValueId: dcache_uncached_rreq_c
+
+
+CommitId: 443eb682fe047e3e3eb2f71752e0f888580b23de
+Bug fix - a write access was sometimes dropped when it was in a sequence of writes with variable wb_ack delays
+--- a/hw/vlog/amber25/a25_wishbone.v
++++ b/hw/vlog/amber25/a25_wishbone.v
+@@ -186,9 +193,6 @@ assign start_access             = !wait_write_ack && (dcache_req_c || icache_rea
+ // For writes the byte enable is always 4'hf
+ assign byte_enable              = write_req_c ? i_dcache_byte_enable : 4'hf;
+                                     
+-
+-assign dcache_cached_wready     = (dcache_cached_wreq_c && wishbone_st == WB_IDLE);
+-assign dcache_uncached_wready   = (dcache_uncached_wreq_c && wishbone_st == WB_IDLE);
+ assign dcache_cached_wreq_c     = dcache_cached_wreq_in   || dcache_cached_wreq_r;
+ assign dcache_uncached_wreq_c   = dcache_uncached_wreq_in || dcache_uncached_wreq_r;
+ 
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@AND_LOG to 
+    HdlOp: AND_LOG
+        list: ops
+            HdlValueId: dcache_cached_wreq_c
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: wishbone_st
+                    HdlValueId: WB_IDLE
+    DEL HdlValueId@@dcache_cached_wready from 
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@AND_LOG to 
+    HdlOp: AND_LOG
+        list: ops
+            HdlValueId: dcache_uncached_wreq_c
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: wishbone_st
+                    HdlValueId: WB_IDLE
+    DEL HdlValueId@@dcache_uncached_wready from 
+
+DEL HdlStmAssign@@ from objs
+
+DEL HdlStmAssign@@ from objs
+
+
+CommitId: 443eb682fe047e3e3eb2f71752e0f888580b23de
+Bug fix - a write access was sometimes dropped when it was in a sequence of writes with variable wb_ack delays
+--- a/hw/vlog/amber25/a25_wishbone.v
++++ b/hw/vlog/amber25/a25_wishbone.v
+@@ -197,15 +201,9 @@ assign dcache_uncached_wreq_c   = dcache_uncached_wreq_in || dcache_uncached_wre
+ // Register Accesses
+ // ======================================
+ 
+-assign extra_write =  wishbone_st == WB_IDLE && !i_wb_ack && ((dcache_cached_wreq_c && dcache_cached_wready)||
+-                                                              (dcache_uncached_wreq_c && dcache_uncached_wready));
++assign buffer_write   = dcache_cached_wreq_in  || dcache_uncached_wreq_in;
++assign write_buffered = dcache_uncached_wreq_r || dcache_uncached_wreq_r;
+ 
+-always @( posedge i_clk )
+-    if ( wishbone_st == WB_WAIT_ACK && i_wb_ack && extra_write_r )
+-        o_wb_dat <= extra_write_data_r;
+-    else if ( start_access )
+-        o_wb_dat <= i_dcache_write_data;
+-   
+ 
+ 
+ always @( posedge i_clk )
+
+ParseResult:
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: OR_LOG
+        list: ops
+            HdlValueId: dcache_cached_wreq_in
+            HdlValueId: dcache_uncached_wreq_in
+    HdlValueId: buffer_write
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: OR_LOG
+        list: ops
+            HdlValueId: dcache_uncached_wreq_r
+            HdlValueId: dcache_uncached_wreq_r
+    HdlValueId: write_buffered
+
+UPD HdlStmIf@@body to body
+    MOV HdlOp@@AND_LOG to body
+    HdlOp: AND_LOG
+        list: ops
+            HdlOp: AND_LOG
+                list: ops
+                    HdlOp: EQ
+                        list: ops
+                            HdlValueId: wishbone_st
+                            HdlValueId: WB_WAIT_ACK
+                    HdlValueId: i_wb_ack
+            HdlValueId: extra_write_r
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlValueId@@extra_write_r to dcache_cached_rreq_c
+        MOV HdlValueId@@extra_write_r to ops
+        HdlValueId: extra_write_r
+        UPD HdlOp@@AND_LOG to AND_LOG
+            DEL HdlValueId@@i_wb_ack from ops
+    DEL list@@elifs from body
+    list: elifs
+        tuple
+            HdlValueId: start_access
+            HdlStmAssign
+                HdlValueId: i_dcache_write_data
+                HdlValueId: o_wb_dat
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlOp: AND_LOG
+        list: ops
+            HdlOp: AND_LOG
+                list: ops
+                    HdlOp: EQ
+                        list: ops
+                            HdlValueId: wishbone_st
+                            HdlValueId: WB_IDLE
+                    HdlOp: NEG_LOG
+                        list: ops
+                            HdlValueId: i_wb_ack
+            HdlOp: OR_LOG
+                list: ops
+                    HdlOp: AND_LOG
+                        list: ops
+                            HdlValueId: dcache_cached_wreq_c
+                            HdlValueId: dcache_cached_wready
+                    HdlOp: AND_LOG
+                        list: ops
+                            HdlValueId: dcache_uncached_wreq_c
+                            HdlValueId: dcache_uncached_wready
+    HdlValueId: extra_write
+
+UPD HdlStmProcess@@ to 
+    DEL list@@sensitivity from 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: i_clk
+
+DEL HdlStmAssign@@if_true from body
+HdlStmAssign: if_true
+    HdlValueId: extra_write_data_r
+    HdlValueId: o_wb_dat
+
+DEL HdlStmIf@@body from 
+
+DEL HdlStmProcess@@ from objs
+
+
+CommitId: 443eb682fe047e3e3eb2f71752e0f888580b23de
+Bug fix - a write access was sometimes dropped when it was in a sequence of writes with variable wb_ack delays
+--- a/hw/vlog/amber25/a25_wishbone.v
++++ b/hw/vlog/amber25/a25_wishbone.v
+@@ -235,30 +266,31 @@ always @( posedge i_clk )
+             dcache_cached_rreq_r <= dcache_cached_rreq_c && !o_dcache_cached_ready;
+         end    
+     else    
+-        dcache_cached_rreq_r <= dcache_cached_rreq_c && !o_dcache_cached_ready;
++        dcache_cached_rreq_r <= dcache_cached_rreq_c && (!o_dcache_cached_ready || dcache_cached_wreq_r);
++        
+     if ( dcache_uncached_rreq_r )
+         begin
+         if ( wishbone_st == WB_IDLE || wishbone_st == WB_WAIT_ACK )
+             dcache_uncached_rreq_r <= dcache_uncached_rreq_c && !o_dcache_uncached_ready;
+         end    
+     else    
+-        dcache_uncached_rreq_r <= dcache_uncached_rreq_c && !o_dcache_uncached_ready;
++        dcache_uncached_rreq_r <= dcache_uncached_rreq_c && (!o_dcache_uncached_ready || dcache_uncached_wreq_r);
+     end
+     
+ assign wait_write_ack = o_wb_stb && o_wb_we && !i_wb_ack;
++assign write_ack      = o_wb_stb && o_wb_we && i_wb_ack;
+ 
+ 
+ always @( posedge i_clk )
+     case ( wishbone_st )
+         WB_IDLE :
+-            begin 
+-            extra_write_r <= extra_write;
+-            
++            begin            
+             if ( start_access )
+                 begin
+                 o_wb_stb            <= 1'd1; 
+                 o_wb_cyc            <= 1'd1; 
+                 o_wb_sel            <= byte_enable;
++                o_wb_dat            <= write_buffered ? buffer_write_data_r : i_dcache_write_data;   
+                 end
+             else if ( !wait_write_ack )
+                 begin
+
+ParseResult:
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: AND_LOG
+        list: ops
+            HdlOp: AND_LOG
+                list: ops
+                    HdlValueId: o_wb_stb
+                    HdlValueId: o_wb_we
+            HdlValueId: i_wb_ack
+    HdlValueId: write_ack
+
+UPD HdlStmCase@@wishbone_st to wishbone_st
+    INS HdlStmCaseType@@CASE to wishbone_st
+    INS list@@cases to wishbone_st
+    INS HdlStmBlock@@SEQ to wishbone_st
+    INS tuple@@ to cases
+    INS tuple@@ to cases
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+    INS HdlValueId@@WB_WAIT_ACK to 
+    INS HdlStmBlock@@SEQ to 
+    INS HdlValueId@@WB_IDLE to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueId@@dcache_uncached_wreq_c to 
+
+UPD HdlStmAssign@@if_false to if_false
+    UPD HdlOp@@AND_LOG to AND_LOG
+        MOV HdlValueId@@dcache_cached_rreq_c to ops
+        HdlValueId: dcache_cached_rreq_c
+    UPD HdlOp@@AND_LOG to OR_LOG
+    MOV HdlOp@@AND_LOG to if_false
+    HdlOp: AND_LOG
+        list: ops
+            HdlValueId: dcache_cached_rreq_c
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlValueId: o_dcache_cached_ready
+
+UPD HdlStmAssign@@if_false to if_false
+    UPD HdlOp@@AND_LOG to AND_LOG
+        MOV HdlValueId@@dcache_uncached_rreq_c to ops
+        HdlValueId: dcache_uncached_rreq_c
+    UPD HdlOp@@AND_LOG to OR_LOG
+    MOV HdlOp@@AND_LOG to if_false
+    HdlOp: AND_LOG
+        list: ops
+            HdlValueId: dcache_uncached_rreq_c
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlValueId: o_dcache_uncached_ready
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@AND_LOG to 
+    HdlOp: AND_LOG
+        list: ops
+            HdlOp: AND_LOG
+                list: ops
+                    HdlValueId: servicing_dcache_cached_write_r
+                    HdlValueId: i_wb_ack
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlValueId: buffer_write
+    INS list@@elifs to 
+
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        INS HdlOp@@AND_LOG to ops
+        UPD HdlOp@@AND_LOG to AND_LOG
+            INS list@@ops to AND_LOG
+            INS HdlValueId@@dcache_uncached_wreq_c to ops
+
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        INS HdlOp@@AND_LOG to ops
+        UPD HdlOp@@AND_LOG to AND_LOG
+            INS list@@ops to AND_LOG
+            INS HdlValueId@@dcache_cached_wreq_c to ops
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlOp: TERNARY
+        list: ops
+            HdlValueId: write_buffered
+            HdlValueId: buffer_write_data_r
+            HdlValueId: i_dcache_write_data
+    HdlValueId: o_wb_dat
+
+UPD HdlStmAssign@@if_false to if_false
+    INS HdlValueId@@dcache_cached_wreq_r to if_false
+
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueId: extra_write
+    HdlValueId: extra_write_r
+
+
+CommitId: 443eb682fe047e3e3eb2f71752e0f888580b23de
+Bug fix - a write access was sometimes dropped when it was in a sequence of writes with variable wb_ack delays
+--- a/hw/vlog/amber25/a25_wishbone.v
++++ b/hw/vlog/amber25/a25_wishbone.v
+@@ -272,9 +304,11 @@ always @( posedge i_clk )
+             if ( wait_write_ack )
+                 begin
+                 // still waiting for last (write) access to complete
+-                wishbone_st                      <= WB_WAIT_ACK;
+-                servicing_dcache_cached_read_r   <= dcache_cached_rreq_c;
+-                servicing_dcache_uncached_read_r <= dcache_uncached_rreq_c;
++                wishbone_st                         <= WB_WAIT_ACK;
++                servicing_dcache_cached_read_r      <= dcache_cached_rreq_c;
++                servicing_dcache_uncached_read_r    <= dcache_uncached_rreq_c;
++                servicing_dcache_cached_write_r     <= dcache_cached_wreq_c;
++                servicing_dcache_uncached_write_r   <= dcache_uncached_wreq_c;
+                 end 
+             // dcache accesses have priority over icache     
+             else if ( dcache_cached_rreq_c || dcache_uncached_rreq_c )
+
+ParseResult:
+UPD HdlStmAssign@@if_false to if_false
+    INS HdlOp@@AND_LOG to if_false
+    UPD HdlOp@@AND_LOG to AND_LOG
+        INS list@@ops to AND_LOG
+        UPD HdlOp@@OR_LOG to OR_LOG
+            INS HdlValueId@@dcache_cached_wreq_r to ops
+
+UPD HdlStmAssign@@if_false to if_false
+    INS HdlOp@@AND_LOG to if_false
+    UPD HdlOp@@AND_LOG to AND_LOG
+        INS list@@ops to AND_LOG
+        UPD HdlOp@@OR_LOG to OR_LOG
+            INS HdlValueId@@dcache_uncached_wreq_r to ops
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueId: dcache_cached_wreq_c
+    HdlValueId: servicing_dcache_cached_write_r
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueId: dcache_uncached_wreq_c
+    HdlValueId: servicing_dcache_uncached_write_r
+
+
+CommitId: 443eb682fe047e3e3eb2f71752e0f888580b23de
+Bug fix - a write access was sometimes dropped when it was in a sequence of writes with variable wb_ack delays
+--- a/hw/vlog/amber25/a25_wishbone.v
++++ b/hw/vlog/amber25/a25_wishbone.v
+@@ -372,15 +406,23 @@ always @( posedge i_clk )
+         // Wait for the wishbone ack to be asserted
+         WB_WAIT_ACK:   
+             if ( i_wb_ack )
++                begin
++                servicing_dcache_cached_read_r      <= 1'd0;
++                servicing_dcache_uncached_read_r    <= 1'd0;
++                servicing_dcache_cached_write_r     <= 1'd0;
++                servicing_dcache_uncached_write_r   <= 1'd0;
++                servicing_icache_r                  <= 1'd0;
++                    
+                 // Another write that was acked and needs to be sent before returning to IDLE ?
+-                if ( extra_write_r )
++                if ( write_buffered )
+                     begin
+-                    extra_write_r                       <= 'd0;
++                    wishbone_st                         <= WB_IDLE;
+                     o_wb_stb                            <= 1'd1; 
+                     o_wb_cyc                            <= exclusive_access; 
+-                    o_wb_sel                            <= extra_write_be_r;
++                    o_wb_sel                            <= buffer_write_be_r;
+                     o_wb_we                             <= 1'd1;
+-                    o_wb_adr[31:0]                      <= extra_write_address_r;
++                    o_wb_adr[31:0]                      <= buffer_write_address_r;
++                    o_wb_dat                            <= buffer_write_data_r;   
+                     end
+                 else    
+                     begin
+
+ParseResult:
+UPD HdlStmIf@@if_true to 
+
+MOV HdlStmIf@@if_true to 
+HdlStmIf: if_true
+    HdlValueId: extra_write_r
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: extra_write_r
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: o_wb_stb
+            HdlStmAssign
+                HdlValueId: exclusive_access
+                HdlValueId: o_wb_cyc
+            HdlStmAssign
+                HdlValueId: extra_write_be_r
+                HdlValueId: o_wb_sel
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: o_wb_we
+            HdlStmAssign
+                HdlValueId: extra_write_address_r
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: o_wb_adr
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 31
+                                HdlValueInt: 0
+    list: elifs
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueId: WB_IDLE
+                HdlValueId: wishbone_st
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: o_wb_stb
+            HdlStmAssign
+                HdlValueId: exclusive_access
+                HdlValueId: o_wb_cyc
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: o_wb_we
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: servicing_dcache_cached_read_r
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: servicing_dcache_uncached_read_r
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: servicing_icache_r
+
+UPD HdlStmIf@@ to 
+    MOV HdlValueId@@i_wb_ack to 
+    HdlValueId: i_wb_ack
+    MOV list@@elifs to 
+    list: elifs
+
+INS HdlStmAssign@@ to body
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: servicing_dcache_uncached_write_r
+
+MOV HdlStmIf@@ to 
+HdlStmIf
+    HdlValueId: i_wb_ack
+    HdlStmIf: if_true
+        HdlValueId: extra_write_r
+        HdlStmBlock: SEQ
+            list: body
+                HdlStmAssign
+                    HdlValueInt: 0
+                    HdlValueId: extra_write_r
+                HdlStmAssign
+                    HdlValueInt: 1
+                    HdlValueId: o_wb_stb
+                HdlStmAssign
+                    HdlValueId: exclusive_access
+                    HdlValueId: o_wb_cyc
+                HdlStmAssign
+                    HdlValueId: extra_write_be_r
+                    HdlValueId: o_wb_sel
+                HdlStmAssign
+                    HdlValueInt: 1
+                    HdlValueId: o_wb_we
+                HdlStmAssign
+                    HdlValueId: extra_write_address_r
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: o_wb_adr
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 31
+                                    HdlValueInt: 0
+        list: elifs
+        HdlStmBlock: SEQ
+            list: body
+                HdlStmAssign
+                    HdlValueId: WB_IDLE
+                    HdlValueId: wishbone_st
+                HdlStmAssign
+                    HdlValueInt: 0
+                    HdlValueId: o_wb_stb
+                HdlStmAssign
+                    HdlValueId: exclusive_access
+                    HdlValueId: o_wb_cyc
+                HdlStmAssign
+                    HdlValueInt: 0
+                    HdlValueId: o_wb_we
+                HdlStmAssign
+                    HdlValueInt: 0
+                    HdlValueId: servicing_dcache_cached_read_r
+                HdlStmAssign
+                    HdlValueInt: 0
+                    HdlValueId: servicing_dcache_uncached_read_r
+                HdlStmAssign
+                    HdlValueInt: 0
+                    HdlValueId: servicing_icache_r
+    list: elifs
+
+UPD HdlStmIf@@if_true to if_true
+    UPD HdlValueId@@extra_write_r to servicing_dcache_cached_write_r
+    MOV HdlValueId@@extra_write_r to if_true
+    HdlValueId: extra_write_r
+    MOV HdlStmBlock@@SEQ to if_true
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: extra_write_r
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: o_wb_stb
+            HdlStmAssign
+                HdlValueId: exclusive_access
+                HdlValueId: o_wb_cyc
+            HdlStmAssign
+                HdlValueId: extra_write_be_r
+                HdlValueId: o_wb_sel
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: o_wb_we
+            HdlStmAssign
+                HdlValueId: extra_write_address_r
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: o_wb_adr
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 31
+                                HdlValueInt: 0
+    MOV list@@elifs to if_true
+    list: elifs
+    MOV HdlStmBlock@@SEQ to if_true
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueId: WB_IDLE
+                HdlValueId: wishbone_st
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: o_wb_stb
+            HdlStmAssign
+                HdlValueId: exclusive_access
+                HdlValueId: o_wb_cyc
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: o_wb_we
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: servicing_dcache_cached_read_r
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: servicing_dcache_uncached_read_r
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: servicing_icache_r
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueId: buffer_write_data_r
+    HdlValueId: o_wb_dat
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@extra_write_r to WB_IDLE
+    DEL HdlValueInt@@0 from 
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@extra_write_be_r to buffer_write_be_r
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@extra_write_address_r to buffer_write_address_r
+
+
+CommitId: 443eb682fe047e3e3eb2f71752e0f888580b23de
+Bug fix - a write access was sometimes dropped when it was in a sequence of writes with variable wb_ack delays
+--- a/hw/vlog/amber25/a25_wishbone.v
++++ b/hw/vlog/amber25/a25_wishbone.v
+@@ -388,11 +430,8 @@ always @( posedge i_clk )
+                     o_wb_stb                            <= 1'd0; 
+                     o_wb_cyc                            <= exclusive_access; 
+                     o_wb_we                             <= 1'd0;
+-                    servicing_dcache_cached_read_r      <= 1'd0;
+-                    servicing_dcache_uncached_read_r    <= 1'd0;
+-                    servicing_icache_r                  <= 1'd0;
+                     end
+-                         
++                end                         
+             
+     endcase
+ 
+ParseResult:
+UPD HdlStmIf@@if_true to 
+
+MOV HdlStmIf@@if_true to 
+HdlStmIf: if_true
+    HdlValueId: extra_write_r
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: extra_write_r
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: o_wb_stb
+            HdlStmAssign
+                HdlValueId: exclusive_access
+                HdlValueId: o_wb_cyc
+            HdlStmAssign
+                HdlValueId: extra_write_be_r
+                HdlValueId: o_wb_sel
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: o_wb_we
+            HdlStmAssign
+                HdlValueId: extra_write_address_r
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: o_wb_adr
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 31
+                                HdlValueInt: 0
+    list: elifs
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueId: WB_IDLE
+                HdlValueId: wishbone_st
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: o_wb_stb
+            HdlStmAssign
+                HdlValueId: exclusive_access
+                HdlValueId: o_wb_cyc
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: o_wb_we
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: servicing_dcache_cached_read_r
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: servicing_dcache_uncached_read_r
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: servicing_icache_r
+
+UPD HdlStmIf@@ to 
+    MOV HdlValueId@@i_wb_ack to 
+    HdlValueId: i_wb_ack
+    MOV list@@elifs to 
+    list: elifs
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: servicing_dcache_cached_read_r
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: servicing_dcache_uncached_read_r
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: servicing_icache_r
+
+MOV HdlStmIf@@ to 
+HdlStmIf
+    HdlValueId: i_wb_ack
+    HdlStmIf: if_true
+        HdlValueId: extra_write_r
+        HdlStmBlock: SEQ
+            list: body
+                HdlStmAssign
+                    HdlValueInt: 0
+                    HdlValueId: extra_write_r
+                HdlStmAssign
+                    HdlValueInt: 1
+                    HdlValueId: o_wb_stb
+                HdlStmAssign
+                    HdlValueId: exclusive_access
+                    HdlValueId: o_wb_cyc
+                HdlStmAssign
+                    HdlValueId: extra_write_be_r
+                    HdlValueId: o_wb_sel
+                HdlStmAssign
+                    HdlValueInt: 1
+                    HdlValueId: o_wb_we
+                HdlStmAssign
+                    HdlValueId: extra_write_address_r
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: o_wb_adr
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 31
+                                    HdlValueInt: 0
+        list: elifs
+        HdlStmBlock: SEQ
+            list: body
+                HdlStmAssign
+                    HdlValueId: WB_IDLE
+                    HdlValueId: wishbone_st
+                HdlStmAssign
+                    HdlValueInt: 0
+                    HdlValueId: o_wb_stb
+                HdlStmAssign
+                    HdlValueId: exclusive_access
+                    HdlValueId: o_wb_cyc
+                HdlStmAssign
+                    HdlValueInt: 0
+                    HdlValueId: o_wb_we
+                HdlStmAssign
+                    HdlValueInt: 0
+                    HdlValueId: servicing_dcache_cached_read_r
+                HdlStmAssign
+                    HdlValueInt: 0
+                    HdlValueId: servicing_dcache_uncached_read_r
+                HdlStmAssign
+                    HdlValueInt: 0
+                    HdlValueId: servicing_icache_r
+    list: elifs
+
+UPD HdlStmIf@@if_true to if_true
+    UPD HdlValueId@@extra_write_r to servicing_dcache_cached_write_r
+    MOV HdlValueId@@extra_write_r to if_true
+    HdlValueId: extra_write_r
+    MOV HdlStmBlock@@SEQ to if_true
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: extra_write_r
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: o_wb_stb
+            HdlStmAssign
+                HdlValueId: exclusive_access
+                HdlValueId: o_wb_cyc
+            HdlStmAssign
+                HdlValueId: extra_write_be_r
+                HdlValueId: o_wb_sel
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: o_wb_we
+            HdlStmAssign
+                HdlValueId: extra_write_address_r
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: o_wb_adr
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 31
+                                HdlValueInt: 0
+    MOV list@@elifs to if_true
+    list: elifs
+    MOV HdlStmBlock@@SEQ to if_true
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueId: WB_IDLE
+                HdlValueId: wishbone_st
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: o_wb_stb
+            HdlStmAssign
+                HdlValueId: exclusive_access
+                HdlValueId: o_wb_cyc
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: o_wb_we
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: servicing_dcache_cached_read_r
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: servicing_dcache_uncached_read_r
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: servicing_icache_r
+
+
+CommitId: 4946f08e7d85e7d5a33459f758ec38e495193d70
+Added a second level of buffering to a25_wishbone_buf to fix a lockup 
+--- a/hw/vlog/amber25/a25_wishbone.v
++++ b/hw/vlog/amber25/a25_wishbone.v
+@@ -64,30 +64,30 @@ input                       i_clk,
+ 
+ // Port 0 - dcache uncached
+ input                       i_port0_req,
++output                      o_port0_ack,
+ input                       i_port0_write,
+ input       [127:0]         i_port0_wdata,
+ input       [15:0]          i_port0_be,
+ input       [31:0]          i_port0_addr,
+ output      [127:0]         o_port0_rdata,
+-output                      o_port0_ready,
+ 
+ // Port 1 - dcache cached
+ input                       i_port1_req,
++output                      o_port1_ack,
+ input                       i_port1_write,
+ input       [127:0]         i_port1_wdata,
+ input       [15:0]          i_port1_be,
+ input       [31:0]          i_port1_addr,
+ output      [127:0]         o_port1_rdata,
+-output                      o_port1_ready,
+ 
+ // Port 2 - instruction cache accesses, read only
+ input                       i_port2_req,
++output                      o_port2_ack,
+ input                       i_port2_write,
+ input       [127:0]         i_port2_wdata,
+ input       [15:0]          i_port2_be,
+ input       [31:0]          i_port2_addr,
+ output      [127:0]         o_port2_rdata,
+-output                      o_port2_ready,
+ 
+ 
+ // 128-bit Wishbone Bus
+
+ParseResult:
+INS HdlIdDef@@o_port0_ack to ports
+HdlIdDef: o_port0_ack
+    HdlValueId: wire
+    HdlDirection: OUT
+
+INS HdlIdDef@@o_port1_ack to ports
+HdlIdDef: o_port1_ack
+    HdlValueId: wire
+    HdlDirection: OUT
+
+INS HdlIdDef@@o_port2_ack to ports
+HdlIdDef: o_port2_ack
+    HdlValueId: wire
+    HdlDirection: OUT
+
+DEL HdlIdDef@@o_port0_ready from ports
+HdlIdDef: o_port0_ready
+    HdlValueId: wire
+    HdlDirection: OUT
+
+DEL HdlIdDef@@o_port1_ready from ports
+HdlIdDef: o_port1_ready
+    HdlValueId: wire
+    HdlDirection: OUT
+
+DEL HdlIdDef@@o_port2_ready from ports
+HdlIdDef: o_port2_ready
+    HdlValueId: wire
+    HdlDirection: OUT
+
+
+CommitId: 6b6d3db1d64360325de3433052c25f0211b42e0b
+Original Amber 23 core uses asyncronous implementation of register bank.
+--- a/hw/vlog/amber23/a23_core.v
++++ b/hw/vlog/amber23/a23_core.v
+@@ -100,6 +100,9 @@ wire     [4:0]            read_data_alignment;
+ wire     [3:0]            rm_sel;                  
+ wire     [3:0]            rds_sel;                 
+ wire     [3:0]            rn_sel;                  
++wire     [3:0]            rm_sel_nxt;
++wire     [3:0]            rds_sel_nxt;
++wire     [3:0]            rn_sel_nxt;
+ wire     [1:0]            barrel_shift_amount_sel; 
+ wire     [1:0]            barrel_shift_data_sel;   
+ wire     [1:0]            barrel_shift_function;   
+
+ParseResult:
+INS HdlIdDef@@rm_sel_nxt to objs
+HdlIdDef: rm_sel_nxt
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 3
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@rds_sel_nxt to objs
+HdlIdDef: rds_sel_nxt
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 3
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@rn_sel_nxt to objs
+HdlIdDef: rn_sel_nxt
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 3
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+
+CommitId: 6b6d3db1d64360325de3433052c25f0211b42e0b
+Original Amber 23 core uses asyncronous implementation of register bank.
+--- a/hw/vlog/amber23/a23_core.v
++++ b/hw/vlog/amber23/a23_core.v
+@@ -120,6 +123,7 @@ wire                      copro_write_data_wen;
+ wire                      base_address_wen;        
+ wire                      pc_wen;                  
+ wire     [14:0]           reg_bank_wen;            
++wire     [3:0]            reg_bank_wsel;            
+ 
+ wire     [2:0]            copro_opcode1;
+ wire     [2:0]            copro_opcode2;
+
+ParseResult:
+INS HdlIdDef@@reg_bank_wsel to objs
+HdlIdDef: reg_bank_wsel
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 3
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+
+CommitId: 6b6d3db1d64360325de3433052c25f0211b42e0b
+Original Amber 23 core uses asyncronous implementation of register bank.
+--- a/hw/vlog/amber23/a23_execute.v
++++ b/hw/vlog/amber23/a23_execute.v
+@@ -88,6 +88,9 @@ input                       i_exclusive_exec,       // swap access
+ input      [3:0]            i_rm_sel,
+ input      [3:0]            i_rds_sel,
+ input      [3:0]            i_rn_sel,
++input      [3:0]            i_rm_sel_nxt,
++input      [3:0]            i_rds_sel_nxt,
++input      [3:0]            i_rn_sel_nxt,
+ input      [1:0]            i_barrel_shift_amount_sel,
+ input      [1:0]            i_barrel_shift_data_sel,
+ input      [1:0]            i_barrel_shift_function,
+
+ParseResult:
+INS HdlIdDef@@i_rm_sel_nxt to ports
+HdlIdDef: i_rm_sel_nxt
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 3
+                    HdlValueInt: 0
+    HdlDirection: IN
+
+INS HdlIdDef@@i_rds_sel_nxt to ports
+HdlIdDef: i_rds_sel_nxt
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 3
+                    HdlValueInt: 0
+    HdlDirection: IN
+
+INS HdlIdDef@@i_rn_sel_nxt to ports
+HdlIdDef: i_rn_sel_nxt
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 3
+                    HdlValueInt: 0
+    HdlDirection: IN
+
+
+CommitId: 6b6d3db1d64360325de3433052c25f0211b42e0b
+Original Amber 23 core uses asyncronous implementation of register bank.
+--- a/hw/vlog/amber23/a23_execute.v
++++ b/hw/vlog/amber23/a23_execute.v
+@@ -102,12 +105,14 @@ input      [2:0]            i_reg_write_sel,
+ input                       i_user_mode_regs_load,
+ input                       i_user_mode_regs_store_nxt,
+ input                       i_firq_not_user_mode,
++input                       i_firq_not_user_mode_nxt,
+ 
+ input                       i_write_data_wen,
+ input                       i_base_address_wen,     // save LDM base address register, 
+                                                     // in case of data abort
+ input                       i_pc_wen,
+ input      [14:0]           i_reg_bank_wen,
++input      [3:0]            i_reg_bank_wsel,
+ input                       i_status_bits_flags_wen,
+ input                       i_status_bits_mode_wen,
+ input                       i_status_bits_irq_mask_wen,
+
+ParseResult:
+INS HdlIdDef@@status_bits_mode_nr to objs
+HdlIdDef: status_bits_mode_nr
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@status_bits_mode_rds_nxt to objs
+HdlIdDef: status_bits_mode_rds_nxt
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@status_bits_mode_rds_nr to objs
+HdlIdDef: status_bits_mode_rds_nr
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@status_bits_mode_rds to objs
+HdlIdDef: status_bits_mode_rds
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@i_reg_bank_wsel to ports
+HdlIdDef: i_reg_bank_wsel
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 3
+                    HdlValueInt: 0
+    HdlDirection: IN
+
+
+CommitId: 9939716d669f213d179c7625cdc91f278a8c85a4
+Added write buffer - fixes bug if wishbone writes takes multiple cycles to complete
+--- a/hw/vlog/amber23/a23_wishbone.v
++++ b/hw/vlog/amber23/a23_wishbone.v
+@@ -104,13 +104,22 @@ wire    [3:0]               byte_enable;
+ reg                         exclusive_access = 'd0;
+ wire                        read_ack;
+ wire                        wait_write_ack;
++wire                        wb_wait;
+ 
++// Write buffer
++reg     [31:0]              wbuf_data_r = 'd0;
++reg     [31:0]              wbuf_addr_r = 'd0;
++reg     [3:0]               wbuf_sel_r  = 'd0;
++reg                         wbuf_busy_r = 'd0;
+ 
+ 
+ assign read_ack             = !o_wb_we && i_wb_ack;
+ assign o_stall              = ( core_read_request  && !read_ack )       || 
+                               ( core_read_request  && servicing_cache ) ||
+-                              ( core_write_request && servicing_cache ) ;
++                              ( core_write_request && servicing_cache ) ||
++                              ( core_write_request && wishbone_st == WB_WAIT_ACK) ||
++                              ( cache_write_request && wishbone_st == WB_WAIT_ACK) ||
++                              wbuf_busy_r;
+ 
+                               // Don't stall on writes
+                               // Wishbone is doing burst read so make core wait to execute the write
+
+ParseResult:
+INS HdlIdDef@@wb_wait to objs
+HdlIdDef: wb_wait
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@wbuf_data_r to objs
+HdlIdDef: wbuf_data_r
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 31
+                    HdlValueInt: 0
+    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@wbuf_addr_r to objs
+HdlIdDef: wbuf_addr_r
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 31
+                    HdlValueInt: 0
+    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@wbuf_sel_r to objs
+HdlIdDef: wbuf_sel_r
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 3
+                    HdlValueInt: 0
+    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@wbuf_busy_r to objs
+HdlIdDef: wbuf_busy_r
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@OR_LOG to 
+    UPD HdlOp@@OR_LOG to OR_LOG
+        INS list@@ops to OR_LOG
+        INS HdlOp@@OR_LOG to ops
+        INS HdlValueId@@wbuf_busy_r to ops
+        UPD HdlOp@@OR_LOG to OR_LOG
+            INS list@@ops to OR_LOG
+            INS HdlOp@@OR_LOG to ops
+            INS HdlOp@@AND_LOG to ops
+            HdlOp: AND_LOG
+                list: ops
+                    HdlValueId: cache_write_request
+                    HdlOp: EQ
+                        list: ops
+                            HdlValueId: wishbone_st
+                            HdlValueId: WB_WAIT_ACK
+            UPD HdlOp@@OR_LOG to OR_LOG
+                INS list@@ops to OR_LOG
+                INS HdlOp@@AND_LOG to ops
+                HdlOp: AND_LOG
+                    list: ops
+                        HdlValueId: core_write_request
+                        HdlOp: EQ
+                            list: ops
+                                HdlValueId: wishbone_st
+                                HdlValueId: WB_WAIT_ACK
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@OR_LOG to 
+    HdlOp: OR_LOG
+        list: ops
+            HdlOp: OR_LOG
+                list: ops
+                    HdlOp: AND_LOG
+                        list: ops
+                            HdlValueId: core_read_request
+                            HdlOp: NEG_LOG
+                                list: ops
+                                    HdlValueId: read_ack
+                    HdlOp: AND_LOG
+                        list: ops
+                            HdlValueId: core_read_request
+                            HdlValueId: servicing_cache
+            HdlOp: AND_LOG
+                list: ops
+                    HdlValueId: core_write_request
+                    HdlValueId: servicing_cache
+
+
+CommitId: 9939716d669f213d179c7625cdc91f278a8c85a4
+Added write buffer - fixes bug if wishbone writes takes multiple cycles to complete
+--- a/hw/vlog/amber23/a23_wishbone.v
++++ b/hw/vlog/amber23/a23_wishbone.v
+@@ -122,12 +131,32 @@ assign core_write_request   = i_select &&  i_write_enable;
+ assign cache_read_request   = i_cache_req && !i_write_enable;
+ assign cache_write_request  = i_cache_req &&  i_write_enable;
+ 
+-assign start_access         = core_read_request || core_write_request || i_cache_req ;
++assign wb_wait              = o_wb_stb && !i_wb_ack;
++assign start_access         = (core_read_request || core_write_request || i_cache_req) && !wb_wait ;
+ 
+ // For writes the byte enable is always 4'hf
+-assign byte_enable          = ( core_write_request || cache_write_request ) ? i_byte_enable : 4'hf;
++assign byte_enable          = wbuf_busy_r                                   ? wbuf_sel_r    :
++                              ( core_write_request || cache_write_request ) ? i_byte_enable : 
++                                                                              4'hf          ;
+                                     
+ 
++
++// ======================================
++// Write buffer
++// ======================================
++
++
++always @( posedge i_clk )
++    if ( wb_wait && !wbuf_busy_r && (core_write_request || cache_write_request) )
++        begin
++        wbuf_data_r <= i_write_data;
++        wbuf_addr_r <= i_address;
++        wbuf_sel_r  <= i_byte_enable;
++        wbuf_busy_r <= 1'd1;
++        end
++    else if (!o_wb_stb)
++        wbuf_busy_r <= 1'd0;
++    
+ // ======================================
+ // Register Accesses
+ // ======================================
+
+ParseResult:
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: AND_LOG
+        list: ops
+            HdlValueId: o_wb_stb
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlValueId: i_wb_ack
+    HdlValueId: wb_wait
+
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: i_clk
+    HdlStmIf: body
+        HdlOp: AND_LOG
+            list: ops
+                HdlOp: AND_LOG
+                    list: ops
+                        HdlValueId: wb_wait
+                        HdlOp: NEG_LOG
+                            list: ops
+                                HdlValueId: wbuf_busy_r
+                HdlOp: OR_LOG
+                    list: ops
+                        HdlValueId: core_write_request
+                        HdlValueId: cache_write_request
+        HdlStmBlock: SEQ
+            list: body
+                HdlStmAssign
+                    HdlValueId: i_write_data
+                    HdlValueId: wbuf_data_r
+                HdlStmAssign
+                    HdlValueId: i_address
+                    HdlValueId: wbuf_addr_r
+                HdlStmAssign
+                    HdlValueId: i_byte_enable
+                    HdlValueId: wbuf_sel_r
+                HdlStmAssign
+                    HdlValueInt: 1
+                    HdlValueId: wbuf_busy_r
+        list: elifs
+            tuple
+                HdlOp: NEG_LOG
+                    list: ops
+                        HdlValueId: o_wb_stb
+                HdlStmAssign
+                    HdlValueInt: 0
+                    HdlValueId: wbuf_busy_r
+
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@OR_LOG to 
+    UPD HdlOp@@OR_LOG to OR_LOG
+        INS list@@ops to OR_LOG
+        INS HdlOp@@OR_LOG to ops
+        INS HdlValueId@@wbuf_busy_r to ops
+        UPD HdlOp@@OR_LOG to OR_LOG
+            INS list@@ops to OR_LOG
+            INS HdlOp@@OR_LOG to ops
+            INS HdlOp@@AND_LOG to ops
+            HdlOp: AND_LOG
+                list: ops
+                    HdlValueId: cache_write_request
+                    HdlOp: EQ
+                        list: ops
+                            HdlValueId: wishbone_st
+                            HdlValueId: WB_WAIT_ACK
+            UPD HdlOp@@OR_LOG to OR_LOG
+                INS list@@ops to OR_LOG
+                INS HdlOp@@AND_LOG to ops
+                HdlOp: AND_LOG
+                    list: ops
+                        HdlValueId: core_write_request
+                        HdlOp: EQ
+                            list: ops
+                                HdlValueId: wishbone_st
+                                HdlValueId: WB_WAIT_ACK
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@OR_LOG to 
+    HdlOp: OR_LOG
+        list: ops
+            HdlOp: OR_LOG
+                list: ops
+                    HdlValueId: core_read_request
+                    HdlValueId: core_write_request
+            HdlValueId: i_cache_req
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@TERNARY to 
+    HdlOp: TERNARY
+        list: ops
+            HdlOp: OR_LOG
+                list: ops
+                    HdlValueId: core_write_request
+                    HdlValueId: cache_write_request
+            HdlValueId: i_byte_enable
+            HdlValueInt: f
+
+
+CommitId: 9939716d669f213d179c7625cdc91f278a8c85a4
+Added write buffer - fixes bug if wishbone writes takes multiple cycles to complete
+--- a/hw/vlog/amber23/a23_wishbone.v
++++ b/hw/vlog/amber23/a23_wishbone.v
+@@ -187,9 +216,18 @@ always @( posedge i_clk )
+                             
+             if ( start_access )
+                 begin
+-                o_wb_we              <= core_write_request || cache_write_request;
+-                // only update these on new wb access to make debug easier
+-                o_wb_adr[31:2]       <= i_address[31:2];
++                if (wbuf_busy_r)
++                    begin
++                    o_wb_we              <= 1'd1;
++                    o_wb_adr[31:2]       <= wbuf_addr_r[31:2];
++                    end
++                else
++                    begin
++                    o_wb_we              <= core_write_request || cache_write_request;
++                    // only update these on new wb access to make debug easier
++                    o_wb_adr[31:2]       <= i_address[31:2];
++                    end
++                    
+                 o_wb_adr[1:0]        <= byte_enable == 4'b0001 ? 2'd0 :
+                                         byte_enable == 4'b0010 ? 2'd1 :
+                                         byte_enable == 4'b0100 ? 2'd2 :
+ParseResult:
+INS HdlStmIf@@ to body
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlOp: OR_LOG
+        list: ops
+            HdlValueId: core_write_request
+            HdlValueId: cache_write_request
+    HdlValueId: o_wb_we
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: i_address
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 31
+                    HdlValueInt: 2
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: o_wb_adr
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 31
+                    HdlValueInt: 2
+
+

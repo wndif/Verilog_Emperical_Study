@@ -1,0 +1,13 @@
+,insert,move,delete,update
+HdlIdDef-HdlModuleDec,3.0,,,
+HdlIdDef-HdlModuleDef,18.0,1.0,,
+HdlStmAssign-HdlModuleDef,15.0,,3.0,16.0
+HdlOp-InfixExpression-HdlOp-TERNARY,6.0,2.0,,4.0
+HdlOp-InfixExpression-HdlOp-InfixExpression,1.0,1.0,,2.0
+HdlOp-TERNARY-HdlStmAssign,7.0,10.0,1.0,22.0
+HdlOp-InfixExpression-HdlStmAssign,1.0,4.0,,1.0
+HdlOp-PrefixExpression-HdlOp-InfixExpression,2.0,,,1.0
+HdlOp-TERNARY-HdlOp-TERNARY,1.0,,1.0,4.0
+HdlOp-PrefixExpression-HdlOp-TERNARY,1.0,1.0,,
+HdlOp-MemberAccessing-HdlOp-TERNARY,2.0,,,
+HdlStmAssign-HdlStmProcess,,,,12.0

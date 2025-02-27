@@ -1,0 +1,112 @@
+CommitId: db303b2dd6d246b62a43014ced993953bd0b5318
+added Englis Paper, improved performance in IIR Filter Core, Fixed Bug in Software Test of IIR Filter Core
+--- a/rtl/vhdl/WISHBONE_IIR/interface_slave_iir.vhd
++++ b/rtl/vhdl/WISHBONE_IIR/interface_slave_iir.vhd
+@@ -142,10 +142,10 @@ begin
+ 											--DAT_O(M-1 downto 0)<= h0_aux(to_integer(unsigned(ADR_I(7 downto 0))-Reg_coef)/4);  
+ 											--DAT_O(Data_wordwidth-1 downto M)<=(others => h0_aux(to_integer(unsigned(ADR_I(7 downto 0))-Reg_coef)/4)(M-1) );  
+ 											
+-											--DAT_O<=ssDAT_O;
++											DAT_O<=ssDAT_O;
+ 											
+-											DAT_O(M-1 downto 0)<= gains;  
+-											DAT_O(Data_wordwidth-1 downto M)<=(others => gains(M-1) );  
++											--DAT_O(M-1 downto 0)<= gains;  
++											--DAT_O(Data_wordwidth-1 downto M)<=(others => gains(M-1) );  
+ 											
+ 											
+ 											
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@gains to ssDAT_O
+    UPD HdlOp@@INDEX to INDEX
+        MOV HdlValueId@@DAT_O to ops
+        HdlValueId: DAT_O
+        DEL HdlOp@@DOWNTO from ops
+        HdlOp: DOWNTO
+            list: ops
+                HdlOp: SUB
+                    list: ops
+                        HdlValueId: M
+                        HdlValueInt: 1
+        DEL list@@ops from INDEX
+    DEL HdlOp@@INDEX from 
+
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    list: src
+        HdlOp: MAP_ASSOCIATION
+            list: ops
+                type
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: gains
+                        HdlOp: SUB
+                            list: ops
+                                HdlValueId: M
+                                HdlValueInt: 1
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: DAT_O
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: Data_wordwidth
+                            HdlValueInt: 1
+                    HdlValueId: M
+
+
+CommitId: db303b2dd6d246b62a43014ced993953bd0b5318
+added Englis Paper, improved performance in IIR Filter Core, Fixed Bug in Software Test of IIR Filter Core
+--- a/rtl/vhdl/WISHBONE_IIR/WB_SOS.vhd
++++ b/rtl/vhdl/WISHBONE_IIR/WB_SOS.vhd
+@@ -100,7 +100,7 @@ signal gain_aux:std_logic_vector(M-1 downto 0);
+ signal iir_data_in, iir_data_out:std_logic_vector(Filter_Width+Bit_Growth-1 downto 0);
+ signal en_out_aux:std_logic_vector(3 downto 0);
+ signal Start_aux, WE_O_aux,enable_aux:std_logic;
+-signal sext:std_logic_vector(bit_growth-1 downto 0);
++signal sext:std_logic_vector(WB_Width-Filter_Width-bit_growth-1 downto 0);
+ begin
+ sext<=(others=>iir_data_out(Filter_Width-1));
+ 
+ParseResult:
+UPD HdlIdDef@@sext to sext
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlOp@@SUB to SUB
+                INS HdlOp@@SUB to ops
+                UPD HdlOp@@SUB to SUB
+                    INS list@@ops to SUB
+                    INS HdlOp@@SUB to ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: WB_Width
+                            HdlValueId: Filter_Width
+
+UPD HdlIdDef@@sext to sext
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlOp@@SUB to SUB
+                MOV HdlValueId@@bit_growth to ops
+                HdlValueId: bit_growth
+
+
+CommitId: db303b2dd6d246b62a43014ced993953bd0b5318
+added Englis Paper, improved performance in IIR Filter Core, Fixed Bug in Software Test of IIR Filter Core
+--- a/rtl/vhdl/WISHBONE_IIR/Tworder.vhd
++++ b/rtl/vhdl/WISHBONE_IIR/Tworder.vhd
+@@ -19,7 +19,7 @@ clk,reset,clear,enable:in std_logic
+ ); 
+ end entity;
+ 
+-architecture RTL of Tworder is 
++architecture typeII of Tworder is 
+ --The fullregister component
+ component fullregister is
+ 
+
+ParseResult:
+UPD HdlModuleDef@@Tworder-RTL to Tworder-typeII
+
+

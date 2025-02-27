@@ -1,0 +1,14 @@
+,update,insert
+HdlStmCase-HdlStmProcess,3.0,
+HdlStmCase-HdlStmIf,1.0,
+HdlOp-Assignment-HdlStmCase,1.0,
+HdlOp-MemberAccessing-HdlOp-Assignment,1.0,
+HdlOp-MemberAccessing-HdlOp-MemberAccessing,1.0,
+HdlOp-DOWNTO-HdlOp-MemberAccessing,1.0,
+HdlStmAssign-HdlStmProcess,6.0,
+HdlOp-InfixExpression-HdlStmAssign,6.0,
+HdlOp-InfixExpression-HdlOp-InfixExpression,3.0,
+HdlStmProcess-HdlModuleDef,1.0,1.0
+HdlStmIf-HdlStmProcess,,1.0
+HdlStmAssign-HdlStmIf,,1.0
+HdlOp-FALLING-HdlStmProcess,,1.0

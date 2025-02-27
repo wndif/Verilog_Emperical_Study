@@ -1,0 +1,132 @@
+CommitId: c72598aa0f4ee09b9ada9d81279bcc3d241a8966
+Fixed some of the arithmetic modules, so that we now can have EXE and IO work in parallel.
+--- a/rtl/Collaterals/Collaterals.v
++++ b/rtl/Collaterals/Collaterals.v
+@@ -345,6 +346,7 @@ module FFD32_POSEDGE
+ endmodule
+ 
+ //------------------------------------------------
++/*
+ module FF_OPCODE_POSEDGE_SYNCRONOUS_RESET 
+ 	(
+ 	input wire Clock,
+
+ParseResult:
+DEL HdlModuleDef@@FF32_POSEDGE_SYNCRONOUS_RESET from objs
+HdlModuleDef: FF32_POSEDGE_SYNCRONOUS_RESET
+    HdlModuleDec: FF32_POSEDGE_SYNCRONOUS_RESET
+        list: params
+        list: ports
+            HdlIdDef: Clock
+                HdlDirection: IN
+            HdlIdDef: Clear
+                HdlDirection: IN
+            HdlIdDef: D
+                HdlOp: PARAMETRIZATION
+                    list: ops
+                        HdlValueId: wire
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 31
+                                HdlValueInt: 0
+                HdlDirection: IN
+            HdlIdDef: Q
+                HdlOp: PARAMETRIZATION
+                    list: ops
+                        HdlValueId: reg
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 31
+                                HdlValueInt: 0
+                HdlDirection: OUT
+        list: objs
+    list: objs
+        HdlStmProcess
+            list: sensitivity
+                HdlOp: RISING
+                    list: ops
+                        HdlValueId: Clock
+                HdlOp: RISING
+                    list: ops
+                        HdlValueId: Clear
+            HdlStmBlock: SEQ
+                list: body
+                    HdlStmIf
+                        HdlValueId: Clear
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: Q
+                                HdlValueInt: 0
+                        list: elifs
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: Q
+                                HdlValueId: D
+
+
+CommitId: c72598aa0f4ee09b9ada9d81279bcc3d241a8966
+Fixed some of the arithmetic modules, so that we now can have EXE and IO work in parallel.
+--- a/rtl/Collaterals/Collaterals.v
++++ b/rtl/Collaterals/Collaterals.v
+@@ -362,6 +364,7 @@ module FF_OPCODE_POSEDGE_SYNCRONOUS_RESET
+     end 
+ endmodule
+ //------------------------------------------------
++
+ module FF32_POSEDGE_SYNCRONOUS_RESET 
+ 	(
+ 	input wire Clock,
+
+ParseResult:
+DEL HdlModuleDef@@FF16_POSEDGE_SYNCRONOUS_RESET from objs
+HdlModuleDef: FF16_POSEDGE_SYNCRONOUS_RESET
+    HdlModuleDec: FF16_POSEDGE_SYNCRONOUS_RESET
+        list: params
+        list: ports
+            HdlIdDef: Clock
+                HdlDirection: IN
+            HdlIdDef: Clear
+                HdlDirection: IN
+            HdlIdDef: D
+                HdlOp: PARAMETRIZATION
+                    list: ops
+                        HdlValueId: wire
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 15
+                                HdlValueInt: 0
+                HdlDirection: IN
+            HdlIdDef: Q
+                HdlOp: PARAMETRIZATION
+                    list: ops
+                        HdlValueId: reg
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 15
+                                HdlValueInt: 0
+                HdlDirection: OUT
+        list: objs
+    list: objs
+        HdlStmProcess
+            list: sensitivity
+                HdlOp: RISING
+                    list: ops
+                        HdlValueId: Clock
+                HdlOp: RISING
+                    list: ops
+                        HdlValueId: Clear
+            HdlStmBlock: SEQ
+                list: body
+                    HdlStmIf
+                        HdlValueId: Clear
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: Q
+                                HdlValueInt: 0
+                        list: elifs
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: Q
+                                HdlValueId: D
+
+

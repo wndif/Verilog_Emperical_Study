@@ -1,0 +1,8 @@
+,update,insert,move
+HdlIdDef-HdlModuleDec,6,,
+HdlOp-InfixExpression-HdlIdDef,1,1.0,
+HdlOp-FunctionCall-HdlOp-InfixExpression,5,,
+HdlOp-InfixExpression-HdlOp-FunctionCall,9,9.0,
+HdlOp-FunctionCall-HdlIdDef,5,,1.0
+HdlStmAssign-HdlModuleDef,4,,2.0
+HdlOp-FunctionCall-HdlOp-FunctionCall,4,,4.0

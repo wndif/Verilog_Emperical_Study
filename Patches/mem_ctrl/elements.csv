@@ -1,0 +1,5 @@
+,HdlOp-InfixExpression,HdlOp-MemberAccessing,HdlOp-DOWNTO,HdlOp-PrefixExpression,HdlOp-TERNARY,HdlOp-Assignment,HdlOp-RISING
+update,257,33,,44,3.0,280,1.0
+delete,21,7,1.0,3,,177,2.0
+move,27,11,,16,1.0,7,
+insert,76,6,,2,,203,

@@ -1,0 +1,30 @@
+CommitId: c2597a192e7c8220f7bcc34e5883c5551b9f086e
+Fixed a minor bug in parameter passing, updated headers and specification.
+--- a/rtl/verilog/wb_conmax_master_if.v
++++ b/rtl/verilog/wb_conmax_master_if.v
+@@ -358,6 +362,16 @@ reg			wb_err_o;
+ reg			wb_rty_o;
+ wire	[3:0]		slv_sel;
+ 
++wire		s0_cyc_o_next, s1_cyc_o_next, s2_cyc_o_next, s3_cyc_o_next;
++wire		s4_cyc_o_next, s5_cyc_o_next, s6_cyc_o_next, s7_cyc_o_next;
++wire		s8_cyc_o_next, s9_cyc_o_next, s10_cyc_o_next, s11_cyc_o_next;
++wire		s12_cyc_o_next, s13_cyc_o_next, s14_cyc_o_next, s15_cyc_o_next;
++
++reg		s0_cyc_o, s1_cyc_o, s2_cyc_o, s3_cyc_o;
++reg		s4_cyc_o, s5_cyc_o, s6_cyc_o, s7_cyc_o;
++reg		s8_cyc_o, s9_cyc_o, s10_cyc_o, s11_cyc_o;
++reg		s12_cyc_o, s13_cyc_o, s14_cyc_o, s15_cyc_o;
++
+ ////////////////////////////////////////////////////////////////////
+ //
+ // Select logic
+
+ParseResult:
+UPD HdlModuleDec@@wb_conmax_master_if to wb_conmax_master_if
+    INS list@@objs to wb_conmax_master_if
+
+UPD HdlModuleDec@@wb_conmax_master_if to wb_conmax_master_if
+    DEL list@@objs from wb_conmax_master_if
+
+

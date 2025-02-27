@@ -1,0 +1,704 @@
+CommitId: 6b83b9638608e2624518108f42b3cb0d4ac70b59
+Added changes suggested by Paolo Piscopo & Simone Lunardo to fix the bugs they found.
+--- a/hdl/rtl/m1_cpu/m1_cpu.v
++++ b/hdl/rtl/m1_cpu/m1_cpu.v
+@@ -357,6 +357,7 @@ module m1_cpu (
+ 
+       $display("================> Time %t <================", $time);
+ 
++      $display("id_stall=%b,if_stall=%B",id_stall,if_stall);
+       /*
+        * Pipeline Stage 1: Instruction Fetch (IF)
+        * 
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: id_stall
+                HdlValueId: if_stall
+
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@id_stall to 
+    INS HdlStmBlock@@SEQ to 
+    INS list@@elifs to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+INS HdlStmIf@@ to body
+
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@ex_stall to 
+    INS list@@elifs to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+
+UPD HdlStmIf@@ to 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: $display
+                    str
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_alu_a
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_alu_b
+            HdlStmAssign
+                HdlValueInt: 00100
+                HdlValueId: id_ex_alu_func
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_alu_signed
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_branch
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_jump
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_jr
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_linked
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_mult
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_div
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_load
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_store
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_size
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_store_value
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_destreg
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_desthi
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_destlo
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+    DEL HdlValueId@@id_stall from 
+    DEL list@@elifs from 
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 00100
+    HdlValueId: id_ex_alu_func
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: id_ex_alu_signed
+
+UPD HdlStmIf@@ to 
+    DEL list@@elifs from 
+
+
+CommitId: 6b83b9638608e2624518108f42b3cb0d4ac70b59
+Added changes suggested by Paolo Piscopo & Simone Lunardo to fix the bugs they found.
+--- a/hdl/rtl/m1_cpu/m1_cpu.v
++++ b/hdl/rtl/m1_cpu/m1_cpu.v
+@@ -446,8 +462,27 @@ module m1_cpu (
+         id_ex_addrjump <= {if_id_addr[31:28], if_id_index, 2'b00};
+         id_ex_addrjr <= GPR[if_id_rs];
+ 
+-        if(if_id_opcode==`BUBBLE) $display("INFO: CPU(%m)-ID: Decoded instruction @ADDR=%X w/OPCODE=%X as BUBBLE", if_id_addr, if_id_opcode);
+-        else case(if_id_op)
++        if(if_id_opcode==`BUBBLE) begin
++	     $display("INFO: CPU(%m)-ID: Decoded instruction @ADDR=%X w/OPCODE=%X as BUBBLE", if_id_addr, if_id_opcode);
++	      id_ex_alu_a <= 0;
++              id_ex_alu_b <= 0;
++              id_ex_alu_func <= `ALU_OP_ADD;
++              id_ex_alu_signed <= 0;
++              id_ex_branch <= 0;
++              id_ex_jump <= 0;
++              id_ex_jr <= 0;
++              id_ex_linked <= 0;
++              id_ex_mult <= 0;
++	      id_ex_div <= 0;
++              id_ex_load <= 0;
++              id_ex_store <= 0;
++              id_ex_size <= 0;
++              id_ex_store_value <= 0;
++              id_ex_destreg <= 0;
++              id_ex_desthi <= 0;
++              id_ex_destlo <= 0;
++              id_ex_destsyscon <= 0;
++	end else case(if_id_op)
+           `OPCODE_J:
+             begin
+               $display("INFO: CPU(%m)-ID: Decoded instruction @ADDR=%X w/OPCODE=%X as J %h", if_id_addr, if_id_opcode, if_id_index);
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: id_stall
+                HdlValueId: if_stall
+
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@id_stall to 
+    INS HdlStmBlock@@SEQ to 
+    INS list@@elifs to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+UPD HdlStmIf@@ to 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: $display
+                    str
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_alu_a
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_alu_b
+            HdlStmAssign
+                HdlValueInt: 00100
+                HdlValueId: id_ex_alu_func
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_alu_signed
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_branch
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_jump
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_jr
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_linked
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_mult
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_div
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_load
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_store
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_size
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_store_value
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_destreg
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_desthi
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_destlo
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+    DEL HdlValueId@@id_stall from 
+    DEL list@@elifs from 
+
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+
+UPD HdlStmCase@@if_id_op to if_id_op
+    INS HdlStmCaseType@@CASE to if_id_op
+    INS HdlValueId@@if_id_op to if_id_op
+    INS HdlValueInt@@000000 to 
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@CALL to 
+    HdlOp: CALL
+        list: ops
+            HdlValueId: $display
+            str
+            HdlValueId: if_id_addr
+            HdlValueId: if_id_opcode
+    DEL list@@elifs from 
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 4
+    HdlValueId: id_ex_alu_b
+
+UPD HdlStmIf@@ to 
+    DEL list@@elifs from 
+
+UPD HdlStmCase@@if_id_op to if_id_op
+    DEL HdlStmCaseType@@CASE from if_id_op
+    DEL HdlValueId@@if_id_op from if_id_op
+    DEL HdlValueInt@@000000 from 
+
+
+CommitId: 6b83b9638608e2624518108f42b3cb0d4ac70b59
+Added changes suggested by Paolo Piscopo & Simone Lunardo to fix the bugs they found.
+--- a/hdl/rtl/m1_cpu/m1_cpu.v
++++ b/hdl/rtl/m1_cpu/m1_cpu.v
+@@ -474,7 +509,7 @@ module m1_cpu (
+             begin
+               $display("INFO: CPU(%m)-ID: Decoded instruction @ADDR=%X w/OPCODE=%X as JAL %h", if_id_addr, if_id_opcode, if_id_index);
+               id_ex_alu_a <= if_id_addrnext;
+-              id_ex_alu_b <= 0;
++              id_ex_alu_b <= 4;
+               id_ex_alu_func <= `ALU_OP_ADD;
+               id_ex_alu_signed <= 0;
+               id_ex_branch <= 0;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: id_stall
+                HdlValueId: if_stall
+
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@id_stall to 
+    INS HdlStmBlock@@SEQ to 
+    INS list@@elifs to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+UPD HdlStmIf@@ to 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: $display
+                    str
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_alu_a
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_alu_b
+            HdlStmAssign
+                HdlValueInt: 00100
+                HdlValueId: id_ex_alu_func
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_alu_signed
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_branch
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_jump
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_jr
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_linked
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_mult
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_div
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_load
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_store
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_size
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_store_value
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_destreg
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_desthi
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_destlo
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+    DEL HdlValueId@@id_stall from 
+    DEL list@@elifs from 
+
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+
+UPD HdlStmCase@@if_id_op to if_id_op
+    INS HdlStmCaseType@@CASE to if_id_op
+    INS HdlValueId@@if_id_op to if_id_op
+    INS HdlValueInt@@000000 to 
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@CALL to 
+    HdlOp: CALL
+        list: ops
+            HdlValueId: $display
+            str
+            HdlValueId: if_id_addr
+            HdlValueId: if_id_opcode
+    DEL list@@elifs from 
+
+UPD HdlStmIf@@ to 
+    DEL list@@elifs from 
+
+UPD HdlStmCase@@if_id_op to if_id_op
+    DEL HdlStmCaseType@@CASE from if_id_op
+    DEL HdlValueId@@if_id_op from if_id_op
+    DEL HdlValueInt@@000000 from 
+
+
+CommitId: 6b83b9638608e2624518108f42b3cb0d4ac70b59
+Added changes suggested by Paolo Piscopo & Simone Lunardo to fix the bugs they found.
+--- a/hdl/rtl/m1_cpu/m1_cpu.v
++++ b/hdl/rtl/m1_cpu/m1_cpu.v
+@@ -1221,7 +1256,7 @@ module m1_cpu (
+                 begin
+                   $display("INFO: CPU(%m)-ID: Decoded instruction @ADDR=%X w/OPCODE=%X as JALR [r%d,] r%d", if_id_addr, if_id_opcode, if_id_rd, if_id_rs);
+                   id_ex_alu_a <= if_id_addrnext;
+-                  id_ex_alu_b <= 0;
++                  id_ex_alu_b <= 4;
+                   id_ex_alu_func <= `ALU_OP_ADD;
+                   id_ex_alu_signed <= 0;
+                   id_ex_branch <= 0;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: id_stall
+                HdlValueId: if_stall
+
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@id_stall to 
+    INS HdlStmBlock@@SEQ to 
+    INS list@@elifs to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+UPD HdlStmIf@@ to 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: $display
+                    str
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_alu_a
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_alu_b
+            HdlStmAssign
+                HdlValueInt: 00100
+                HdlValueId: id_ex_alu_func
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_alu_signed
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_branch
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_jump
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_jr
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_linked
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_mult
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_div
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_load
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_store
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_size
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_store_value
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_destreg
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_desthi
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: id_ex_destlo
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+    DEL HdlValueId@@id_stall from 
+    DEL list@@elifs from 
+
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+
+UPD HdlStmCase@@if_id_op to if_id_op
+    INS HdlStmCaseType@@CASE to if_id_op
+    INS HdlValueId@@if_id_op to if_id_op
+    INS HdlValueInt@@000000 to 
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@CALL to 
+    HdlOp: CALL
+        list: ops
+            HdlValueId: $display
+            str
+            HdlValueId: if_id_addr
+            HdlValueId: if_id_opcode
+    DEL list@@elifs from 
+
+UPD HdlStmCase@@if_id_func to if_id_func
+    INS HdlStmCaseType@@CASE to if_id_func
+    INS HdlValueId@@if_id_func to if_id_func
+
+UPD HdlStmIf@@ to 
+    DEL list@@elifs from 
+
+UPD HdlStmCase@@if_id_op to if_id_op
+    DEL HdlStmCaseType@@CASE from if_id_op
+    DEL HdlValueId@@if_id_op from if_id_op
+    DEL HdlValueInt@@000000 from 
+
+UPD HdlStmCase@@if_id_func to if_id_func
+    DEL HdlStmCaseType@@CASE from if_id_func
+    DEL HdlValueId@@if_id_func from if_id_func
+
+
+CommitId: 6b83b9638608e2624518108f42b3cb0d4ac70b59
+Added changes suggested by Paolo Piscopo & Simone Lunardo to fix the bugs they found.
+--- a/hdl/rtl/m1_cpu/m1_cpu.v
++++ b/hdl/rtl/m1_cpu/m1_cpu.v
+@@ -1756,7 +1791,7 @@ module m1_cpu (
+                   $display("INFO: CPU(%m)-ID: Decoded instruction @ADDR=%X w/OPCODE=%X as BGEZAL r%d, %h", if_id_addr, if_id_opcode, if_id_rs, if_id_imm_signext);
+                   id_ex_alu_a <= GPR[if_id_rs];
+                   id_ex_alu_b <= 0;
+-                  id_ex_alu_func <= `ALU_OP_SGE;
++                  id_ex_alu_func <=`ALU_OP_SGE;
+                   id_ex_alu_signed <= 1;
+                   id_ex_branch <= 1;
+                   id_ex_jump <= 0;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: id_stall
+                HdlValueId: if_stall
+
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    INS list@@elifs to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+UPD HdlStmIf@@ to 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: $display
+                    str
+    MOV list@@elifs to 
+    list: elifs
+
+UPD HdlStmIf@@ to 
+    DEL list@@elifs from 
+
+
+CommitId: 6b83b9638608e2624518108f42b3cb0d4ac70b59
+Added changes suggested by Paolo Piscopo & Simone Lunardo to fix the bugs they found.
+--- a/hdl/rtl/m1_cpu/m1_cpu.v
++++ b/hdl/rtl/m1_cpu/m1_cpu.v
+@@ -1792,11 +1827,20 @@ module m1_cpu (
+        */
+ 
+       if(ex_stall) begin
+-
+-        $display("INFO: CPU(%m)-EX: Execution stalled");
+-
++      
++       if(mem_stall)begin
++       $display("INFO: CPU(%m)-EX: Execution stalled");
++       end else
++       $display("INFO: CPU(%m)-EX: Execution  stalled; Bubble inserted in EX/MEM");
++	 ex_mem_opcode<=`BUBBLE;
++        ex_mem_addr<=id_ex_addr;
++        ex_mem_addrnext<=0;
++        ex_mem_destreg<=0;
++        ex_mem_desthi<=0;
++        ex_mem_destlo<=0;
++        ex_mem_destsyscon<=0;
+       end else begin
+-
++      
+         // If not stalled propagate values to next latches
+         ex_mem_opcode      <= id_ex_opcode;
+         ex_mem_addr        <= id_ex_addr;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: id_stall
+                HdlValueId: if_stall
+
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    INS list@@elifs to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+
+CommitId: 71bdbda6fd3e146a50906908700fc7d5ed20fb4e
+Corrected some bugs found by Simone Lunardo and Paolo Piscopo.
+--- a/hdl/rtl/m1_cpu/m1_cpu.v
++++ b/hdl/rtl/m1_cpu/m1_cpu.v
+@@ -233,7 +233,7 @@ module m1_cpu (
+   // Wires connected to the Divider module instance
+   wire[31:0] div_a_i = id_ex_alu_a;
+   wire[31:0] div_b_i = id_ex_alu_b;
+-  wire div_signed_i;
++  wire div_signed_i = id_ex_alu_signed;
+   wire[31:0] div_quotient_o;
+   wire[31:0] div_remainder_o;
+   reg div_req_i;                            // Alternating Bit Protocol (ABP) request must be stored
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        INS HdlOp@@ASSIGN to body
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS list@@ops to ASSIGN
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS list@@ops to ASSIGN
+            INS HdlValueInt@@0 to ops
+
+UPD HdlStmIf@@ to 
+    DEL list@@elifs from 
+
+
+CommitId: 71bdbda6fd3e146a50906908700fc7d5ed20fb4e
+Corrected some bugs found by Simone Lunardo and Paolo Piscopo.
+--- a/hdl/rtl/m1_cpu/m1_cpu.v
++++ b/hdl/rtl/m1_cpu/m1_cpu.v
+@@ -288,8 +288,8 @@ module m1_cpu (
+       SysCon[24] <= 0; SysCon[25] <= 0; SysCon[26] <= 0; SysCon[27] <= 0; SysCon[28] <= 0; SysCon[29] <= 0; SysCon[30] <= 0; SysCon[31] <= 0;
+ 
+       // Initialize ABP requests to instantiated modules
+-      mul_req_i <= 0;
+-      div_req_i <= 0;
++      mul_req_i = 0;
++      div_req_i = 0;
+ 
+       // Latch 1: IF/ID
+       if_id_opcode <= `NOP;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        INS HdlOp@@ASSIGN to body
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS list@@ops to ASSIGN
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS list@@ops to ASSIGN
+            INS HdlValueInt@@0 to ops
+
+UPD HdlStmIf@@ to 
+    DEL list@@elifs from 
+
+

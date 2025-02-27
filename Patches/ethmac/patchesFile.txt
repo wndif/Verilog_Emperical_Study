@@ -1,0 +1,193 @@
+CommitId: 0a0b57e242f3c7ad5450e98cc4a7986805b9ab5f
+Verilator linting fixes
+--- a/rtl/verilog/eth_wishbone.v
++++ b/rtl/verilog/eth_wishbone.v
+@@ -1182,10 +1182,10 @@ begin
+ `endif
+               end
+           end
+-        8'b00_x1_00_x1,             // Idle and MWB needed
+-        8'b01_x1_10_x1,             // MWB continues
++        8'b00_?1_00_?1,             // Idle and MWB needed
++        8'b01_?1_10_?1,             // MWB continues
+         8'b01_01_01_01,             // Clear (previously MW) and MWB needed
+-        8'b10_x1_01_x1 :            // Clear (previously MR) and MWB needed
++        8'b10_?1_01_?1 :            // Clear (previously MR) and MWB needed
+           begin
+             MasterWbTX <= 1'b0;  // rx burst
+             MasterWbRX <= 1'b1;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@Reset to 
+    INS list@@elifs to 
+
+
+CommitId: 0a0b57e242f3c7ad5450e98cc4a7986805b9ab5f
+Verilator linting fixes
+--- a/rtl/verilog/eth_wishbone.v
++++ b/rtl/verilog/eth_wishbone.v
+@@ -1215,7 +1215,7 @@ begin
+  `endif
+               end
+           end
+-        8'b00_x1_00_x0 :// idle and MW is needed (data write to rx buffer)
++        8'b00_?1_00_?0 :// idle and MW is needed (data write to rx buffer)
+           begin
+             MasterWbTX <= 1'b0;
+             MasterWbRX <= 1'b1;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@Reset to 
+    INS list@@elifs to 
+
+
+CommitId: 0a0b57e242f3c7ad5450e98cc4a7986805b9ab5f
+Verilator linting fixes
+--- a/rtl/verilog/eth_wishbone.v
++++ b/rtl/verilog/eth_wishbone.v
+@@ -1236,7 +1236,7 @@ begin
+             IncrTxPointer<= 1'b1;
+           end
+         8'b10_10_01_00,// MR and MR is needed (data read from tx buffer)
+-        8'b01_1x_01_0x  :// MW and MR is needed (data read from tx buffer)
++        8'b01_1?_01_0?  :// MW and MR is needed (data read from tx buffer)
+           begin
+             MasterWbTX <= 1'b1;
+             MasterWbRX <= 1'b0;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@Reset to 
+    INS list@@elifs to 
+
+UPD HdlStmIf@@ to 
+    DEL HdlValueId@@Reset from 
+    DEL list@@elifs from 
+
+
+CommitId: 0a0b57e242f3c7ad5450e98cc4a7986805b9ab5f
+Verilator linting fixes
+--- a/rtl/verilog/eth_wishbone.v
++++ b/rtl/verilog/eth_wishbone.v
+@@ -1248,7 +1248,7 @@ begin
+             IncrTxPointer<= 1'b1;
+           end
+         8'b01_01_01_00,// MW and MW needed (data write to rx buffer)
+-        8'b10_x1_01_x0  :// MR and MW is needed (data write to rx buffer)
++        8'b10_?1_01_?0 :// MR and MW is needed (data write to rx buffer)
+           begin
+             MasterWbTX <= 1'b0;
+             MasterWbRX <= 1'b1;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@Reset to 
+    INS list@@elifs to 
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': [{'__class__': 'HdlOp',           'fn': 'CONCAT',           'ops': [{'__class__': 'HdlOp',                    'fn': 'CONCAT',                    'ops': [{'__class__': 'HdlOp',                             'fn': 'CONCAT',                             'ops': [{'__class__': 'HdlOp',                                      'fn': 'CONCAT',                                      'ops': [{'__class__': 'HdlOp',                                               'fn': 'CONCAT',                                               'ops': [{'__class__': 'HdlOp',                                                        'fn': 'CONCAT',                                                        'ops': ['MasterWbTX',                                                                'MasterWbRX']},                                                       'ReadTxDataFromMemory_2']},                                              'WriteRxDataToMemory']},                                     'MasterAccessFinished']},                            'cyc_cleared']},                   'tx_burst']},          'rx_burst']}  to {'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': [{'__class__': 'HdlOp',           'fn': 'CONCAT',           'ops': [{'__class__': 'HdlOp',                    'fn': 'CONCAT',                    'ops': [{'__class__': 'HdlOp',                             'fn': 'CONCAT',                             'ops': [{'__class__': 'HdlOp',                                      'fn': 'CONCAT',                                      'ops': [{'__class__': 'HdlOp',                                               'fn': 'CONCAT',                                               'ops': [{'__class__': 'HdlOp',                                                        'fn': 'CONCAT',                                                        'ops': ['MasterWbTX',                                                                'MasterWbRX']},                                                       'ReadTxDataFromMemory_2']},                                              'WriteRxDataToMemory']},                                     'MasterAccessFinished']},                            'cyc_cleared']},                   'tx_burst']},          'rx_burst']} 
+    UPD HdlStmCaseType@@CASEX to CASEZ
+    UPD HdlValueInt@@101x101x to 101?101?
+    UPD HdlValueInt@@011x011x to 011?011?
+    UPD HdlValueInt@@00x100x1 to 00?100?1
+    UPD HdlValueInt@@01x110x1 to 01?110?1
+    UPD HdlValueInt@@10x101x1 to 10?101?1
+    UPD HdlValueInt@@00x100x0 to 00?100?0
+    UPD HdlValueInt@@011x010x to 011?010?
+    UPD HdlValueInt@@10x101x0 to 10?101?0
+    UPD HdlValueInt@@011x10x0 to 011?10?0
+    UPD HdlValueInt@@10x1100x to 10?1100?
+    UPD HdlValueInt@@xx001000 to ??001000
+    UPD HdlValueInt@@xx000100 to ??000100
+
+UPD HdlStmIf@@ to 
+    DEL HdlValueId@@Reset from 
+    DEL list@@elifs from 
+
+
+CommitId: 0a0b57e242f3c7ad5450e98cc4a7986805b9ab5f
+Verilator linting fixes
+--- a/rtl/verilog/eth_wishbone.v
++++ b/rtl/verilog/eth_wishbone.v
+@@ -1261,11 +1261,11 @@ begin
+           end
+         8'b01_01_10_00,// MW and MW needed (cycle is cleared between
+                       // previous and next access)
+-        8'b01_1x_10_x0,// MW and MW or MR or MRB needed (cycle is
++        8'b01_1?_10_?0,// MW and MW or MR or MRB needed (cycle is
+                     // cleared between previous and next access)
+         8'b10_10_10_00,// MR and MR needed (cycle is cleared between
+                        // previous and next access)
+-        8'b10_x1_10_0x :// MR and MR or MW or MWB (cycle is cleared
++        8'b10_?1_10_0? :// MR and MR or MW or MWB (cycle is cleared
+                        // between previous and next access)
+           begin
+             m_wb_cyc_o <= 1'b0;// whatever and master read or write is
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@Reset to 
+    INS list@@elifs to 
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': [{'__class__': 'HdlOp',           'fn': 'CONCAT',           'ops': [{'__class__': 'HdlOp',                    'fn': 'CONCAT',                    'ops': [{'__class__': 'HdlOp',                             'fn': 'CONCAT',                             'ops': [{'__class__': 'HdlOp',                                      'fn': 'CONCAT',                                      'ops': [{'__class__': 'HdlOp',                                               'fn': 'CONCAT',                                               'ops': [{'__class__': 'HdlOp',                                                        'fn': 'CONCAT',                                                        'ops': ['MasterWbTX',                                                                'MasterWbRX']},                                                       'ReadTxDataFromMemory_2']},                                              'WriteRxDataToMemory']},                                     'MasterAccessFinished']},                            'cyc_cleared']},                   'tx_burst']},          'rx_burst']}  to {'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': [{'__class__': 'HdlOp',           'fn': 'CONCAT',           'ops': [{'__class__': 'HdlOp',                    'fn': 'CONCAT',                    'ops': [{'__class__': 'HdlOp',                             'fn': 'CONCAT',                             'ops': [{'__class__': 'HdlOp',                                      'fn': 'CONCAT',                                      'ops': [{'__class__': 'HdlOp',                                               'fn': 'CONCAT',                                               'ops': [{'__class__': 'HdlOp',                                                        'fn': 'CONCAT',                                                        'ops': ['MasterWbTX',                                                                'MasterWbRX']},                                                       'ReadTxDataFromMemory_2']},                                              'WriteRxDataToMemory']},                                     'MasterAccessFinished']},                            'cyc_cleared']},                   'tx_burst']},          'rx_burst']} 
+    UPD HdlStmCaseType@@CASEX to CASEZ
+    UPD HdlValueInt@@101x101x to 101?101?
+    UPD HdlValueInt@@011x011x to 011?011?
+    UPD HdlValueInt@@00x100x1 to 00?100?1
+    UPD HdlValueInt@@01x110x1 to 01?110?1
+    UPD HdlValueInt@@10x101x1 to 10?101?1
+    UPD HdlValueInt@@00x100x0 to 00?100?0
+    UPD HdlValueInt@@011x010x to 011?010?
+    UPD HdlValueInt@@10x101x0 to 10?101?0
+    UPD HdlValueInt@@011x10x0 to 011?10?0
+    UPD HdlValueInt@@10x1100x to 10?1100?
+    UPD HdlValueInt@@xx001000 to ??001000
+    UPD HdlValueInt@@xx000100 to ??000100
+
+UPD HdlStmIf@@ to 
+    DEL HdlValueId@@Reset from 
+    DEL list@@elifs from 
+
+
+CommitId: 0a0b57e242f3c7ad5450e98cc4a7986805b9ab5f
+Verilator linting fixes
+--- a/rtl/verilog/eth_wishbone.v
++++ b/rtl/verilog/eth_wishbone.v
+@@ -1281,9 +1281,9 @@ begin
+               m_wb_cti_o <= 3'b0;
+ `endif
+           end
+-        8'bxx_00_10_00,// whatever and no master read or write is needed
++        8'b??_00_10_00,// whatever and no master read or write is needed
+                        // (ack or err comes finishing previous access)
+-        8'bxx_00_01_00 : // Between cyc_cleared request was cleared
++        8'b??_00_01_00 : // Between cyc_cleared request was cleared
+           begin
+             MasterWbTX <= 1'b0;
+             MasterWbRX <= 1'b0;
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@Reset to 
+    INS list@@elifs to 
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': [{'__class__': 'HdlOp',           'fn': 'CONCAT',           'ops': [{'__class__': 'HdlOp',                    'fn': 'CONCAT',                    'ops': [{'__class__': 'HdlOp',                             'fn': 'CONCAT',                             'ops': [{'__class__': 'HdlOp',                                      'fn': 'CONCAT',                                      'ops': [{'__class__': 'HdlOp',                                               'fn': 'CONCAT',                                               'ops': [{'__class__': 'HdlOp',                                                        'fn': 'CONCAT',                                                        'ops': ['MasterWbTX',                                                                'MasterWbRX']},                                                       'ReadTxDataFromMemory_2']},                                              'WriteRxDataToMemory']},                                     'MasterAccessFinished']},                            'cyc_cleared']},                   'tx_burst']},          'rx_burst']}  to {'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': [{'__class__': 'HdlOp',           'fn': 'CONCAT',           'ops': [{'__class__': 'HdlOp',                    'fn': 'CONCAT',                    'ops': [{'__class__': 'HdlOp',                             'fn': 'CONCAT',                             'ops': [{'__class__': 'HdlOp',                                      'fn': 'CONCAT',                                      'ops': [{'__class__': 'HdlOp',                                               'fn': 'CONCAT',                                               'ops': [{'__class__': 'HdlOp',                                                        'fn': 'CONCAT',                                                        'ops': ['MasterWbTX',                                                                'MasterWbRX']},                                                       'ReadTxDataFromMemory_2']},                                              'WriteRxDataToMemory']},                                     'MasterAccessFinished']},                            'cyc_cleared']},                   'tx_burst']},          'rx_burst']} 
+    UPD HdlStmCaseType@@CASEX to CASEZ
+    UPD HdlValueInt@@101x101x to 101?101?
+    UPD HdlValueInt@@011x011x to 011?011?
+    UPD HdlValueInt@@00x100x1 to 00?100?1
+    UPD HdlValueInt@@01x110x1 to 01?110?1
+    UPD HdlValueInt@@10x101x1 to 10?101?1
+    UPD HdlValueInt@@00x100x0 to 00?100?0
+    UPD HdlValueInt@@011x010x to 011?010?
+    UPD HdlValueInt@@10x101x0 to 10?101?0
+    UPD HdlValueInt@@011x10x0 to 011?10?0
+    UPD HdlValueInt@@10x1100x to 10?1100?
+    UPD HdlValueInt@@xx001000 to ??001000
+    UPD HdlValueInt@@xx000100 to ??000100
+
+UPD HdlStmIf@@ to 
+    DEL HdlValueId@@Reset from 
+    DEL list@@elifs from 
+
+

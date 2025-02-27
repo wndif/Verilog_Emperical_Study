@@ -1,0 +1,20 @@
+CommitId: 415c0b6fa1751ab4373c33251dbd109fbb4c8da3
+Added debug message for MR0
+--- a/rtl/dport_ram.v
++++ b/rtl/dport_ram.v
+@@ -38,8 +38,8 @@ module dport_ram
+ 	input 						 we, 
+ 	output reg [(DATA_WIDTH-1):0] do
+ );
+-//localparam ACTUAL_ADDR_WIDTH=16; //due to small size of internal memory
+-localparam ACTUAL_ADDR_WIDTH=26; //due to small size of internal memory
++localparam ACTUAL_ADDR_WIDTH=16; //due to small size of internal memory
++//localparam ACTUAL_ADDR_WIDTH=26; //due to small size of internal memory
+ wire [ACTUAL_ADDR_WIDTH-1:0]ACTUAL_WRITE_ADDR;
+ wire [ACTUAL_ADDR_WIDTH-1:0]ACTUAL_READ_ADDR;
+ 												//bank            row               col
+ParseResult:
+UPD HdlIdDef@@ACTUAL_ADDR_WIDTH to ACTUAL_ADDR_WIDTH
+    UPD HdlValueInt@@26 to 16
+
+

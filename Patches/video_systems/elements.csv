@@ -1,0 +1,5 @@
+,HdlDirection,HdlOp-Assignment,HdlOp-InfixExpression,HdlOp-MemberAccessing,HdlOp-DOWNTO,HdlOp-TERNARY
+insert,3.0,2.0,52,2,,30.0
+delete,2.0,,30,2,,30.0
+move,,1.0,11,36,,
+update,,,50,22,18.0,60.0

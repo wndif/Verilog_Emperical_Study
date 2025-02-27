@@ -1,0 +1,827 @@
+CommitId: 1cd0f540e182f04adc87457ddc1702f77d0ac2a6
+Fixed typos and updated the rtl Makefile and Altera-Modelsim script. Modified the counter-excel file and added missing module 'dff_sr.v'.
+--- a/rtl/verilog/versatile_mem_ctrl_top.v
++++ b/rtl/verilog/versatile_mem_ctrl_top.v
+@@ -52,8 +52,8 @@ module versatile_mem_ctrl_top
+     output [31:0]                       wb_dat_o_1;
+     input  [0:nr_of_wb_ports_clk1-1]    wb_stb_i_1, wb_cyc_i_1, wb_ack_o_1;
+     
+-    input  [36*nr_of_wb_ports_clk2-1:0] wb_adr_i_v2;
+-    input  [36*nr_of_wb_ports_clk2-1:0] wb_dat_i_v2;
++    input  [36*nr_of_wb_ports_clk2-1:0] wb_adr_i_2;   // Fixed typo /MF
++    input  [36*nr_of_wb_ports_clk2-1:0] wb_dat_i_2;   // Fixed typo /MF
+     output [31:0]                       wb_dat_o_2;
+     input  [0:nr_of_wb_ports_clk2-1]    wb_stb_i_2, wb_cyc_i_2, wb_ack_o_2;
+     
+
+ParseResult:
+DEL HdlIdDef@@wb_adr_i_2 from ports
+HdlIdDef: wb_adr_i_2
+    HdlDirection: INTERNAL
+
+
+CommitId: 96ab6e0d8f43d1d503d435c7cc7e0c150eb33631
+Burst writing working again, although its mostly hardcoded to burst 4. Also added a fix for when the RAM and bus clocks are about the same speed, to avoid buffer overrun
+--- a/rtl/verilog/versatile_mem_ctrl_top.v
++++ b/rtl/verilog/versatile_mem_ctrl_top.v
+@@ -74,9 +74,9 @@ module versatile_mem_ctrl_top
+    output 			       ras_pad_o;
+    output 			       cas_pad_o;
+    output 			       we_pad_o;
+-   output reg [(`SDRAM_DATA_WIDTH)-1:0] 		       dq_o /*synthesis syn_useioff=1 syn_allow_retiming=0 */;
++   output reg [(`SDRAM_DATA_WIDTH)-1:0] dq_o /*synthesis syn_useioff=1 syn_allow_retiming=0 */;
+    output [1:0] 		       dqm_pad_o;
+-   input [(`SDRAM_DATA_WIDTH)-1:0] 		       dq_i ;
++   input [(`SDRAM_DATA_WIDTH)-1:0]     dq_i ;
+    output 			       dq_oe;
+    output 			       cke_pad_o;
+ `endif
+
+ParseResult:
+INS HdlIdDef@@burst_reading to objs
+HdlIdDef: burst_reading
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@sdram_fifo_wr_r to objs
+HdlIdDef: sdram_fifo_wr_r
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+
+CommitId: f74eaadbfc6e2c9adc7b0f3ced3a1d94eeb6be87
+sdr_16 fixes for timing - extra egress register stage, appropriate changes in sdr_16 fsm
+--- a/rtl/verilog/egress_fifo.v
++++ b/rtl/verilog/egress_fifo.v
+@@ -130,14 +132,21 @@ begin
+     end
+ end
+ 
++
++   
+ vfifo_dual_port_ram_dc_sw # ( .DATA_WIDTH(data_width), .ADDR_WIDTH(a_hi_size+a_lo_size))
+     dpram (
+     .d_a(wdata),
+     .adr_a({onehot2bin(write_enable),wadr}), 
+     .we_a(write),
+     .clk_a(clk1),
+-    .q_b(q),
++    .q_b(fifo_q),
+     .adr_b({onehot2bin(read_enable_reg),radr}),
+     .clk_b(clk2) );
+ 
++   // Added registering of FIFO output to break a timing path
++   always@(posedge clk2)
++     q <= fifo_q;
++   
++
+ endmodule
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk2
+    HdlStmAssign: body
+        HdlValueId: fifo_q
+        HdlValueId: q
+
+
+CommitId: f74eaadbfc6e2c9adc7b0f3ced3a1d94eeb6be87
+sdr_16 fixes for timing - extra egress register stage, appropriate changes in sdr_16 fsm
+--- a/rtl/verilog/fsm_sdr_16.v
++++ b/rtl/verilog/fsm_sdr_16.v
+@@ -106,7 +106,8 @@ always @ (posedge sdram_clk or posedge sdram_rst)
+     if (sdram_rst)
+         {ba_reg,row_reg,col_reg,we_reg,bte_reg} <= {2'b00, {row_size{1'b0}}, {col_size{1'b0}}, 1'b0, 2'b00 };
+     else
+-        if (state==adr & counter[1:0]==2'b10)
++        //if (state==adr & counter[1:0]==2'b10)
++      if (state==adr & counter[2:0]==3'b011)
+             {ba_reg,row_reg,col_reg,we_reg,bte_reg} <= {bank,row,col,we_i,bte_i};
+             
+ always @ (posedge sdram_clk or posedge sdram_rst)
+
+ParseResult:
+UPD HdlStmIf@@body to body
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@EQ to EQ
+            UPD HdlValueInt@@10 to 011
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlOp@@DOWNTO to DOWNTO
+                    UPD HdlValueInt@@1 to 2
+
+
+CommitId: f74eaadbfc6e2c9adc7b0f3ced3a1d94eeb6be87
+sdr_16 fixes for timing - extra egress register stage, appropriate changes in sdr_16 fsm
+--- a/rtl/verilog/fsm_sdr_16.v
++++ b/rtl/verilog/fsm_sdr_16.v
+@@ -126,10 +128,14 @@ begin
+             else                    next = idle;
+     rfr:    if (counter==5'd5)      next = idle;
+             else                    next = rfr;
+-    adr:    if (current_row_open_reg & (counter[1:0]==2'b11) & we_reg)  next = w4d;
+-            else if (current_row_open_reg & (counter[1:0]==2'b11))    next = rw;
+-            else if (current_bank_closed_reg & (counter[1:0]==2'b11)) next = act;
+-            else if ((counter[1:0]==2'b11))                       next = pch;
++    adr:    //if (current_row_open_reg & (counter[1:0]==2'b11) & we_reg)  next = w4d;
++            if (current_row_open_reg & (counter[2:0]==3'b100) & we_reg)  next = w4d;
++//            else if (current_row_open_reg & (counter[1:0]==2'b11))    next = rw;
++            else if (current_row_open_reg & (counter[2:0]==3'b100))    next = rw;
++            //else if (current_bank_closed_reg & (counter[1:0]==2'b11)) next = act;
++	    else if (current_bank_closed_reg & (counter[2:0]==3'b100)) next = act;
++            //else if ((counter[1:0]==2'b11))                       next = pch;
++	    else if ((counter[2:0]==3'b100))                       next = pch;
+             else next = adr;
+     pch:    if (counter[0])         next = act;
+             else                    next = pch;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@EQ to EQ
+        UPD HdlValueInt@@11 to 100
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlOp@@DOWNTO to DOWNTO
+                UPD HdlValueInt@@1 to 2
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@AND to AND
+            UPD HdlOp@@EQ to EQ
+                UPD HdlValueInt@@11 to 100
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlOp@@DOWNTO to DOWNTO
+                        UPD HdlValueInt@@1 to 2
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@EQ to EQ
+            UPD HdlValueInt@@11 to 100
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlOp@@DOWNTO to DOWNTO
+                    UPD HdlValueInt@@1 to 2
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@EQ to EQ
+            UPD HdlValueInt@@11 to 100
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlOp@@DOWNTO to DOWNTO
+                    UPD HdlValueInt@@1 to 2
+
+
+CommitId: f74eaadbfc6e2c9adc7b0f3ced3a1d94eeb6be87
+sdr_16 fixes for timing - extra egress register stage, appropriate changes in sdr_16 fsm
+--- a/rtl/verilog/fsm_sdr_16.v
++++ b/rtl/verilog/fsm_sdr_16.v
+@@ -244,7 +250,8 @@ begin
+ end
+ 
+ // rd_adr goes high when next adr is fetched from sync RAM and during write burst
+-assign fifo_rd_adr = ((state==adr) & (counter[1:0]==2'b00)) ? 1'b1 : 1'b0;
++//assign fifo_rd_adr = ((state==adr) & (counter[1:0]==2'b00)) ? 1'b1 : 1'b0;
++assign fifo_rd_adr = ((state==adr) & (counter[2:0]==3'b000)) ? 1'b1 : 1'b0;
+ assign fifo_rd_data = (state==w4d & !fifo_empty) ? 1'b0 :
+                       ((state==rw & next==rw) & we_reg & !counter[0] & !fifo_empty) ? 1'b1 :
+                       1'b0;
+
+ParseResult:
+INS HdlStmAssign@@ to objs
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        UPD HdlOp@@AND to AND
+            MOV HdlOp@@EQ to ops
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: state
+                    HdlValueId: adr
+            DEL HdlOp@@EQ from ops
+            HdlOp: EQ
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: counter
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 1
+                                    HdlValueInt: 0
+                    HdlValueInt: 00
+            DEL list@@ops from AND
+        DEL HdlOp@@AND from ops
+        DEL HdlValueInt@@1 from ops
+        DEL HdlValueInt@@0 from ops
+        DEL list@@ops from TERNARY
+    DEL HdlOp@@TERNARY from 
+    DEL HdlValueId@@fifo_rd_adr from 
+
+DEL HdlStmAssign@@ from objs
+
+
+CommitId: f74eaadbfc6e2c9adc7b0f3ced3a1d94eeb6be87
+sdr_16 fixes for timing - extra egress register stage, appropriate changes in sdr_16 fsm
+--- a/rtl/verilog/fsm_sdr_16.v
++++ b/rtl/verilog/fsm_sdr_16.v
+@@ -268,11 +275,10 @@ assign current_row_open = ((open_ba[0] & bank==2'b00) & open_row[0]==row) ? 1'b1
+                           1'b0;
+ */
+ always @ (posedge sdram_clk or posedge sdram_rst)
+-    if (sdram_rst)
+-        {current_bank_closed_reg, current_row_open_reg} <= {1'b1, 1'b0};
+-    else
+-        if (state==adr & counter[1:0]==2'b10)
+-            {current_bank_closed_reg, current_row_open_reg} <= {current_bank_closed, current_row_open};
++  if (sdram_rst)
++    {current_bank_closed_reg, current_row_open_reg} <= {1'b1, 1'b0};
++  else
++    {current_bank_closed_reg, current_row_open_reg} <= {current_bank_closed, current_row_open};
+         
+ 
+ endmodule
+ParseResult:
+UPD HdlStmIf@@body to body
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@EQ to EQ
+            UPD list@@ops to elifs
+            MOV list@@ops to EQ
+            list: ops
+                HdlValueId: state
+                HdlValueId: adr
+            DEL HdlValueId@@state from ops
+            DEL HdlValueId@@adr from ops
+        DEL HdlOp@@EQ from ops
+        DEL HdlOp@@EQ from ops
+        HdlOp: EQ
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: counter
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 1
+                                HdlValueInt: 0
+                HdlValueInt: 10
+        DEL list@@ops from AND
+    DEL HdlOp@@AND from 
+    DEL tuple@@ from elifs
+    DEL list@@elifs from body
+
+UPD HdlStmAssign@@ to if_false
+
+MOV HdlStmAssign@@ to 
+HdlStmAssign
+    HdlOp: CONCAT
+        list: ops
+            HdlValueId: current_bank_closed
+            HdlValueId: current_row_open
+    HdlOp: CONCAT
+        list: ops
+            HdlValueId: current_bank_closed_reg
+            HdlValueId: current_row_open_reg
+
+
+CommitId: 96ab6e0d8f43d1d503d435c7cc7e0c150eb33631
+Burst writing working again, although its mostly hardcoded to burst 4. Also added a fix for when the RAM and bus clocks are about the same speed, to avoid buffer overrun
+--- a/rtl/verilog/fsm_wb.v
++++ b/rtl/verilog/fsm_wb.v
+@@ -4,6 +4,7 @@ module fsm_wb (
+ 	       egress_fifo_we, egress_fifo_full,
+ 	       ingress_fifo_re, ingress_fifo_empty,
+ 	       state_idle,
++	       sdram_burst_reading,
+ 	       wb_clk, wb_rst
+ 	       );
+ 
+
+ParseResult:
+INS HdlIdDef@@sdram_burst_reading to ports
+HdlIdDef: sdram_burst_reading
+    HdlDirection: IN
+
+
+CommitId: 96ab6e0d8f43d1d503d435c7cc7e0c150eb33631
+Burst writing working again, although its mostly hardcoded to burst 4. Also added a fix for when the RAM and bus clocks are about the same speed, to avoid buffer overrun
+--- a/rtl/verilog/fsm_wb.v
++++ b/rtl/verilog/fsm_wb.v
+@@ -36,6 +39,10 @@ module fsm_wb (
+    parameter fe   = 2'b11;
+    reg [1:0]   state;
+ 
++   reg 	       sdram_burst_reading_1, sdram_burst_reading_2;
++   wire        sdram_burst_reading_wb_clk;
++   
++
+    always @ (posedge wb_clk or posedge wb_rst)
+      if (wb_rst)
+        state <= idle;
+
+ParseResult:
+INS HdlIdDef@@sdram_burst_reading_1 to objs
+HdlIdDef: sdram_burst_reading_1
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@sdram_burst_reading_2 to objs
+HdlIdDef: sdram_burst_reading_2
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@sdram_burst_reading_wb_clk to objs
+HdlIdDef: sdram_burst_reading_wb_clk
+    HdlDirection: INTERNAL
+
+
+CommitId: 96ab6e0d8f43d1d503d435c7cc7e0c150eb33631
+Burst writing working again, although its mostly hardcoded to burst 4. Also added a fix for when the RAM and bus clocks are about the same speed, to avoid buffer overrun
+--- a/rtl/verilog/fsm_wb.v
++++ b/rtl/verilog/fsm_wb.v
+@@ -55,7 +62,7 @@ module fsm_wb (
+ 	       stb_i & cyc_i & ack_o)
+              state <= fe;
+          fe:
+-           if (ingress_fifo_empty)
++           if (ingress_fifo_empty & !sdram_burst_reading_wb_clk)
+              state <= idle;
+          default: ;
+        endcase
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    MOV HdlValueId@@ingress_fifo_empty to 
+    HdlValueId: ingress_fifo_empty
+
+
+CommitId: 96ab6e0d8f43d1d503d435c7cc7e0c150eb33631
+Burst writing working again, although its mostly hardcoded to burst 4. Also added a fix for when the RAM and bus clocks are about the same speed, to avoid buffer overrun
+--- a/rtl/verilog/fsm_wb.v
++++ b/rtl/verilog/fsm_wb.v
+@@ -89,5 +96,15 @@ module fsm_wb (
+                   1'b0;*/
+ 
+    assign ack_o = !(state==fe) & ((ingress_fifo_read_reg & stb_i) | (state==wr & stb_i & cyc_i & !egress_fifo_full & !stall_i));
++
++
++   // Sample the SDRAM burst reading signal in WB domain
++   always @(posedge wb_clk)
++     sdram_burst_reading_1 <= sdram_burst_reading;
++   
++   always @(posedge wb_clk)
++     sdram_burst_reading_2 <= sdram_burst_reading_1;
++
++   assign sdram_burst_reading_wb_clk = sdram_burst_reading_2;
+    
+ endmodule
+\ No newline at end of file
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: wb_clk
+    HdlStmAssign: body
+        HdlValueId: sdram_burst_reading
+        HdlValueId: sdram_burst_reading_1
+
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: wb_clk
+    HdlStmAssign: body
+        HdlValueId: sdram_burst_reading_1
+        HdlValueId: sdram_burst_reading_2
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlValueId: sdram_burst_reading_2
+    HdlValueId: sdram_burst_reading_wb_clk
+
+
+CommitId: 96cc8db5eb734e2a9d964bd69ca9dda1602e4229
+Fixed up sdr16 dqm output
+--- a/rtl/verilog/fsm_sdr_16.v
++++ b/rtl/verilog/fsm_sdr_16.v
+@@ -182,14 +182,14 @@ always @ (posedge sdram_clk or posedge sdram_rst)
+ begin
+     if (sdram_rst) begin
+         {ba,a,cmd} = {2'b00,13'd0,cmd_nop};
+-        dqm = 2'b00;
++        dqm = 2'b11;
+         cmd_aref = 1'b0;
+         cmd_read = 1'b0;
+         dq_oe = 1'b0;
+         {open_ba,open_row[0],open_row[1],open_row[2],open_row[3]} <= {4'b0000,{row_size*4{1'b0}}};
+     end else begin
+         {ba,a,cmd} = {2'b00,13'd0,cmd_nop};
+-        dqm = 2'b00;
++        dqm = 2'b11;
+         cmd_aref = 1'b0;
+         cmd_read = 1'b0;
+         dq_oe = 1'b0;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@00 to 11
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@00 to 11
+
+
+CommitId: 96cc8db5eb734e2a9d964bd69ca9dda1602e4229
+Fixed up sdr16 dqm output
+--- a/rtl/verilog/fsm_sdr_16.v
++++ b/rtl/verilog/fsm_sdr_16.v
+@@ -225,9 +225,9 @@ begin
+                 else
+                     cmd = cmd_nop;
+                 if (we_reg & !counter[0])
+-                    dqm = sel_i[3:2];
++                    dqm = ~sel_i[3:2];
+                 else if (we_reg & counter[0])
+-                    dqm = sel_i[1:0];
++                    dqm = ~sel_i[1:0];
+                 else
+                     dqm = 2'b00;
+                 if (we_reg)
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@00 to 11
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@00 to 11
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@ASSIGN to 
+    UPD HdlOp@@ASSIGN to ASSIGN
+        INS list@@ops to ASSIGN
+    INS HdlOp@@ASSIGN to 
+    UPD HdlOp@@ASSIGN to ASSIGN
+        INS list@@ops to ASSIGN
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@ASSIGN to ASSIGN
+        MOV HdlValueId@@dqm to ops
+        HdlValueId: dqm
+    UPD HdlOp@@ASSIGN to NEG
+    MOV HdlOp@@ASSIGN to 
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: dqm
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: sel_i
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 3
+                            HdlValueInt: 2
+    UPD HdlOp@@ASSIGN to ASSIGN
+        MOV HdlValueId@@dqm to ops
+        HdlValueId: dqm
+    UPD HdlOp@@ASSIGN to NEG
+    MOV HdlOp@@ASSIGN to 
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: dqm
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: sel_i
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 1
+                            HdlValueInt: 0
+
+
+CommitId: dff6bc0ab614c9e404d89d8292e80eabaf9cac2f
+dq_oe fix
+--- a/rtl/verilog/fsm_sdr_16.v
++++ b/rtl/verilog/fsm_sdr_16.v
+@@ -220,7 +221,7 @@ begin
+                 else
+                     cmd = cmd_nop;
+                 if (we_reg)
+-                    dq_oe <= 1'b1;
++                    dq_oe = 1'b1;
+                 case (bte_reg)
+                 linear: {ba,a} = {ba_reg,col_reg_a10_fix};
+                 beat4:  {ba,a} = {ba_reg,col_reg_a10_fix[12:3],col_reg_a10_fix[2:0] + counter[2:0]};
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS HdlOp@@ASSIGN to 
+    UPD HdlOp@@ASSIGN to ASSIGN
+        INS list@@ops to ASSIGN
+        INS HdlValueId@@dq_oe to ops
+
+UPD HdlStmAssign@@if_true to if_true
+    MOV HdlValueInt@@1 to if_true
+    HdlValueInt: 1
+    DEL HdlValueId@@dq_oe from if_true
+
+DEL HdlStmAssign@@if_true from 
+
+
+CommitId: 96ab6e0d8f43d1d503d435c7cc7e0c150eb33631
+Burst writing working again, although its mostly hardcoded to burst 4. Also added a fix for when the RAM and bus clocks are about the same speed, to avoid buffer overrun
+--- a/rtl/verilog/versatile_mem_ctrl_wb.v
++++ b/rtl/verilog/versatile_mem_ctrl_wb.v
+@@ -6,7 +6,7 @@ module versatile_mem_ctrl_wb (
+     wb_clk, wb_rst,
+     // SDRAM controller interface
+     sdram_dat_o, sdram_fifo_empty, sdram_fifo_rd_adr, sdram_fifo_rd_data, sdram_fifo_re,
+-    sdram_dat_i, sdram_fifo_wr, sdram_fifo_we,
++    sdram_dat_i, sdram_fifo_wr, sdram_fifo_we, sdram_burst_reading,
+     sdram_clk, sdram_rst
+ 
+ );
+
+ParseResult:
+INS HdlIdDef@@sdram_burst_reading to ports
+HdlIdDef: sdram_burst_reading
+    HdlDirection: IN
+
+
+CommitId: 259a1b35166f4f86b898dc748ad469b7ec824954
+Fixed a couple of sdr_16 bugs to do with tracking of opened banks
+--- a/rtl/verilog/fsm_sdr_16.v
++++ b/rtl/verilog/fsm_sdr_16.v
+@@ -211,7 +211,7 @@ begin
+         rfr:
+             if (shreg[0]) begin
+                 {ba,a,cmd} <= {2'b00, 13'b0010000000000, cmd_pch};
+-                open_ba[ba_reg] <= 1'b0;
++                open_ba <= 4'b0000;
+             end else if (shreg[2])
+                 {ba,a,cmd,cmd_aref} <= {2'b00, 13'd0, cmd_rfr,1'b1};
+         adr:
+
+ParseResult:
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: open_ba
+            HdlValueId: ba_reg
+
+
+CommitId: 259a1b35166f4f86b898dc748ad469b7ec824954
+Fixed a couple of sdr_16 bugs to do with tracking of opened banks
+--- a/rtl/verilog/fsm_sdr_16.v
++++ b/rtl/verilog/fsm_sdr_16.v
+@@ -220,7 +220,8 @@ begin
+         pch:
+             if (shreg[0]) begin
+                 {ba,a,cmd} <= {ba_reg,13'd0,cmd_pch};
+-                open_ba <= 4'b0000;
++                //open_ba <= 4'b0000;
++	       open_ba[ba_reg] <= 1'b0;
+             end
+         act:
+             if (shreg[0]) begin
+ParseResult:
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0000
+    HdlValueId: open_ba
+
+
+CommitId: f74eaadbfc6e2c9adc7b0f3ced3a1d94eeb6be87
+sdr_16 fixes for timing - extra egress register stage, appropriate changes in sdr_16 fsm
+--- a/rtl/verilog/sdr_16.v
++++ b/rtl/verilog/sdr_16.v
+@@ -412,9 +413,11 @@ vfifo_dual_port_ram_dc_sw # ( .DATA_WIDTH(data_width), .ADDR_WIDTH(a_hi_size+a_l
+     .adr_a({onehot2bin(write_enable),wadr}), 
+     .we_a(write),
+     .clk_a(clk1),
+-    .q_b(q),
++    .q_b(fifo_q),
+     .adr_b({onehot2bin(read_enable_reg),radr}),
+     .clk_b(clk2) );
++   always@(posedge clk2)
++     q <= fifo_q;
+ endmodule
+ module vfifo_dual_port_ram_dc_sw
+   (
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk2
+    HdlStmAssign: body
+        HdlValueId: fifo_q
+        HdlValueId: q
+
+
+CommitId: f74eaadbfc6e2c9adc7b0f3ced3a1d94eeb6be87
+sdr_16 fixes for timing - extra egress register stage, appropriate changes in sdr_16 fsm
+--- a/rtl/verilog/sdr_16.v
++++ b/rtl/verilog/sdr_16.v
+@@ -613,7 +616,7 @@ always @ (posedge sdram_clk or posedge sdram_rst)
+     if (sdram_rst)
+         {ba_reg,row_reg,col_reg,we_reg,bte_reg} <= {2'b00, {row_size{1'b0}}, {col_size{1'b0}}, 1'b0, 2'b00 };
+     else
+-        if (state==adr & counter[1:0]==2'b10)
++      if (state==adr & counter[2:0]==3'b011)
+             {ba_reg,row_reg,col_reg,we_reg,bte_reg} <= {bank,row,col,we_i,bte_i};
+ always @ (posedge sdram_clk or posedge sdram_rst)
+ if (sdram_rst)
+
+ParseResult:
+UPD HdlStmIf@@body to body
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@EQ to EQ
+            UPD HdlValueInt@@10 to 011
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlOp@@DOWNTO to DOWNTO
+                    UPD HdlValueInt@@1 to 2
+
+
+CommitId: f74eaadbfc6e2c9adc7b0f3ced3a1d94eeb6be87
+sdr_16 fixes for timing - extra egress register stage, appropriate changes in sdr_16 fsm
+--- a/rtl/verilog/sdr_16.v
++++ b/rtl/verilog/sdr_16.v
+@@ -631,10 +634,11 @@ begin
+             else                    next = idle;
+     rfr:    if (counter==5'd5)      next = idle;
+             else                    next = rfr;
+-    adr:    if (current_row_open_reg & (counter[1:0]==2'b11) & we_reg)  next = w4d;
+-            else if (current_row_open_reg & (counter[1:0]==2'b11))    next = rw;
+-            else if (current_bank_closed_reg & (counter[1:0]==2'b11)) next = act;
+-            else if ((counter[1:0]==2'b11))                       next = pch;
++    adr:    
++            if (current_row_open_reg & (counter[2:0]==3'b100) & we_reg)  next = w4d;
++            else if (current_row_open_reg & (counter[2:0]==3'b100))    next = rw;
++	    else if (current_bank_closed_reg & (counter[2:0]==3'b100)) next = act;
++	    else if ((counter[2:0]==3'b100))                       next = pch;
+             else next = adr;
+     pch:    if (counter[0])         next = act;
+             else                    next = pch;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@EQ to EQ
+        UPD HdlValueInt@@11 to 100
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlOp@@DOWNTO to DOWNTO
+                UPD HdlValueInt@@1 to 2
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@AND to AND
+            UPD HdlOp@@EQ to EQ
+                UPD HdlValueInt@@11 to 100
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlOp@@DOWNTO to DOWNTO
+                        UPD HdlValueInt@@1 to 2
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@EQ to EQ
+            UPD HdlValueInt@@11 to 100
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlOp@@DOWNTO to DOWNTO
+                    UPD HdlValueInt@@1 to 2
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@EQ to EQ
+            UPD HdlValueInt@@11 to 100
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlOp@@DOWNTO to DOWNTO
+                    UPD HdlValueInt@@1 to 2
+
+
+CommitId: f74eaadbfc6e2c9adc7b0f3ced3a1d94eeb6be87
+sdr_16 fixes for timing - extra egress register stage, appropriate changes in sdr_16 fsm
+--- a/rtl/verilog/sdr_16.v
++++ b/rtl/verilog/sdr_16.v
+@@ -724,7 +728,7 @@ begin
+         endcase
+     end
+ end
+-assign fifo_rd_adr = ((state==adr) & (counter[1:0]==2'b00)) ? 1'b1 : 1'b0;
++assign fifo_rd_adr = ((state==adr) & (counter[2:0]==3'b000)) ? 1'b1 : 1'b0;
+ assign fifo_rd_data = (state==w4d & !fifo_empty) ? 1'b0 :
+                       ((state==rw & next==rw) & we_reg & !counter[0] & !fifo_empty) ? 1'b1 :
+                       1'b0;
+
+ParseResult:
+INS HdlStmAssign@@ to objs
+
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@TERNARY to 
+    INS HdlValueId@@fifo_rd_adr to 
+    UPD HdlOp@@TERNARY to TERNARY
+        INS list@@ops to TERNARY
+        INS HdlOp@@AND to ops
+        INS HdlValueInt@@1 to ops
+        INS HdlValueInt@@0 to ops
+        UPD HdlOp@@AND to AND
+            INS list@@ops to AND
+            INS HdlOp@@EQ to ops
+            HdlOp: EQ
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: counter
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 2
+                                    HdlValueInt: 0
+                    HdlValueInt: 000
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        UPD HdlOp@@AND to AND
+            MOV HdlOp@@EQ to ops
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: state
+                    HdlValueId: adr
+            DEL HdlOp@@EQ from ops
+            HdlOp: EQ
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: counter
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 1
+                                    HdlValueInt: 0
+                    HdlValueInt: 00
+            DEL list@@ops from AND
+        DEL HdlOp@@AND from ops
+        DEL HdlValueInt@@1 from ops
+        DEL HdlValueInt@@0 from ops
+        DEL list@@ops from TERNARY
+    DEL HdlOp@@TERNARY from 
+    DEL HdlValueId@@fifo_rd_adr from 
+
+DEL HdlStmAssign@@ from objs
+
+
+CommitId: f74eaadbfc6e2c9adc7b0f3ced3a1d94eeb6be87
+sdr_16 fixes for timing - extra egress register stage, appropriate changes in sdr_16 fsm
+--- a/rtl/verilog/sdr_16.v
++++ b/rtl/verilog/sdr_16.v
+@@ -732,11 +736,10 @@ assign state_idle = (state==idle);
+ assign current_bank_closed = !(open_ba[bank]);
+ assign current_row_open = open_ba[bank] & (open_row[bank]==row);
+ always @ (posedge sdram_clk or posedge sdram_rst)
+-    if (sdram_rst)
+-        {current_bank_closed_reg, current_row_open_reg} <= {1'b1, 1'b0};
+-    else
+-        if (state==adr & counter[1:0]==2'b10)
+-            {current_bank_closed_reg, current_row_open_reg} <= {current_bank_closed, current_row_open};
++  if (sdram_rst)
++    {current_bank_closed_reg, current_row_open_reg} <= {1'b1, 1'b0};
++  else
++    {current_bank_closed_reg, current_row_open_reg} <= {current_bank_closed, current_row_open};
+ endmodule
+ `timescale 1ns/1ns
+ module versatile_mem_ctrl_wb (
+ParseResult:
+UPD HdlStmIf@@body to body
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@EQ to EQ
+            UPD list@@ops to elifs
+            MOV list@@ops to EQ
+            list: ops
+                HdlValueId: state
+                HdlValueId: adr
+            DEL HdlValueId@@state from ops
+            DEL HdlValueId@@adr from ops
+        DEL HdlOp@@EQ from ops
+        DEL HdlOp@@EQ from ops
+        HdlOp: EQ
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: counter
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 1
+                                HdlValueInt: 0
+                HdlValueInt: 10
+        DEL list@@ops from AND
+    DEL HdlOp@@AND from 
+    DEL tuple@@ from elifs
+    DEL list@@elifs from body
+
+UPD HdlStmAssign@@ to if_false
+
+MOV HdlStmAssign@@ to 
+HdlStmAssign
+    HdlOp: CONCAT
+        list: ops
+            HdlValueId: current_bank_closed
+            HdlValueId: current_row_open
+    HdlOp: CONCAT
+        list: ops
+            HdlValueId: current_bank_closed_reg
+            HdlValueId: current_row_open_reg
+
+

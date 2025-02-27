@@ -1,0 +1,532 @@
+CommitId: 019b9d0ae8cfacd8a744ab644aaa8aff904cd2e3
+Fixed a bug in the remainder output. Changed a hard value into the required parameter.
+--- a/bench/verilog/bench_div_top.v
++++ b/bench/verilog/bench_div_top.v
+@@ -56,10 +59,10 @@
+ 
+ module bench_div_top();
+ 
+-	parameter z_width = 8;
++	parameter z_width = 16;
+ 	parameter d_width = z_width /2;
+ 
+-	parameter pipeline = 8;
++	parameter pipeline = d_width +4;
+ 
+ 	parameter show_div0 = 0;
+ 	parameter show_ovf  = 0;
+
+ParseResult:
+UPD HdlIdDef@@z_width to z_width
+    UPD HdlValueInt@@8 to 16
+
+UPD HdlIdDef@@pipeline to pipeline
+    UPD HdlValueInt@@8 to 4
+    MOV HdlValueInt@@8 to pipeline
+    HdlValueInt: 8
+
+
+CommitId: 019b9d0ae8cfacd8a744ab644aaa8aff904cd2e3
+Fixed a bug in the remainder output. Changed a hard value into the required parameter.
+--- a/bench/verilog/bench_div_top.v
++++ b/bench/verilog/bench_div_top.v
+@@ -70,10 +73,10 @@ module bench_div_top();
+ 	reg clk;
+ 
+ 	integer z, d, n;
+-	integer dz [pipeline-1:0];
+-	integer dd [pipeline-1:0];
+-	reg [d_width -1:0] di;
+-	reg [z_width -1:0] zi;
++	integer dz [pipeline:1];
++	integer dd [pipeline:1];
++	reg [d_width:1] di;
++	reg [z_width:1] zi;
+ 
+ 	integer sr, qr;
+ 
+
+ParseResult:
+UPD HdlIdDef@@dz to dz
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@DOWNTO to INDEX
+        MOV HdlOp@@DOWNTO to ops
+        HdlOp: DOWNTO
+            list: ops
+                HdlOp: SUB
+                    list: ops
+                        HdlValueId: pipeline
+                        HdlValueInt: 1
+                HdlValueInt: 0
+        MOV HdlValueId@@integer to ops
+        HdlValueId: integer
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlOp@@SUB to DOWNTO
+            DEL HdlValueInt@@0 from ops
+        DEL list@@ops from INDEX
+    DEL HdlOp@@INDEX from dz
+
+UPD HdlIdDef@@dd to dd
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@DOWNTO to INDEX
+        MOV HdlOp@@DOWNTO to ops
+        HdlOp: DOWNTO
+            list: ops
+                HdlOp: SUB
+                    list: ops
+                        HdlValueId: pipeline
+                        HdlValueInt: 1
+                HdlValueInt: 0
+        MOV HdlValueId@@integer to ops
+        HdlValueId: integer
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlOp@@SUB to DOWNTO
+            DEL HdlValueInt@@0 from ops
+        DEL list@@ops from INDEX
+    DEL HdlOp@@INDEX from dd
+
+UPD HdlIdDef@@di to di
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to PARAMETRIZATION
+        MOV HdlOp@@DOWNTO to ops
+        HdlOp: DOWNTO
+            list: ops
+                HdlOp: SUB
+                    list: ops
+                        HdlValueId: d_width
+                        HdlValueInt: 1
+                HdlValueInt: 0
+        MOV HdlValueId@@reg to ops
+        HdlValueId: reg
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlOp@@SUB to DOWNTO
+            DEL HdlValueInt@@0 from ops
+        DEL list@@ops from PARAMETRIZATION
+    DEL HdlOp@@PARAMETRIZATION from di
+
+UPD HdlIdDef@@zi to zi
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to PARAMETRIZATION
+        MOV HdlOp@@DOWNTO to ops
+        HdlOp: DOWNTO
+            list: ops
+                HdlOp: SUB
+                    list: ops
+                        HdlValueId: z_width
+                        HdlValueInt: 1
+                HdlValueInt: 0
+        MOV HdlValueId@@reg to ops
+        HdlValueId: reg
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlOp@@SUB to DOWNTO
+            DEL HdlValueInt@@0 from ops
+        DEL list@@ops from PARAMETRIZATION
+    DEL HdlOp@@PARAMETRIZATION from zi
+
+UPD HdlIdDef@@pipeline to pipeline
+    INS HdlOp@@ADD to pipeline
+    UPD HdlOp@@ADD to ADD
+        INS list@@ops to ADD
+        INS HdlValueId@@d_width to ops
+
+
+CommitId: 019b9d0ae8cfacd8a744ab644aaa8aff904cd2e3
+Fixed a bug in the remainder output. Changed a hard value into the required parameter.
+--- a/bench/verilog/bench_div_top.v
++++ b/bench/verilog/bench_div_top.v
+@@ -82,7 +85,17 @@ module bench_div_top();
+ 	wire div0, ovf;
+ 	reg  [d_width :0] sc, qc;
+ 
+-	reg err_cnt;
++	integer err_cnt;
++
++	function integer twos;
++		input [d_width:1] d;
++	begin
++	  if(d[d_width])
++	    twos = -(~d[d_width:1] +1);
++	  else
++	    twos = d[d_width:1];
++	end
++	endfunction
+ 
+ 	//
+ 	// hookup division unit
+
+ParseResult:
+INS HdlIdDef@@err_cnt to objs
+HdlIdDef: err_cnt
+    HdlValueId: integer
+    HdlDirection: INTERNAL
+
+INS HdlFunctionDef@@twos to objs
+
+UPD HdlIdDef@@err_cnt to d
+
+MOV HdlIdDef@@err_cnt to objs
+HdlIdDef: err_cnt
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+UPD HdlIdDef@@err_cnt to err_cnt
+    UPD HdlDirection@@INTERNAL to IN
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        MOV list@@ops to PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+        UPD HdlValueId@@reg to d_width
+
+
+CommitId: 019b9d0ae8cfacd8a744ab644aaa8aff904cd2e3
+Fixed a bug in the remainder output. Changed a hard value into the required parameter.
+--- a/bench/verilog/bench_div_top.v
++++ b/bench/verilog/bench_div_top.v
+@@ -101,7 +114,7 @@ module bench_div_top();
+ 	always #2.5 clk <= ~clk;
+ 
+ 	always @(posedge clk)
+-	  for(n=1; n<=pipeline-1; n=n+1)
++	  for(n=2; n<=pipeline; n=n+1)
+ 	     begin
+ 	         dz[n] <= #1 dz[n-1];
+ 	         dd[n] <= #1 dd[n-1];
+
+ParseResult:
+UPD HdlFunctionDef@@twos to twos
+    INS HdlValueId@@integer to twos
+    INS list@@params to twos
+    INS list@@body to twos
+    list: body
+        HdlStmBlock: SEQ
+            list: body
+                HdlStmIf
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: d
+                            HdlValueId: d_width
+                    HdlOp: ASSIGN
+                        list: ops
+                            HdlValueId: twos
+                            HdlOp: MINUS_UNARY
+                                list: ops
+                                    HdlOp: ADD
+                                        list: ops
+                                            HdlOp: NEG
+                                                list: ops
+                                                    HdlOp: INDEX
+                                                        list: ops
+                                                            HdlValueId: d
+                                                            HdlOp: DOWNTO
+                                                                list: ops
+                                                                    HdlValueId: d_width
+                                                                    HdlValueInt: 1
+                                            HdlValueInt: 1
+                    list: elifs
+                    HdlOp: ASSIGN
+                        list: ops
+                            HdlValueId: twos
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: d
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueId: d_width
+                                            HdlValueInt: 1
+
+UPD HdlIdDef@@d to d
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        INS list@@ops to PARAMETRIZATION
+        INS HdlValueId@@wire to ops
+        INS HdlOp@@DOWNTO to ops
+        UPD HdlOp@@DOWNTO to DOWNTO
+            INS HdlValueInt@@1 to ops
+
+UPD HdlStmFor@@body to body
+    UPD HdlOp@@LE to LE
+        UPD HdlOp@@SUB to SUB
+            MOV HdlValueId@@pipeline to ops
+            HdlValueId: pipeline
+            DEL HdlValueInt@@1 from ops
+            DEL list@@ops from SUB
+        DEL HdlOp@@SUB from ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueInt@@1 to 2
+
+
+CommitId: 019b9d0ae8cfacd8a744ab644aaa8aff904cd2e3
+Fixed a bug in the remainder output. Changed a hard value into the required parameter.
+--- a/bench/verilog/bench_div_top.v
++++ b/bench/verilog/bench_div_top.v
+@@ -123,33 +143,31 @@ module bench_div_top();
+ 	    for(z=-(1<<(z_width -1)); z < 1<<(z_width -1); z=z+1)
+ 	    for(d=0; d< 1<<(z_width/2); d=d+1)
+ 	    begin
+-	        zi <= z;
+-	        di <= d;
++	        zi <= #1 z;
++	        di <= #1 d;
+ 
+-	        dz[0] <= z;
+-	        dd[0] <= d;
++	        dz[1] <= #1 z;
++	        dd[1] <= #1 d;
+ 
+-	        qr = dz[pipeline-1] / dd[pipeline-1];
+-	        qc = qr;
+-	        sr = dz[pipeline-1] - (dd[pipeline-1] * qc);
+-	        sc = sr;
++	        qc = dz[pipeline] / dd[pipeline];
++	        sc = dz[pipeline] - (dd[pipeline] * (dz[pipeline]/dd[pipeline]));
+ 
+-	        if(!ovf)
++	        if(!ovf && !div0)
+ 	          if ( (qc !== q) || (sc !== s) )
+ 	            begin
+-	                $display("Result error (z/d=%d/%d). Received (q,s) = (%d,%d), expected (%d,%d)",
+-	                         dz[pipeline-1], dd[pipeline-1], q, s, qc, sc);
++	                $display("Result error (z/d=%0d/%0d). Received (q,s) = (%0d,%0d), expected (%0d,%0d)",
++	                         dz[pipeline], dd[pipeline], twos(q), s, twos(qc), sc);
+ 
+ 	                err_cnt = err_cnt +1;
+ 	            end
+ 
+ 	          if(show_div0)
+ 	            if(div0)
+-	              $display("Division by zero (z/d=%0d/%0d)", dz[pipeline-1], dd[pipeline-1]);
++	              $display("Division by zero (z/d=%0d/%0d)", dz[pipeline], dd[pipeline]);
+ 
+ 	          if(show_ovf)
+ 	            if(ovf)
+-	              $display("Overflow (z/d=%0d/%0d)", dz[pipeline-1], dd[pipeline-1]);
++	              $display("Overflow (z/d=%0d/%0d)", dz[pipeline], dd[pipeline]);
+ 
+ 	          @(posedge clk);
+ 	    end
+ParseResult:
+INS HdlStmIf@@ to body
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueInt@@1 to 
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueInt@@1 to 
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueInt@@1 to 
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueInt@@1 to 
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@AND_LOG to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        INS list@@ops to AND_LOG
+        INS HdlOp@@NEG_LOG to ops
+        HdlOp: NEG_LOG
+            list: ops
+                HdlValueId: div0
+
+MOV HdlStmIf@@if_true to 
+HdlStmIf: if_true
+    HdlOp: OR_LOG
+        list: ops
+            HdlOp: IS_NOT
+                list: ops
+                    HdlValueId: qc
+                    HdlValueId: q
+            HdlOp: IS_NOT
+                list: ops
+                    HdlValueId: sc
+                    HdlValueId: s
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: $display
+                    str
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: dz
+                            HdlOp: SUB
+                                list: ops
+                                    HdlValueId: pipeline
+                                    HdlValueInt: 1
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: dd
+                            HdlOp: SUB
+                                list: ops
+                                    HdlValueId: pipeline
+                                    HdlValueInt: 1
+                    HdlValueId: q
+                    HdlValueId: s
+                    HdlValueId: qc
+                    HdlValueId: sc
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: err_cnt
+                    HdlOp: ADD
+                        list: ops
+                            HdlValueId: err_cnt
+                            HdlValueInt: 1
+    list: elifs
+
+UPD HdlStmIf@@ to 
+    MOV list@@elifs to 
+    list: elifs
+    MOV HdlOp@@NEG_LOG to 
+    HdlOp: NEG_LOG
+        list: ops
+            HdlValueId: ovf
+
+UPD HdlStmFor@@body to body
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueId@@qr to qc
+            UPD HdlOp@@DIV to DIV
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlOp@@SUB to SUB
+                        MOV HdlValueId@@pipeline to ops
+                        HdlValueId: pipeline
+                        DEL HdlValueInt@@1 from ops
+                        DEL list@@ops from SUB
+                    DEL HdlOp@@SUB from ops
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlOp@@SUB to SUB
+                        MOV HdlValueId@@pipeline to ops
+                        HdlValueId: pipeline
+                        DEL HdlValueInt@@1 from ops
+                        DEL list@@ops from SUB
+                    DEL HdlOp@@SUB from ops
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueId@@sr to sc
+            UPD HdlOp@@SUB to SUB
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlOp@@SUB to SUB
+                        MOV HdlValueId@@pipeline to ops
+                        HdlValueId: pipeline
+                        DEL HdlValueInt@@1 from ops
+                        DEL list@@ops from SUB
+                    DEL HdlOp@@SUB from ops
+                UPD HdlOp@@MUL to MUL
+                    UPD HdlOp@@INDEX to DIV
+                    UPD HdlOp@@INDEX to INDEX
+                        UPD HdlOp@@SUB to INDEX
+                        UPD HdlValueId@@dd to dz
+                        MOV HdlValueId@@dd to ops
+                        HdlValueId: dd
+                        UPD HdlOp@@SUB to SUB
+                            DEL HdlValueInt@@1 from ops
+                    DEL HdlValueId@@qc from ops
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: qc
+                HdlValueId: qr
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: sc
+                HdlValueId: sr
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlValueInt@@0 to 1
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlValueInt@@0 to 1
+
+UPD HdlStmFor@@body to body
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@SUB to SUB
+                UPD HdlOp@@MUL to MUL
+                    INS HdlOp@@INDEX to ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: dd
+                            HdlValueId: pipeline
+                    UPD HdlOp@@DIV to DIV
+                        INS HdlOp@@INDEX to ops
+                        UPD HdlOp@@INDEX to INDEX
+                            INS list@@ops to INDEX
+                            INS HdlValueId@@pipeline to ops
+                        UPD HdlOp@@INDEX to INDEX
+                            INS HdlValueId@@dd to ops
+
+UPD HdlStmIf@@if_true to if_true
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@CALL to CALL
+            INS HdlOp@@CALL to ops
+            INS HdlOp@@CALL to ops
+            UPD HdlOp@@CALL to CALL
+                INS list@@ops to CALL
+                INS HdlValueId@@twos to ops
+            UPD HdlOp@@CALL to CALL
+                INS list@@ops to CALL
+                INS HdlValueId@@twos to ops
+
+UPD HdlStmIf@@if_true to if_true
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlOp@@SUB to SUB
+                MOV HdlValueId@@pipeline to ops
+                HdlValueId: pipeline
+                DEL HdlValueInt@@1 from ops
+                DEL list@@ops from SUB
+            DEL HdlOp@@SUB from ops
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlOp@@SUB to SUB
+                MOV HdlValueId@@pipeline to ops
+                HdlValueId: pipeline
+                DEL HdlValueInt@@1 from ops
+                DEL list@@ops from SUB
+            DEL HdlOp@@SUB from ops
+
+UPD HdlStmIf@@if_true to if_true
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlOp@@SUB to SUB
+                MOV HdlValueId@@pipeline to ops
+                HdlValueId: pipeline
+                DEL HdlValueInt@@1 from ops
+                DEL list@@ops from SUB
+            DEL HdlOp@@SUB from ops
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlOp@@SUB to SUB
+                MOV HdlValueId@@pipeline to ops
+                HdlValueId: pipeline
+                DEL HdlValueInt@@1 from ops
+                DEL list@@ops from SUB
+            DEL HdlOp@@SUB from ops
+
+UPD HdlStmIf@@if_true to if_true
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@CALL to CALL
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlOp@@SUB to SUB
+                    MOV HdlValueId@@pipeline to ops
+                    HdlValueId: pipeline
+                    DEL HdlValueInt@@1 from ops
+                    DEL list@@ops from SUB
+                DEL HdlOp@@SUB from ops
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlOp@@SUB to SUB
+                    MOV HdlValueId@@pipeline to ops
+                    HdlValueId: pipeline
+                    DEL HdlValueInt@@1 from ops
+                    DEL list@@ops from SUB
+                DEL HdlOp@@SUB from ops
+            MOV HdlValueId@@q to ops
+            HdlValueId: q
+            MOV HdlValueId@@qc to ops
+            HdlValueId: qc
+
+DEL HdlStmIf@@ from body
+
+

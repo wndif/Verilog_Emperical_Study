@@ -1,0 +1,132 @@
+CommitId: 70a8acf3d3e7fa829c9d7252fe3e5cc3e59106f1
+bugfix: data write transfer bugfix
+--- a/rtl/verilog/sd_data_serial_host.v
++++ b/rtl/verilog/sd_data_serial_host.v
+@@ -248,8 +248,10 @@ begin: FSM_OUT
+                             data_in[29-(data_send_index[2:0]<<2)], 
+                             data_in[28-(data_send_index[2:0]<<2)]
+                             };
+-                        if (data_send_index[2:0] == 3'h7) begin
++                        if (data_send_index[2:0] == 3'h5/*not 7 - read delay !!!*/) begin
+                             rd <= 1;
++                        end
++                        if (data_send_index[2:0] == 3'h7) begin
+                             data_send_index <= 0;
+                         end
+                         else
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@rst to 
+    INS list@@elifs to 
+
+INS HdlStmIf@@ to body
+
+INS HdlStmIf@@ to body
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@EQ to 
+    HdlOp: EQ
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: data_send_index
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 2
+                            HdlValueInt: 0
+            HdlValueInt: 5
+    INS list@@elifs to 
+
+UPD HdlStmIf@@ to 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: rd
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: data_send_index
+
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+UPD HdlStmIf@@ to 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: rd
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: data_send_index
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: data_send_index
+
+UPD HdlStmIf@@ to 
+    DEL HdlValueId@@rst from 
+    DEL list@@elifs from 
+
+
+CommitId: 70a8acf3d3e7fa829c9d7252fe3e5cc3e59106f1
+bugfix: data write transfer bugfix
+--- a/rtl/verilog/sd_data_serial_host.v
++++ b/rtl/verilog/sd_data_serial_host.v
+@@ -258,8 +260,10 @@ begin: FSM_OUT
+                     else begin
+                         last_din <= {3'h7, data_in[31-data_send_index]};
+                         crc_in <= {3'h7, data_in[31-data_send_index]};
+-                        if (data_send_index == 31) begin
++                        if (data_send_index == 29/*not 31 - read delay !!!*/) begin
+                             rd <= 1;
++                        end
++                        if (data_send_index == 31) begin
+                             data_send_index <= 0;
+                         end
+                         else
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@rst to 
+    INS list@@elifs to 
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@EQ to 
+    HdlOp: EQ
+        list: ops
+            HdlValueId: data_send_index
+            HdlValueInt: 29
+    INS list@@elifs to 
+
+UPD HdlStmIf@@ to 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: rd
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: data_send_index
+
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: data_send_index
+
+UPD HdlStmIf@@ to 
+    DEL HdlValueId@@rst from 
+    DEL list@@elifs from 
+
+

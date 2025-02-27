@@ -1,0 +1,69 @@
+CommitId: 149eaa84f8d8c1e839aaaa6c0ea2f8e26fb83137
+Fix blocking assigment
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -147,16 +147,16 @@ module tst_bench_top();
+   always #20 mstr_test_clk = ~mstr_test_clk;
+ 
+   always @(posedge mstr_test_clk)
+-    vector = vector + 1;
++    vector <= vector + 1;
+ 
+   always @(mstr_test_clk)
+     begin
+       if (osc_div <= 7)
+-        osc_div = osc_div + 1;
++        osc_div <= osc_div + 1;
+       else
+-	osc_div = 0;
++	osc_div <= 0;
+       if (osc_div == 7)
+-	startup_osc = !startup_osc;
++	startup_osc <= !startup_osc;
+     end
+     
+   assign osc_clk = startup_osc && en_osc_clk;
+ParseResult:
+INS HdlStmAssign@@if_true to 
+
+INS HdlStmAssign@@if_false to 
+
+INS HdlStmAssign@@if_true to 
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@ASSIGN to ASSIGN
+        MOV HdlOp@@ADD to ops
+        HdlOp: ADD
+            list: ops
+                HdlValueId: osc_div
+                HdlValueInt: 1
+        DEL HdlValueId@@osc_div from ops
+        DEL list@@ops from ASSIGN
+    UPD HdlOp@@ASSIGN to ASSIGN
+        MOV HdlValueId@@osc_div to ops
+        HdlValueId: osc_div
+        DEL HdlValueInt@@0 from ops
+        DEL list@@ops from ASSIGN
+    DEL HdlOp@@ASSIGN from 
+    DEL HdlOp@@ASSIGN from 
+
+UPD HdlStmAssign@@if_true to if_true
+    INS HdlValueId@@osc_div to if_true
+
+UPD HdlStmAssign@@if_false to if_false
+    INS HdlValueInt@@0 to if_false
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@ASSIGN to ASSIGN
+        MOV HdlOp@@NEG_LOG to ops
+        HdlOp: NEG_LOG
+            list: ops
+                HdlValueId: startup_osc
+        DEL HdlValueId@@startup_osc from ops
+        DEL list@@ops from ASSIGN
+    DEL HdlOp@@ASSIGN from 
+
+UPD HdlStmAssign@@if_true to if_true
+    INS HdlValueId@@startup_osc to if_true
+
+

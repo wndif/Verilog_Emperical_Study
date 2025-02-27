@@ -1,0 +1,54 @@
+CommitId: 8913db6840f211b849666033b65d82ddbf7d1585
+Simulation library fpga_memory_primitives.v had an issue with its lpm_ram_dq module, which did not output its data. 
+--- a/bench/verilog/sim_lib/fpga_memory_primitives.v
++++ b/bench/verilog/sim_lib/fpga_memory_primitives.v
+@@ -13,7 +13,11 @@ module lpm_ram_dq (
+ 
+ parameter lpm_width = 8;
+ parameter lpm_widthad = 11;
+-
++parameter lpm_indata = "REGISTERED";            //This 4 parameters are included only to avoid warnings
++parameter lpm_address_control = "REGISTERED";   //they are not accessed inside the module. OR1200 uses this 
++parameter lpm_outdata = "UNREGISTERED";         //configuration set on all its instantiations, so this is fine.
++parameter lpm_hint = "USE_EAB=ON";              //It may not be fine, if you are adding this library to your 
++                                                //own system, which uses this module with another configuration.
+ localparam dw = lpm_width;
+ localparam aw = lpm_widthad;
+ 
+
+ParseResult:
+INS HdlIdDef@@lpm_indata to params
+HdlIdDef: lpm_indata
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@lpm_address_control to params
+HdlIdDef: lpm_address_control
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@lpm_outdata to params
+HdlIdDef: lpm_outdata
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@lpm_hint to params
+HdlIdDef: lpm_hint
+    HdlDirection: INTERNAL
+
+
+CommitId: 8913db6840f211b849666033b65d82ddbf7d1585
+Simulation library fpga_memory_primitives.v had an issue with its lpm_ram_dq module, which did not output its data. 
+--- a/bench/verilog/sim_lib/fpga_memory_primitives.v
++++ b/bench/verilog/sim_lib/fpga_memory_primitives.v
+@@ -30,7 +34,7 @@ reg	[aw-1:0]	addr_reg;		// RAM address register
+ //
+ // Data output drivers
+ //
+-assign doq = mem[addr_reg];
++assign q = mem[addr_reg];
+ 
+ //
+ // RAM address register
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@doq to q
+
+

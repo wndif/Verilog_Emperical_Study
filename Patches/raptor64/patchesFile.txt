@@ -1,0 +1,343 @@
+CommitId: 9315b3e2b88b6aa4a3acd5e250a6a5cead734c2d
+- fixed pipeline bug
+--- a/rtl/verilog/Raptor64_bitfield.v
++++ b/rtl/verilog/Raptor64_bitfield.v
+@@ -56,19 +61,31 @@ case (xOpcode)
+ 	case(xFunc3)
+ 	`BFINS: 	begin
+ 					o2 = a << mb;
+-					for (n = 0; n < 64; n = n + 1) o[n] = mask[n] ? o2[n] : b[n];
++					for (n = 0; n < DWIDTH; n = n + 1) o[n] = mask[n] ? o2[n] : b[n];
+ 				end
+-	`BFSET: 	begin for (n = 0; n < 64; n = n + 1) o[n] = mask[n] ? 1'b1 : a[n]; end
+-	`BFCLR: 	begin for (n = 0; n < 64; n = n + 1) o[n] = mask[n] ? 1'b0 : a[n]; end
+-	`BFCHG: 	begin for (n = 0; n < 64; n = n + 1) o[n] = mask[n] ? ~a[n] : a[n]; end
+-	`BFEXT:		begin
+-					for (n = 0; n < 64; n = n + 1)
++	`BFSET: 	begin for (n = 0; n < DWIDTH; n = n + 1) o[n] = mask[n] ? 1'b1 : a[n]; end
++	`BFCLR: 	begin for (n = 0; n < DWIDTH; n = n + 1) o[n] = mask[n] ? 1'b0 : a[n]; end
++	`BFCHG: 	begin for (n = 0; n < DWIDTH; n = n + 1) o[n] = mask[n] ? ~a[n] : a[n]; end
++	`BFEXTU:	begin
++					for (n = 0; n < DWIDTH; n = n + 1)
+ 						o1[n] = mask[n] ? a[n] : 1'b0;
+ 					o = o1 >> mb;
+ 				end
+-	default:	o = 64'd0;
++`ifdef I_BFEXTS
++	`BFEXTS:	begin
++					for (n = 0; n < DWIDTH; n = n + 1)
++						o1[n] = mask[n] ? a[n] : 1'b0;
++					o2 = o1 >> mb;
++					for (n = 0; n < DWIDTH; n = n + 1)
++						o[n] = n > ml ? o2[ml] : o2[n];
++				end
++`endif
++`ifdef I_SEXT
++	`SEXT:		begin for (n = 0; n < DWIDTH; n = n + 1) o[n] = mask[n] ? a[mb] : a[n]; end
++`endif
++	default:	o = {DWIDTH{1'b0}};
+ 	endcase
+-default:	o = 64'd0;
++default:	o = {DWIDTH{1'b0}};
+ endcase
+ 
+ endmodule
+
+ParseResult:
+INS HdlIdDef@@DWIDTH to params
+HdlIdDef: DWIDTH
+    HdlValueInt: 64
+    HdlDirection: INTERNAL
+
+
+CommitId: dc5516e7a78c56e3a27f9d177cb93e1f2719e963
+- separate exception status per context
+--- a/rtl/verilog/Raptor64_regfile.v
++++ b/rtl/verilog/Raptor64_regfile.v
+@@ -25,11 +25,12 @@
+ //
+ //=============================================================================
+ 
+-module Raptor64_regfile(clk, advanceR, advanceW, dRa, dRb, dRc, dpc,
++module Raptor64_regfile(clk, advanceR, advanceW, wIRvalid, dRa, dRb, dRc, dpc,
+ 	xRt, m1Rt, m2Rt, wRt, tRt, xData, m1Data, m2Data, wData, tData, nxt_a, nxt_b, nxt_c);
+ input clk;
+ input advanceR;
+ input advanceW;
++input wIRvalid;
+ input [8:0] dRa;
+ input [8:0] dRb;
+ input [8:0] dRc;
+
+ParseResult:
+INS HdlIdDef@@wIRvalid to ports
+HdlIdDef: wIRvalid
+    HdlDirection: IN
+
+
+CommitId: 9315b3e2b88b6aa4a3acd5e250a6a5cead734c2d
+- fixed pipeline bug
+--- a/rtl/verilog/Raptor64_TLB.v
++++ b/rtl/verilog/Raptor64_TLB.v
+@@ -154,7 +154,7 @@ else begin
+ 		HTLBD <= TLBD[i];
+ 		HTLBValid <= TLBValid[i];
+ 	end
+-	if (wTlbwi) begin
++	else if (wTlbwi) begin
+ 		TLBVirtPage[i] <= HTLBVirtPage;
+ 		TLBPhysPage0[i] <= HTLBPhysPage0;
+ 		TLBPhysPage1[i] <= HTLBPhysPage1;
+
+ParseResult:
+INS HdlIdDef@@m1UnmappedDataArea to objs
+HdlIdDef: m1UnmappedDataArea
+    HdlOp: OR_LOG
+        list: ops
+            HdlOp: OR_LOG
+                list: ops
+                    HdlOp: OR_LOG
+                        list: ops
+                            HdlOp: EQ
+                                list: ops
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: pea
+                                            HdlOp: DOWNTO
+                                                list: ops
+                                                    HdlValueInt: 63
+                                                    HdlValueInt: 52
+                                    HdlValueInt: ffd
+                            HdlOp: EQ
+                                list: ops
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: pea
+                                            HdlOp: DOWNTO
+                                                list: ops
+                                                    HdlValueInt: 63
+                                                    HdlValueInt: 52
+                                    HdlValueInt: ffe
+                    HdlOp: EQ
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: pea
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 63
+                                            HdlValueInt: 52
+                            HdlValueInt: fff
+            HdlOp: EQ
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: pea
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 63
+                                    HdlValueInt: 52
+                    HdlValueInt: 000
+    HdlDirection: INTERNAL
+
+UPD HdlIdDef@@unmappedDataArea to unmappedDataArea
+    INS HdlOp@@OR_LOG to unmappedDataArea
+    UPD HdlOp@@OR_LOG to OR_LOG
+        INS list@@ops to OR_LOG
+        INS HdlOp@@EQ to ops
+        HdlOp: EQ
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: ea
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 63
+                                HdlValueInt: 52
+                HdlValueInt: 000
+
+
+CommitId: 9315b3e2b88b6aa4a3acd5e250a6a5cead734c2d
+- fixed pipeline bug
+--- a/rtl/verilog/Raptor64_TLB.v
++++ b/rtl/verilog/Raptor64_TLB.v
+@@ -163,7 +163,7 @@ else begin
+ 		TLBD[i] <= HTLBD;
+ 		TLBValid[i] <= HTLBValid;
+ 	end
+-	if (wTlbwr) begin
++	else if (wTlbwr) begin
+ 		TLBVirtPage[i] <= HTLBVirtPage;
+ 		TLBPhysPage0[i] <= HTLBPhysPage0;
+ 		TLBPhysPage1[i] <= HTLBPhysPage1;
+
+ParseResult:
+INS HdlIdDef@@m1UnmappedDataArea to objs
+HdlIdDef: m1UnmappedDataArea
+    HdlOp: OR_LOG
+        list: ops
+            HdlOp: OR_LOG
+                list: ops
+                    HdlOp: OR_LOG
+                        list: ops
+                            HdlOp: EQ
+                                list: ops
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: pea
+                                            HdlOp: DOWNTO
+                                                list: ops
+                                                    HdlValueInt: 63
+                                                    HdlValueInt: 52
+                                    HdlValueInt: ffd
+                            HdlOp: EQ
+                                list: ops
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: pea
+                                            HdlOp: DOWNTO
+                                                list: ops
+                                                    HdlValueInt: 63
+                                                    HdlValueInt: 52
+                                    HdlValueInt: ffe
+                    HdlOp: EQ
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: pea
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 63
+                                            HdlValueInt: 52
+                            HdlValueInt: fff
+            HdlOp: EQ
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: pea
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 63
+                                    HdlValueInt: 52
+                    HdlValueInt: 000
+    HdlDirection: INTERNAL
+
+UPD HdlIdDef@@unmappedDataArea to unmappedDataArea
+    INS HdlOp@@OR_LOG to unmappedDataArea
+    UPD HdlOp@@OR_LOG to OR_LOG
+        INS list@@ops to OR_LOG
+        INS HdlOp@@EQ to ops
+        HdlOp: EQ
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: ea
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 63
+                                HdlValueInt: 52
+                HdlValueInt: 000
+
+UPD HdlIdDef@@unmappedDataArea to unmappedDataArea
+    MOV HdlOp@@OR_LOG to unmappedDataArea
+    HdlOp: OR_LOG
+        list: ops
+            HdlOp: OR_LOG
+                list: ops
+                    HdlOp: EQ
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: ea
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 63
+                                            HdlValueInt: 52
+                            HdlValueInt: ffd
+                    HdlOp: EQ
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: ea
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 63
+                                            HdlValueInt: 52
+                            HdlValueInt: ffe
+            HdlOp: EQ
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: ea
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 63
+                                    HdlValueInt: 52
+                    HdlValueInt: fff
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueInt@@f to 7
+
+DEL HdlIdDef@@m1UnmappedDataArea from objs
+HdlIdDef: m1UnmappedDataArea
+    HdlOp: GE
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: pea
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 63
+                            HdlValueInt: 13
+            HdlValueInt: ffd
+    HdlDirection: INTERNAL
+
+
+CommitId: 1c08ecd18900c5bd15022cbf33f4991ec9dc631e
+- fix: assert byte select lines during burst access
+--- a/rtl/verilog/Raptor64Div.v
++++ b/rtl/verilog/Raptor64Div.v
+@@ -61,6 +61,7 @@ if (rst) begin
+ 	r <= 64'd0;
+ 	qo <= 64'd0;
+ 	ro <= 64'd0;
++	cnt <= 8'd0;
+ 	state <= IDLE;
+ end
+ else
+
+ParseResult:
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: cnt
+
+
+CommitId: 1c08ecd18900c5bd15022cbf33f4991ec9dc631e
+- fix: assert byte select lines during burst access
+--- a/rtl/verilog/Raptor64Div.v
++++ b/rtl/verilog/Raptor64Div.v
+@@ -80,6 +81,7 @@ IDLE:
+ 			q <= a;
+ 			bb <= isDivi ? imm : b;
+ 			so <= 1'b0;
++			$display("bb=%d", isDivi ? imm : b);
+ 		end
+ 		dvByZr <= isDivi ? imm==64'd0 : b==64'd0;
+ 		r <= 64'd0;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlOp: TERNARY
+                    list: ops
+                        HdlValueId: isDivi
+                        HdlValueId: imm
+                        HdlValueId: b
+
+

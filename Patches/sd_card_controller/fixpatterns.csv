@@ -1,0 +1,5 @@
+,update,insert,move
+HdlStmIf-HdlStmProcess,4.0,,
+HdlStmIf-HdlStmIf,7.0,2.0,
+HdlOp-InfixExpression-HdlStmIf,,2.0,
+HdlStmAssign-HdlStmIf,,,2.0

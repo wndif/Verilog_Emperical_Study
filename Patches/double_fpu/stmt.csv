@@ -1,0 +1,5 @@
+,HdlIdDef,HdlStmIf,HdlStmAssign,HdlStmProcess,HdlModuleDef,HdlModuleDec,HdlStmCase
+insert,39,3.0,86,3.0,,,
+update,5,13.0,25,2.0,6.0,6.0,2.0
+move,2,,4,,,,
+delete,4,2.0,4,2.0,,,

@@ -1,0 +1,5 @@
+,HdlDirection,HdlOp-MemberAccessing,HdlOp-DOWNTO,HdlOp-PrefixExpression,HdlOp-InfixExpression,HdlOp-TERNARY
+update,1.0,1.0,1.0,2.0,3.0,3.0
+insert,,1.0,1.0,2.0,1.0,
+move,,,,,,1.0
+delete,,,,,,1.0

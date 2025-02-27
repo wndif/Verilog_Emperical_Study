@@ -1,0 +1,82 @@
+CommitId: 0778ef0e140a9524e08a367b47d960e150fe9460
+Minor code cleanup, changed default BE bit in CP0.
+--- a/Hardware/XUPV5-LX110T_SoC/MIPS32-Pipelined-Hw/src/MIPS32/Hazard_Detection.v
++++ b/Hardware/XUPV5-LX110T_SoC/MIPS32-Pipelined-Hw/src/MIPS32/Hazard_Detection.v
+@@ -31,7 +31,6 @@ module Hazard_Detection(
+     input  [4:0] EX_RtRd,
+     input  [4:0] MEM_RtRd,
+     input  [4:0] WB_RtRd,
+-    input  ID_Link,
+     input  EX_Link,
+     input  EX_RegWrite,
+     input  MEM_RegWrite,
+
+ParseResult:
+DEL HdlIdDef@@ID_Link from ports
+HdlIdDef: ID_Link
+    HdlValueId: wire
+    HdlDirection: IN
+
+
+CommitId: 0778ef0e140a9524e08a367b47d960e150fe9460
+Minor code cleanup, changed default BE bit in CP0.
+--- a/Hardware/MIPS32_Standalone/Processor.v
++++ b/Hardware/MIPS32_Standalone/Processor.v
+@@ -233,7 +233,6 @@ module Processor(
+         .EX_RtRd             (EX_RtRd),
+         .MEM_RtRd            (M_RtRd),
+         .WB_RtRd             (WB_RtRd),
+-        .ID_Link             (ID_Link),
+         .EX_Link             (EX_Link),
+         .EX_RegWrite         (EX_RegWrite),
+         .MEM_RegWrite        (M_RegWrite),
+
+ParseResult:
+UPD HdlModuleDec@@Processor to Processor
+    INS list@@objs to Processor
+
+UPD HdlModuleDec@@Processor to Processor
+    DEL list@@objs from Processor
+
+
+CommitId: 0778ef0e140a9524e08a367b47d960e150fe9460
+Minor code cleanup, changed default BE bit in CP0.
+--- a/Hardware/XUPV5-LX110T_SoC/MIPS32-Pipelined-Hw/src/MIPS32/Processor.v
++++ b/Hardware/XUPV5-LX110T_SoC/MIPS32-Pipelined-Hw/src/MIPS32/Processor.v
+@@ -233,7 +233,6 @@ module Processor(
+         .EX_RtRd             (EX_RtRd),
+         .MEM_RtRd            (M_RtRd),
+         .WB_RtRd             (WB_RtRd),
+-        .ID_Link             (ID_Link),
+         .EX_Link             (EX_Link),
+         .EX_RegWrite         (EX_RegWrite),
+         .MEM_RegWrite        (M_RegWrite),
+
+ParseResult:
+UPD HdlModuleDec@@Processor to Processor
+    INS list@@objs to Processor
+
+UPD HdlModuleDec@@Processor to Processor
+    DEL list@@objs from Processor
+
+
+CommitId: 0778ef0e140a9524e08a367b47d960e150fe9460
+Minor code cleanup, changed default BE bit in CP0.
+--- a/Hardware/MIPS32_Standalone/Hazard_Detection.v
++++ b/Hardware/MIPS32_Standalone/Hazard_Detection.v
+@@ -31,7 +31,6 @@ module Hazard_Detection(
+     input  [4:0] EX_RtRd,
+     input  [4:0] MEM_RtRd,
+     input  [4:0] WB_RtRd,
+-    input  ID_Link,
+     input  EX_Link,
+     input  EX_RegWrite,
+     input  MEM_RegWrite,
+
+ParseResult:
+DEL HdlIdDef@@ID_Link from ports
+HdlIdDef: ID_Link
+    HdlValueId: wire
+    HdlDirection: IN
+
+

@@ -1,0 +1,4 @@
+,HdlOp-InfixExpression,HdlOp-Assignment,HdlOp-MemberAccessing,HdlOp-RISING,HdlOp-DOWNTO,HdlDirection
+update,26,1.0,4.0,2.0,2.0,1.0
+insert,23,,,,,
+move,1,,,,,

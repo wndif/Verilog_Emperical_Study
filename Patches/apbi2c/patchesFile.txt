@@ -1,0 +1,219 @@
+CommitId: f24bc6cbf353cb2be2423e75d7d6b6969d269d1d
+Added on module I2C basic error for register configuration
+--- a/rtl/module_i2c.v
++++ b/rtl/module_i2c.v
+@@ -198,6 +198,8 @@ localparam [5:0] TX_IDLE = 6'd0, //IDLE
+ assign SDA = SDA_OUT;
+ assign SCL = BR_CLK_O;
+ 
++//STANDARD ERROR
++assign ERROR = (DATA_CONFIG_REG[0] == 1'b1 & DATA_CONFIG_REG[1] == 1'b1)?1'b1:1'b0;
+ 
+ //COMBINATIONAL BLOCK TO TX
+ always@(*)
+
+ParseResult:
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: TERNARY
+        list: ops
+            HdlOp: AND
+                list: ops
+                    HdlOp: EQ
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: DATA_CONFIG_REG
+                                    HdlValueInt: 0
+                            HdlValueInt: 1
+                    HdlOp: EQ
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: DATA_CONFIG_REG
+                                    HdlValueInt: 1
+                            HdlValueInt: 1
+            HdlValueInt: 1
+            HdlValueInt: 0
+    HdlValueId: ERROR
+
+
+CommitId: f24bc6cbf353cb2be2423e75d7d6b6969d269d1d
+Added on module I2C basic error for register configuration
+--- a/rtl/module_i2c.v
++++ b/rtl/module_i2c.v
+@@ -215,7 +217,11 @@ begin
+ 		begin
+ 			next_state_tx = TX_IDLE;
+ 		end
+-		else 
++		else if(DATA_CONFIG_REG[0] == 1'b1 && fifo_tx_f_full == 1'b1 && DATA_CONFIG_REG[1] == 1'b1)
++		begin
++			next_state_tx = TX_IDLE;
++		end
++		else if(DATA_CONFIG_REG[0] == 1'b1 && fifo_tx_f_full == 1'b1 && DATA_CONFIG_REG[1] == 1'b0)
+ 		begin
+ 			next_state_tx = TX_START;
+ 		end
+
+ParseResult:
+UPD HdlStmCase@@state_tx to state_tx
+    INS HdlStmCaseType@@CASE to state_tx
+    INS HdlValueId@@state_tx to state_tx
+
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+    INS tuple@@ to elifs
+    INS tuple@@ to elifs
+    INS HdlOp@@AND_LOG to 
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: next_state_tx
+                    HdlValueId: TX_IDLE
+    INS HdlOp@@AND_LOG to 
+    HdlOp: AND_LOG
+        list: ops
+            HdlOp: AND_LOG
+                list: ops
+                    HdlOp: EQ
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: DATA_CONFIG_REG
+                                    HdlValueInt: 0
+                            HdlValueInt: 1
+                    HdlOp: EQ
+                        list: ops
+                            HdlValueId: fifo_tx_f_full
+                            HdlValueInt: 1
+            HdlOp: EQ
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: DATA_CONFIG_REG
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    UPD HdlOp@@AND_LOG to AND_LOG
+        INS list@@ops to AND_LOG
+        INS HdlOp@@AND_LOG to ops
+        INS HdlOp@@EQ to ops
+        HdlOp: EQ
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: DATA_CONFIG_REG
+                        HdlValueInt: 1
+                HdlValueInt: 1
+        UPD HdlOp@@AND_LOG to AND_LOG
+            INS list@@ops to AND_LOG
+            INS HdlOp@@EQ to ops
+            INS HdlOp@@EQ to ops
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: fifo_tx_f_full
+                    HdlValueInt: 1
+            UPD HdlOp@@EQ to EQ
+                INS list@@ops to EQ
+                INS HdlOp@@INDEX to ops
+                INS HdlValueInt@@1 to ops
+                UPD HdlOp@@INDEX to INDEX
+                    INS HdlValueId@@DATA_CONFIG_REG to ops
+                    INS HdlValueInt@@0 to ops
+
+UPD HdlStmIf@@ to 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: next_state_tx
+                    HdlValueId: TX_START
+    UPD list@@elifs to ops
+    MOV list@@elifs to 
+    list: elifs
+
+UPD HdlStmCase@@state_tx to state_tx
+    DEL HdlStmCaseType@@CASE from state_tx
+    DEL HdlValueId@@state_tx from state_tx
+
+
+CommitId: f24bc6cbf353cb2be2423e75d7d6b6969d269d1d
+Added on module I2C basic error for register configuration
+--- a/rtl/module_i2c.v
++++ b/rtl/module_i2c.v
+@@ -768,16 +774,22 @@ begin
+ 			fifo_tx_rd_en <= 1'b0;
+ 			
+  
+-			if(DATA_CONFIG_REG[0] == 1'b0 && fifo_tx_f_full == 1'b0)
++			if(DATA_CONFIG_REG[0] == 1'b0 && fifo_tx_f_full == 1'b0 && DATA_CONFIG_REG[1] == 1'b0)
+ 			begin
+ 				count_send_data <= 12'd0;
+ 				SDA_OUT<= 1'b1;
+ 				BR_CLK_O <= 1'b1;
+ 			end
+-			else
++			else if(DATA_CONFIG_REG[0] == 1'b1 && fifo_tx_f_full == 1'b1 && DATA_CONFIG_REG[1] == 1'b0)
+ 			begin
+ 				count_send_data <= count_send_data + 12'd1;
+ 				SDA_OUT<=1'b0;			
++			end
++			else if(DATA_CONFIG_REG[0] == 1'b1 && fifo_tx_f_full == 1'b1 && DATA_CONFIG_REG[1] == 1'b1)
++			begin
++				count_send_data <= 12'd0;
++				SDA_OUT<= 1'b1;
++				BR_CLK_O <= 1'b1;
+ 			end			
+ 
+ 		end
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+
+UPD HdlStmIf@@ to 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlOp: ADD
+                    list: ops
+                        HdlValueId: count_send_data
+                        HdlValueInt: 1
+                HdlValueId: count_send_data
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: SDA_OUT
+    MOV HdlOp@@AND_LOG to 
+    HdlOp: AND_LOG
+        list: ops
+            HdlOp: EQ
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: DATA_CONFIG_REG
+                            HdlValueInt: 0
+                    HdlValueInt: 0
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: fifo_tx_f_full
+                    HdlValueInt: 0
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@EQ to EQ
+            UPD HdlValueInt@@0 to 1
+        UPD HdlOp@@EQ to EQ
+            UPD HdlValueInt@@0 to 1
+    UPD list@@elifs to ops
+    MOV list@@elifs to 
+    list: elifs
+
+UPD HdlStmIf@@ to 
+    DEL list@@elifs from 
+
+UPD HdlStmCase@@state_tx to state_tx
+    DEL HdlStmCaseType@@CASE from state_tx
+    DEL HdlValueId@@state_tx from state_tx
+
+

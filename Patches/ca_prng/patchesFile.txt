@@ -1,0 +1,42 @@
+CommitId: dd3bcbe138fc146bfcad6cabab277a096d7f8600
+(1) Fixed incorrect module name in comment. (2) Fixed port order in RTL.
+--- a/src/rtl/ca_prng.v
++++ b/src/rtl/ca_prng.v
+@@ -39,18 +39,18 @@
+ //========================================================================
+ 
+ module ca_prng(
+-              input wire [31 : 0]  init_pattern_data,
+-              input wire           load_init_pattern,
+-              input wire           next_pattern,
++               input wire           clk,
++               input wire           reset_n,
+ 
+-              input wire [7 : 0]   update_rule,
+-              input wire           load_update_rule,
++               input wire [31 : 0]  init_pattern_data,
++               input wire           load_init_pattern,
++               input wire           next_pattern,
+ 
+-              output wire [31 : 0] prng_data,
++               input wire [7 : 0]   update_rule,
++               input wire           load_update_rule,
+ 
+-              input wire clk,
+-              input wire reset_n
+-             );
++               output wire [31 : 0] prng_data
++              );
+ 
+ 
+   //--------------------------------------------------------------------
+ParseResult:
+MOV HdlIdDef@@clk to ports
+HdlIdDef: clk
+    HdlDirection: IN
+
+MOV HdlIdDef@@reset_n to ports
+HdlIdDef: reset_n
+    HdlDirection: IN
+
+

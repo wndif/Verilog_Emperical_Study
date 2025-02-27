@@ -1,0 +1,1693 @@
+CommitId: 9eb67b82fe989ba1d669bf49803ec1e285b11fc0
+added some remarks, fixed some sensitivity lists
+--- a/wishbone_i2c_master.vhd
++++ b/wishbone_i2c_master.vhd
+@@ -642,7 +644,8 @@ architecture structural of bit_ctrl is
+ 
+ 	signal txd : std_logic;			-- transmit bit
+ 	signal clk_en, slave_wait :std_logic;		-- clock generation signals
+-	signal cnt : unsigned(15 downto 0) := clk_cnt;	-- clock divider counter
++--	signal cnt : unsigned(15 downto 0) := clk_cnt;	-- clock divider counter (simulation)
++	signal cnt : unsigned(15 downto 0);             -- clock divider counter (synthesis)
+ begin
+ 	-- synchronize SCL and SDA inputs
+ 	synch_SCL_SDA: process(clk)
+
+ParseResult:
+UPD HdlIdDef@@cnt to cnt
+    DEL HdlValueId@@clk_cnt from cnt
+
+
+CommitId: 9eb67b82fe989ba1d669bf49803ec1e285b11fc0
+added some remarks, fixed some sensitivity lists
+--- a/wishbone_i2c_master.vhd
++++ b/wishbone_i2c_master.vhd
+@@ -721,7 +724,7 @@ begin
+ 
+ 
+ 	-- generate statemachine
+-	nxt_state_decoder : process (clk, nReset, state, cmd, SDAin)
++	nxt_state_decoder : process (clk, nReset, state, cmd)
+ 		variable nxt_state : cmds;
+ 		variable icmd_ack, store_sda : std_logic;
+ 		variable itxd : std_logic;
+ParseResult:
+UPD HdlStmProcess@@ to 
+    DEL HdlValueId@@SDAin from sensitivity
+
+
+CommitId: 26d702234fd1cac7e4112ee8d5e5aa18af75d35f
+Fixed a few 'arbitration lost' bugs. VHDL version only.
+--- a/rtl/vhdl/i2c_master_bit_ctrl.vhd
++++ b/rtl/vhdl/i2c_master_bit_ctrl.vhd
+@@ -148,7 +151,8 @@ architecture structural of i2c_master_bit_ctrl is
+ 	signal sda_chk            : std_logic;          -- check SDA status (multi-master arbitration)
+ 	signal dscl_oen           : std_logic;          -- delayed scl_oen signals
+ 	signal sSCL, sSDA         : std_logic;          -- synchronized SCL and SDA inputs
+-	signal clk_en, slave_wait :std_logic;           -- clock generation signals
++	signal clk_en, slave_wait : std_logic;          -- clock generation signals
++	signal ial                : std_logic;          -- internal arbitration lost signal
+ --	signal cnt : unsigned(15 downto 0) := clk_cnt;  -- clock divider counter (simulation)
+ 	signal cnt : unsigned(15 downto 0);             -- clock divider counter (synthesis)
+ 
+
+ParseResult:
+INS HdlIdDef@@ial to objs
+HdlIdDef: ial
+    HdlValueId: std_logic
+    HdlDirection: INTERNAL
+
+
+CommitId: 26d702234fd1cac7e4112ee8d5e5aa18af75d35f
+Fixed a few 'arbitration lost' bugs. VHDL version only.
+--- a/rtl/vhdl/i2c_master_bit_ctrl.vhd
++++ b/rtl/vhdl/i2c_master_bit_ctrl.vhd
+@@ -276,7 +281,7 @@ begin
+ 	      isda_oen <= '1';
+ 	      sda_chk  <= '0';
+ 	    elsif (clk'event and clk = '1') then
+-	      if (rst = '1') then
++	      if (rst = '1' or ial = '1') then
+ 	        c_state  <= idle;
+ 	        cmd_ack  <= '0';
+ 	        iscl_oen <= '1';
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@EQ to 
+    HdlOp: EQ
+        list: ops
+            HdlValueId: rst
+            HdlValueInt: 1
+
+
+CommitId: 26d702234fd1cac7e4112ee8d5e5aa18af75d35f
+Fixed a few 'arbitration lost' bugs. VHDL version only.
+--- a/rtl/vhdl/i2c_master_bit_ctrl.vhd
++++ b/rtl/vhdl/i2c_master_bit_ctrl.vhd
+@@ -426,3 +431,4 @@ begin
+ 	sda_o   <= '0';
+ 	sda_oen <= isda_oen;
+ end architecture structural;
++
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS HdlOp@@OR to 
+    UPD HdlOp@@OR to OR
+        INS list@@ops to OR
+        INS HdlOp@@EQ to ops
+        HdlOp: EQ
+            list: ops
+                HdlValueId: ial
+                HdlValueInt: 1
+
+
+CommitId: b2ab394c7c98f5c9112c5d5d429065adb1952de7
+fixed an incomplete sensitivity list on assign_dato process
+--- a/wishbone_i2c_master.vhd
++++ b/wishbone_i2c_master.vhd
+@@ -103,8 +103,7 @@ begin
+ 
+ 
+ 	-- assign DAT_O
+-	assign_dato : process(ADR_I)
+-		variable muxD : std_logic_vector(15 downto 0);
++	assign_dato : process(ADR_I, prer, ctr, txt, cr, rxr, sr)
+ 	begin
+ 		case ADR_I is
+ 			when "00" =>
+ParseResult:
+DEL HdlIdDef@@muxD from body
+HdlIdDef: muxD
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: std_logic_vector
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 15
+    HdlDirection: INTERNAL
+
+
+CommitId: d4dadb51123b339de4f29b205914af7e0bbc8ed6
+Fixed cmd_ack generation item (no bug).
+--- a/rtl/verilog/i2c_master_bit_ctrl.v
++++ b/rtl/verilog/i2c_master_bit_ctrl.v
+@@ -474,7 +477,7 @@ module i2c_master_bit_ctrl(
+ 	            rd_d:
+ 	            begin
+ 	                c_state <= #1 idle;
+-	                cmd_ack <= #1 clk_en;
++	                cmd_ack <= #1 1'b1;
+ 	                scl_oen <= #1 1'b0; // set SCL low
+ 	                sda_oen <= #1 1'b1; // keep SDA tri-stated
+ 	                sda_chk <= #1 1'b0; // don't check SDA output
+ParseResult:
+UPD HdlStmAssign@@ to 
+    INS HdlValueInt@@1 to 
+
+
+CommitId: a6aa0121768b0801a6947cd38addad8c4f78eb04
+Fixed synopsys miss spell (synopsis)
+--- a/rtl/verilog/i2c_master_bit_ctrl.v
++++ b/rtl/verilog/i2c_master_bit_ctrl.v
+@@ -178,7 +182,7 @@ module i2c_master_bit_ctrl(
+ 	reg [15:0] cnt;             // clock divider counter (synthesis)
+ 
+ 	// state machine variable
+-	reg [16:0] c_state; // synopsys enum_state
++	reg [17:0] c_state; // synopsys enum_state
+ 
+ 	//
+ 	// module body
+
+ParseResult:
+INS HdlModuleDec@@i2c_master_bit_ctrl to i2c_master_bit_ctrl
+
+UPD HdlModuleDec@@i2c_master_bit_ctrl to i2c_master_bit_ctrl
+    INS list@@params to i2c_master_bit_ctrl
+    list: params
+        HdlIdDef: idle
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: start_a
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000000001
+            HdlDirection: INTERNAL
+        HdlIdDef: start_b
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000000010
+            HdlDirection: INTERNAL
+        HdlIdDef: start_c
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000000100
+            HdlDirection: INTERNAL
+        HdlIdDef: start_d
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000001000
+            HdlDirection: INTERNAL
+        HdlIdDef: start_e
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000010000
+            HdlDirection: INTERNAL
+        HdlIdDef: stop_a
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000100000
+            HdlDirection: INTERNAL
+        HdlIdDef: stop_b
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000000001000000
+            HdlDirection: INTERNAL
+        HdlIdDef: stop_c
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000000010000000
+            HdlDirection: INTERNAL
+        HdlIdDef: stop_d
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000000100000000
+            HdlDirection: INTERNAL
+        HdlIdDef: rd_a
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000001000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: rd_b
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000010000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: rd_c
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000100000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: rd_d
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00001000000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: wr_a
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00010000000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: wr_b
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00100000000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: wr_c
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 01000000000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: wr_d
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 10000000000000000
+            HdlDirection: INTERNAL
+    INS list@@objs to i2c_master_bit_ctrl
+
+UPD HdlModuleDec@@i2c_master_bit_ctrl to i2c_master_bit_ctrl
+    MOV list@@ports to i2c_master_bit_ctrl
+    list: ports
+        HdlIdDef: clk
+            HdlDirection: IN
+        HdlIdDef: rst
+            HdlDirection: IN
+        HdlIdDef: nReset
+            HdlDirection: IN
+        HdlIdDef: clk_cnt
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 15
+                            HdlValueInt: 0
+            HdlDirection: IN
+        HdlIdDef: ena
+            HdlDirection: IN
+        HdlIdDef: cmd
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 3
+                            HdlValueInt: 0
+            HdlDirection: IN
+        HdlIdDef: cmd_ack
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: reg
+            HdlDirection: OUT
+        HdlIdDef: busy
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: reg
+            HdlDirection: OUT
+        HdlIdDef: al
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: reg
+            HdlDirection: OUT
+        HdlIdDef: din
+            HdlDirection: IN
+        HdlIdDef: dout
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: reg
+            HdlDirection: OUT
+        HdlIdDef: scl_i
+            HdlDirection: IN
+        HdlIdDef: scl_o
+            HdlDirection: OUT
+        HdlIdDef: scl_oen
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: reg
+            HdlDirection: OUT
+        HdlIdDef: sda_i
+            HdlDirection: IN
+        HdlIdDef: sda_o
+            HdlDirection: OUT
+        HdlIdDef: sda_oen
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: reg
+            HdlDirection: OUT
+    DEL list@@params from i2c_master_bit_ctrl
+    list: params
+        HdlIdDef: idle
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: start_a
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000000001
+            HdlDirection: INTERNAL
+        HdlIdDef: start_b
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000000010
+            HdlDirection: INTERNAL
+        HdlIdDef: start_c
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000000100
+            HdlDirection: INTERNAL
+        HdlIdDef: start_d
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000001000
+            HdlDirection: INTERNAL
+        HdlIdDef: start_e
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000010000
+            HdlDirection: INTERNAL
+        HdlIdDef: stop_a
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000100000
+            HdlDirection: INTERNAL
+        HdlIdDef: stop_b
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000000001000000
+            HdlDirection: INTERNAL
+        HdlIdDef: stop_c
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000000010000000
+            HdlDirection: INTERNAL
+        HdlIdDef: stop_d
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000000100000000
+            HdlDirection: INTERNAL
+        HdlIdDef: rd_a
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000001000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: rd_b
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000010000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: rd_c
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000100000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: rd_d
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00001000000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: wr_a
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00010000000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: wr_b
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00100000000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: wr_c
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 01000000000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: wr_d
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 10000000000000000
+            HdlDirection: INTERNAL
+    DEL list@@objs from i2c_master_bit_ctrl
+
+DEL HdlModuleDec@@i2c_master_bit_ctrl from i2c_master_bit_ctrl
+
+
+CommitId: a6aa0121768b0801a6947cd38addad8c4f78eb04
+Fixed synopsys miss spell (synopsis)
+--- a/rtl/verilog/i2c_master_bit_ctrl.v
++++ b/rtl/verilog/i2c_master_bit_ctrl.v
+@@ -312,24 +316,24 @@ module i2c_master_bit_ctrl(
+ 	// generate statemachine
+ 
+ 	// nxt_state decoder
+-	parameter [16:0] idle    = 17'b0_0000_0000_0000_0000;
+-	parameter [16:0] start_a = 17'b0_0000_0000_0000_0001;
+-	parameter [16:0] start_b = 17'b0_0000_0000_0000_0010;
+-	parameter [16:0] start_c = 17'b0_0000_0000_0000_0100;
+-	parameter [16:0] start_d = 17'b0_0000_0000_0000_1000;
+-	parameter [16:0] start_e = 17'b0_0000_0000_0001_0000;
+-	parameter [16:0] stop_a  = 17'b0_0000_0000_0010_0000;
+-	parameter [16:0] stop_b  = 17'b0_0000_0000_0100_0000;
+-	parameter [16:0] stop_c  = 17'b0_0000_0000_1000_0000;
+-	parameter [16:0] stop_d  = 17'b0_0000_0001_0000_0000;
+-	parameter [16:0] rd_a    = 17'b0_0000_0010_0000_0000;
+-	parameter [16:0] rd_b    = 17'b0_0000_0100_0000_0000;
+-	parameter [16:0] rd_c    = 17'b0_0000_1000_0000_0000;
+-	parameter [16:0] rd_d    = 17'b0_0001_0000_0000_0000;
+-	parameter [16:0] wr_a    = 17'b0_0010_0000_0000_0000;
+-	parameter [16:0] wr_b    = 17'b0_0100_0000_0000_0000;
+-	parameter [16:0] wr_c    = 17'b0_1000_0000_0000_0000;
+-	parameter [16:0] wr_d    = 17'b1_0000_0000_0000_0000;
++	parameter [17:0] idle    = 18'b0_0000_0000_0000_0000;
++	parameter [17:0] start_a = 18'b0_0000_0000_0000_0001;
++	parameter [17:0] start_b = 18'b0_0000_0000_0000_0010;
++	parameter [17:0] start_c = 18'b0_0000_0000_0000_0100;
++	parameter [17:0] start_d = 18'b0_0000_0000_0000_1000;
++	parameter [17:0] start_e = 18'b0_0000_0000_0001_0000;
++	parameter [17:0] stop_a  = 18'b0_0000_0000_0010_0000;
++	parameter [17:0] stop_b  = 18'b0_0000_0000_0100_0000;
++	parameter [17:0] stop_c  = 18'b0_0000_0000_1000_0000;
++	parameter [17:0] stop_d  = 18'b0_0000_0001_0000_0000;
++	parameter [17:0] rd_a    = 18'b0_0000_0010_0000_0000;
++	parameter [17:0] rd_b    = 18'b0_0000_0100_0000_0000;
++	parameter [17:0] rd_c    = 18'b0_0000_1000_0000_0000;
++	parameter [17:0] rd_d    = 18'b0_0001_0000_0000_0000;
++	parameter [17:0] wr_a    = 18'b0_0010_0000_0000_0000;
++	parameter [17:0] wr_b    = 18'b0_0100_0000_0000_0000;
++	parameter [17:0] wr_c    = 18'b0_1000_0000_0000_0000;
++	parameter [17:0] wr_d    = 18'b1_0000_0000_0000_0000;
+ 
+ 	always @(posedge clk or negedge nReset)
+ 	  if (!nReset)
+ParseResult:
+INS HdlModuleDec@@i2c_master_bit_ctrl to i2c_master_bit_ctrl
+
+UPD HdlModuleDec@@i2c_master_bit_ctrl to i2c_master_bit_ctrl
+    INS list@@params to i2c_master_bit_ctrl
+    list: params
+        HdlIdDef: idle
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: start_a
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000000001
+            HdlDirection: INTERNAL
+        HdlIdDef: start_b
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000000010
+            HdlDirection: INTERNAL
+        HdlIdDef: start_c
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000000100
+            HdlDirection: INTERNAL
+        HdlIdDef: start_d
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000001000
+            HdlDirection: INTERNAL
+        HdlIdDef: start_e
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000010000
+            HdlDirection: INTERNAL
+        HdlIdDef: stop_a
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000100000
+            HdlDirection: INTERNAL
+        HdlIdDef: stop_b
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000000001000000
+            HdlDirection: INTERNAL
+        HdlIdDef: stop_c
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000000010000000
+            HdlDirection: INTERNAL
+        HdlIdDef: stop_d
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000000100000000
+            HdlDirection: INTERNAL
+        HdlIdDef: rd_a
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000001000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: rd_b
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000010000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: rd_c
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00000100000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: rd_d
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00001000000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: wr_a
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00010000000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: wr_b
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 00100000000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: wr_c
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 01000000000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: wr_d
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 17
+                            HdlValueInt: 0
+            HdlValueInt: 10000000000000000
+            HdlDirection: INTERNAL
+    INS list@@objs to i2c_master_bit_ctrl
+
+UPD HdlModuleDec@@i2c_master_bit_ctrl to i2c_master_bit_ctrl
+    MOV list@@ports to i2c_master_bit_ctrl
+    list: ports
+        HdlIdDef: clk
+            HdlDirection: IN
+        HdlIdDef: rst
+            HdlDirection: IN
+        HdlIdDef: nReset
+            HdlDirection: IN
+        HdlIdDef: clk_cnt
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 15
+                            HdlValueInt: 0
+            HdlDirection: IN
+        HdlIdDef: ena
+            HdlDirection: IN
+        HdlIdDef: cmd
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 3
+                            HdlValueInt: 0
+            HdlDirection: IN
+        HdlIdDef: cmd_ack
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: reg
+            HdlDirection: OUT
+        HdlIdDef: busy
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: reg
+            HdlDirection: OUT
+        HdlIdDef: al
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: reg
+            HdlDirection: OUT
+        HdlIdDef: din
+            HdlDirection: IN
+        HdlIdDef: dout
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: reg
+            HdlDirection: OUT
+        HdlIdDef: scl_i
+            HdlDirection: IN
+        HdlIdDef: scl_o
+            HdlDirection: OUT
+        HdlIdDef: scl_oen
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: reg
+            HdlDirection: OUT
+        HdlIdDef: sda_i
+            HdlDirection: IN
+        HdlIdDef: sda_o
+            HdlDirection: OUT
+        HdlIdDef: sda_oen
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: reg
+            HdlDirection: OUT
+    DEL list@@params from i2c_master_bit_ctrl
+    list: params
+        HdlIdDef: idle
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: start_a
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000000001
+            HdlDirection: INTERNAL
+        HdlIdDef: start_b
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000000010
+            HdlDirection: INTERNAL
+        HdlIdDef: start_c
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000000100
+            HdlDirection: INTERNAL
+        HdlIdDef: start_d
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000001000
+            HdlDirection: INTERNAL
+        HdlIdDef: start_e
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000010000
+            HdlDirection: INTERNAL
+        HdlIdDef: stop_a
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000000000100000
+            HdlDirection: INTERNAL
+        HdlIdDef: stop_b
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000000001000000
+            HdlDirection: INTERNAL
+        HdlIdDef: stop_c
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000000010000000
+            HdlDirection: INTERNAL
+        HdlIdDef: stop_d
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000000100000000
+            HdlDirection: INTERNAL
+        HdlIdDef: rd_a
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000001000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: rd_b
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000010000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: rd_c
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00000100000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: rd_d
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00001000000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: wr_a
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00010000000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: wr_b
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 00100000000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: wr_c
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 01000000000000000
+            HdlDirection: INTERNAL
+        HdlIdDef: wr_d
+            HdlOp: PARAMETRIZATION
+                list: ops
+                    HdlValueId: wire
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 16
+                            HdlValueInt: 0
+            HdlValueInt: 10000000000000000
+            HdlDirection: INTERNAL
+    DEL list@@objs from i2c_master_bit_ctrl
+
+DEL HdlModuleDec@@i2c_master_bit_ctrl from i2c_master_bit_ctrl
+
+
+CommitId: 481551293d887244ac976171851d90967fe3c06d
+Fixed a bug where the core would trigger an erroneous 'arbitration lost' interrupt after being reset, when the reset pulse width < 3 clk cycles.
+--- a/rtl/verilog/i2c_master_bit_ctrl.v
++++ b/rtl/verilog/i2c_master_bit_ctrl.v
+@@ -241,13 +272,26 @@ module i2c_master_bit_ctrl(
+ 	// 1) master drives SDA high, but the i2c bus is low
+ 	// 2) stop detected while not requested
+ 	reg cmd_stop, dcmd_stop;
+-	always @(posedge clk)
+-	begin
+-	  cmd_stop  <= #1 cmd == `I2C_CMD_STOP;
+-	  dcmd_stop <= #1 cmd_stop;
++	always @(posedge clk or negedge nReset)
++	  if (~nReset)
++	    begin
++	        cmd_stop  <= #1 1'b0;
++	        dcmd_stop <= #1 1'b0;
++	        al        <= #1 1'b0;
++	    end
++	  else if (rst)
++	    begin
++	        cmd_stop  <= #1 1'b0;
++	        dcmd_stop <= #1 1'b0;
++	        al        <= #1 1'b0;
++	    end
++	  else
++	    begin
++	        cmd_stop  <= #1 cmd == `I2C_CMD_STOP;
++	        dcmd_stop <= #1 cmd_stop;
++	        al        <= #1 (sda_chk & ~sSDA & sda_oen) | (sto_condition & ~dcmd_stop);
++	    end
+ 
+-	  al <= #1 (sda_chk & ~sSDA & sda_oen) | (sto_condition & ~dcmd_stop);
+-	end
+ 
+ 	// generate dout signal (store SDA on rising edge of SCL)
+ 	always @(posedge clk)
+ParseResult:
+INS HdlStmIf@@body to 
+
+
+CommitId: 1eb992c14451eec55f88b7d7aff987379144c47c
+Added SCL clock synchronization logic
+--- a/rtl/vhdl/i2c_master_bit_ctrl.vhd
++++ b/rtl/vhdl/i2c_master_bit_ctrl.vhd
+@@ -172,12 +175,14 @@ architecture structural of i2c_master_bit_ctrl is
+ 	                stop_a, stop_b, stop_c, stop_d, rd_a, rd_b, rd_c, rd_d, wr_a, wr_b, wr_c, wr_d);
+ 	signal c_state : states;
+ 
+-	signal iscl_oen, isda_oen : std_logic;          -- internal I2C lines
+-	signal sda_chk            : std_logic;          -- check SDA status (multi-master arbitration)
+-	signal dscl_oen           : std_logic;          -- delayed scl_oen signals
+-	signal sSCL, sSDA         : std_logic;          -- synchronized SCL and SDA inputs
+-	signal clk_en, slave_wait : std_logic;          -- clock generation signals
+-	signal ial                : std_logic;          -- internal arbitration lost signal
++	signal iscl_oen, isda_oen   : std_logic;        -- internal I2C lines
++	signal sda_chk              : std_logic;        -- check SDA status (multi-master arbitration)
++	signal dscl_oen             : std_logic;        -- delayed scl_oen signals
++	signal sSCL, sSDA           : std_logic;        -- synchronized SCL and SDA inputs
++	signal dSCL, dSDA           : std_logic;        -- delayed versions ofsSCL and sSDA
++	signal clk_en               : std_logic;        -- statemachine clock enable
++        signal scl_sync, slave_wait : std_logic;        -- clock generation signals
++	signal ial                  : std_logic;        -- internal arbitration lost signal
+ --	signal cnt : unsigned(15 downto 0) := clk_cnt;  -- clock divider counter (simulation)
+ 	signal cnt : unsigned(15 downto 0);             -- clock divider counter (synthesis)
+ 
+
+ParseResult:
+INS HdlIdDef@@dSCL to objs
+HdlIdDef: dSCL
+    HdlValueId: std_logic
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@dSDA to objs
+HdlIdDef: dSDA
+    HdlValueId: std_logic
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@scl_sync to objs
+HdlIdDef: scl_sync
+    HdlValueId: std_logic
+    HdlDirection: INTERNAL
+
+
+CommitId: 1eb992c14451eec55f88b7d7aff987379144c47c
+Added SCL clock synchronization logic
+--- a/rtl/vhdl/i2c_master_bit_ctrl.vhd
++++ b/rtl/vhdl/i2c_master_bit_ctrl.vhd
+@@ -190,7 +195,21 @@ begin
+ 	      dscl_oen <= iscl_oen;
+ 	    end if;
+ 	end process;
+-	slave_wait <= dscl_oen and not sSCL;
++
++	-- slave_wait is asserted when master wants to drive SCL high, but the slave (another master) pulls it low
++	-- slave_wait remains asserted until the slave (other master) releases SCL
++	process (clk, nReset)
++	begin
++	    if (nReset = '0') then
++	      slave_wait <= '0';
++	    else
++	      slave_wait <= (scl_oen and not dscl_oen and not sSCL) or (slave_wait and not sSCL);
++	    end if;
++	end process;
++
++	-- master drives SCL high, but another master pulls it low
++	-- master start counting down its low cycle now (clock synchronization)
++	scl_sync <= dSCL and not sSCL and scl_oen;
+ 
+ 	-- generate clk enable signal
+ 	gen_clken: process(clk, nReset)
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlValueId: clk
+        HdlValueId: nReset
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlOp: EQ
+                    list: ops
+                        HdlValueId: nReset
+                        HdlValueInt: 0
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmAssign
+                            HdlValueInt: 0
+                            HdlValueId: slave_wait
+                list: elifs
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmAssign
+                            HdlOp: OR
+                                list: ops
+                                    HdlOp: AND
+                                        list: ops
+                                            HdlOp: AND
+                                                list: ops
+                                                    HdlValueId: scl_oen
+                                                    HdlOp: NEG
+                                                        list: ops
+                                                            HdlValueId: dscl_oen
+                                            HdlOp: NEG
+                                                list: ops
+                                                    HdlValueId: sSCL
+                                    HdlOp: AND
+                                        list: ops
+                                            HdlValueId: slave_wait
+                                            HdlOp: NEG
+                                                list: ops
+                                                    HdlValueId: sSCL
+                            HdlValueId: slave_wait
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@AND to 
+    HdlOp: AND
+        list: ops
+            HdlValueId: dscl_oen
+            HdlOp: NEG
+                list: ops
+                    HdlValueId: sSCL
+    UPD HdlValueId@@slave_wait to scl_oen
+    MOV HdlValueId@@slave_wait to 
+    HdlValueId: slave_wait
+    UPD HdlOp@@AND to AND
+        UPD HdlValueId@@dscl_oen to dSCL
+
+
+CommitId: 1eb992c14451eec55f88b7d7aff987379144c47c
+Added SCL clock synchronization logic
+--- a/rtl/vhdl/i2c_master_bit_ctrl.vhd
++++ b/rtl/vhdl/i2c_master_bit_ctrl.vhd
+@@ -202,7 +221,7 @@ begin
+ 	      if (rst = '1') then
+ 	        cnt    <= (others => '0');
+ 	        clk_en <= '1';
+-	      elsif ( (cnt = 0) or (ena = '0') ) then
++	      elsif ( (cnt = 0) or (ena = '0') or (scl_sync = '1') ) then
+ 	        cnt    <= clk_cnt;
+ 	        clk_en <= '1';
+ 	      elsif (slave_wait = '1') then
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@OR to 
+    HdlOp: OR
+        list: ops
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: cnt
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: ena
+                    HdlValueInt: 0
+
+
+CommitId: 1eb992c14451eec55f88b7d7aff987379144c47c
+Added SCL clock synchronization logic
+--- a/rtl/vhdl/i2c_master_bit_ctrl.vhd
++++ b/rtl/vhdl/i2c_master_bit_ctrl.vhd
+@@ -218,7 +237,6 @@ begin
+ 
+ 	-- generate bus status controller
+ 	bus_status_ctrl: block
+-	  signal dSCL, dSDA          : std_logic;  -- delayes sSCL and sSDA
+ 	  signal sta_condition       : std_logic;  -- start detected
+ 	  signal sto_condition       : std_logic;  -- stop detected
+ 	  signal cmd_stop            : std_logic;  -- STOP command
+ParseResult:
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@AND to 
+    INS HdlValueId@@scl_sync to 
+    UPD HdlOp@@AND to AND
+        INS list@@ops to AND
+
+
+CommitId: 9e9e84680057893c08a01187feb10e5021da0ba4
+fixed typo txt -> txr
+--- a/wishbone_i2c_master.vhd
++++ b/wishbone_i2c_master.vhd
+@@ -103,7 +104,7 @@ begin
+ 
+ 
+ 	-- assign DAT_O
+-	assign_dato : process(ADR_I, prer, ctr, txt, cr, rxr, sr)
++	assign_dato : process(ADR_I, prer, ctr, txr, cr, rxr, sr)
+ 	begin
+ 		case ADR_I is
+ 			when "00" =>
+ParseResult:
+UPD HdlStmProcess@@ to 
+    UPD HdlValueId@@txt to txr
+
+
+CommitId: 9a00a39c43c73d0f8790ce93a2bc874b99d2be73
+Fixed wb_ack_o generation bug.
+--- a/rtl/verilog/i2c_master_byte_ctrl.v
++++ b/rtl/verilog/i2c_master_byte_ctrl.v
+@@ -71,7 +113,7 @@ module i2c_master_byte_ctrl (
+ 
+ 	// signals for state machine
+ 	wire       go;
+-	reg  [3:0] dcnt;
++	reg  [2:0] dcnt;
+ 	wire       cnt_done;
+ 
+ 	//
+
+ParseResult:
+UPD HdlIdDef@@dcnt to dcnt
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueInt@@3 to 2
+
+
+CommitId: 9a00a39c43c73d0f8790ce93a2bc874b99d2be73
+Fixed wb_ack_o generation bug.
+--- a/rtl/verilog/i2c_master_byte_ctrl.v
++++ b/rtl/verilog/i2c_master_byte_ctrl.v
+@@ -244,6 +290,7 @@ module i2c_master_byte_ctrl (
+ 									end
+ 
+ 								shift    <= #1 1'b1;
++								core_txd <= #1 ack_in;
+ 							end
+ 
+ 				ST_ACK:
+
+ParseResult:
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: ack_out
+    HdlValueInt: 1
+
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            MOV HdlValueId@@ack_out to ops
+            HdlValueId: ack_out
+            DEL HdlValueId@@core_rxd from ops
+            DEL list@@ops from ASSIGN
+        DEL HdlOp@@ASSIGN from body
+
+
+CommitId: 9a00a39c43c73d0f8790ce93a2bc874b99d2be73
+Fixed wb_ack_o generation bug.
+--- a/rtl/verilog/i2c_master_byte_ctrl.v
++++ b/rtl/verilog/i2c_master_byte_ctrl.v
+@@ -261,7 +308,7 @@ module i2c_master_byte_ctrl (
+ 								end
+ 
+ 							// assign ack_out output to bit_controller_rxd (contains last received bit)
+-							ack_out = core_rxd;
++							ack_out <= #1 core_rxd;
+ 
+ 							// generate command acknowledge signal
+ 							cmd_ack  <= #1 1'b1;
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            MOV HdlValueId@@ack_out to ops
+            HdlValueId: ack_out
+            DEL HdlValueId@@core_rxd from ops
+            DEL list@@ops from ASSIGN
+        DEL HdlOp@@ASSIGN from body
+
+
+CommitId: 83975e06b203684fa02585c3f8936782a75ba6a0
+Fixed a small timing bug in the bit controller.\nAdded verilog simulation environment.
+--- a/rtl/vhdl/i2c_master_bit_ctrl.vhd
++++ b/rtl/vhdl/i2c_master_bit_ctrl.vhd
+@@ -122,20 +127,21 @@ entity i2c_master_bit_ctrl is
+ end entity i2c_master_bit_ctrl;
+ 
+ architecture structural of i2c_master_bit_ctrl is
+-	constant I2C_CMD_NOP  	: std_logic_vector(3 downto 0) := "0000";
+-	constant I2C_CMD_START	: std_logic_vector(3 downto 0) := "0001";
+-	constant I2C_CMD_STOP	 : std_logic_vector(3 downto 0) := "0010";
+-	constant I2C_CMD_READ	 : std_logic_vector(3 downto 0) := "0100";
+-	constant I2C_CMD_WRITE	: std_logic_vector(3 downto 0) := "1000";
++	constant I2C_CMD_NOP    : std_logic_vector(3 downto 0) := "0000";
++	constant I2C_CMD_START  : std_logic_vector(3 downto 0) := "0001";
++	constant I2C_CMD_STOP   : std_logic_vector(3 downto 0) := "0010";
++	constant I2C_CMD_READ   : std_logic_vector(3 downto 0) := "0100";
++	constant I2C_CMD_WRITE  : std_logic_vector(3 downto 0) := "1000";
+ 
+ 	type states is (idle, start_a, start_b, start_c, start_d, stop_a, stop_b, stop_c, rd_a, rd_b, rd_c, rd_d, wr_a, wr_b, wr_c, wr_d);
+ 	signal c_state : states;
+ 
+-	signal iscl_oen, isda_oen : std_logic;		-- internal I2C lines
+-	signal sSCL, sSDA : std_logic;			       -- synchronized SCL and SDA inputs
++	signal iscl_oen, isda_oen : std_logic;          -- internal I2C lines
++	signal sSCL, sSDA         : std_logic;          -- synchronized SCL and SDA inputs
++	signal dscl_oen           : std_logic;          -- delayed scl_oen signals
+ 
+-	signal clk_en, slave_wait :std_logic;		-- clock generation signals
+---	signal cnt : unsigned(15 downto 0) := clk_cnt;	-- clock divider counter (simulation)
++	signal clk_en, slave_wait :std_logic;           -- clock generation signals
++--	signal cnt : unsigned(15 downto 0) := clk_cnt;  -- clock divider counter (simulation)
+ 	signal cnt : unsigned(15 downto 0);             -- clock divider counter (synthesis)
+ 
+ begin
+
+ParseResult:
+INS HdlIdDef@@dscl_oen to objs
+HdlIdDef: dscl_oen
+    HdlValueId: std_logic
+    HdlDirection: INTERNAL
+
+
+CommitId: 83975e06b203684fa02585c3f8936782a75ba6a0
+Fixed a small timing bug in the bit controller.\nAdded verilog simulation environment.
+--- a/rtl/vhdl/i2c_master_bit_ctrl.vhd
++++ b/rtl/vhdl/i2c_master_bit_ctrl.vhd
+@@ -148,8 +154,16 @@ begin
+ 		end if;
+ 	end process synch_SCL_SDA;
+ 	
++	-- delay scl_oen
++	process (clk)
++	begin
++		if (clk'event and clk = '1') then
++			dscl_oen <= iscl_oen after Tcq;
++		end if;
++	end process;
++
+ 	-- whenever the slave is not ready it can delay the cycle by pulling SCL low
+-	slave_wait <= iscl_oen and not sSCL;
++	slave_wait <= dscl_oen and not sSCL;
+ 
+ 	-- generate clk enable signal
+ 	gen_clken: process(clk, nReset)
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlValueId: clk
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlOp: AND
+                    list: ops
+                        HdlOp: APOSTROPHE
+                            list: ops
+                                HdlValueId: clk
+                                HdlValueId: event
+                        HdlOp: EQ
+                            list: ops
+                                HdlValueId: clk
+                                HdlValueInt: 1
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmAssign
+                            HdlValueId: iscl_oen
+                            HdlValueId: dscl_oen
+                list: elifs
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlValueId@@iscl_oen to dscl_oen
+
+
+CommitId: 6c6faa865debf9fa930b0f3c0b30e283c3fc0309
+Fixed some synthesis warnings.
+--- a/rtl/verilog/i2c_master_byte_ctrl.v
++++ b/rtl/verilog/i2c_master_byte_ctrl.v
+@@ -136,7 +137,7 @@ module i2c_master_byte_ctrl (
+ 		if (!nReset)
+ 			begin
+ 				core_cmd <= #1 `I2C_CMD_NOP;
+-				core_txd <= #1 sr[7];
++				core_txd <= #1 1'b0;
+ 				
+ 				shift    <= #1 1'b0;
+ 				ld       <= #1 1'b0;
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlValueInt@@7 to 0
+        MOV HdlValueInt@@7 to ops
+        HdlValueInt: 7
+        DEL HdlValueId@@sr from ops
+        DEL list@@ops from INDEX
+    DEL HdlOp@@INDEX from 
+
+
+CommitId: 6c6faa865debf9fa930b0f3c0b30e283c3fc0309
+Fixed some synthesis warnings.
+--- a/rtl/verilog/i2c_master_top.v
++++ b/rtl/verilog/i2c_master_top.v
+@@ -201,7 +203,7 @@ module i2c_master_top(
+ 			else if (wb_rst_i)
+ 				wb_inta_o <= #1 1'b0;
+ 			else
+-				wb_inta_o <= #1 irq_flag && ctr[6]; // interrupt signal is only generated when IEN (interrupt enable bit is set)
++				wb_inta_o <= #1 irq_flag && ien; // interrupt signal is only generated when IEN (interrupt enable bit is set)
+ 
+ 		// assign status register bits
+ 		assign sr[7]   = rxack;
+ParseResult:
+UPD HdlStmAssign@@if_false to if_false
+    INS HdlValueId@@wb_inta_o to if_false
+    UPD HdlOp@@AND_LOG to AND_LOG
+        INS HdlValueId@@ien to ops
+
+
+CommitId: 601e35bb043cd8bc852718f70e4dba9d7118ca60
+Fixed a bug where the core would signal an arbitration lost (AL bit set), when another master controls the bus and the other master generates a STOP bit.
+--- a/rtl/verilog/i2c_master_bit_ctrl.v
++++ b/rtl/verilog/i2c_master_bit_ctrl.v
+@@ -346,11 +351,11 @@ module i2c_master_bit_ctrl(
+ 	        cmd_ack   <= #1 1'b0; // default no command acknowledge + assert cmd_ack only 1clk cycle
+ 
+ 	        if (clk_en)
+-	          case (c_state) // synopsis full_case parallel_case
++	          case (c_state) // synopsys full_case parallel_case
+ 	            // idle state
+ 	            idle:
+ 	            begin
+-	                case (cmd) // synopsis full_case parallel_case
++	                case (cmd) // synopsys full_case parallel_case
+ 	                  `I2C_CMD_START:
+ 	                     c_state <= #1 start_a;
+ 
+ParseResult:
+UPD HdlStmAssign@@if_false to if_false
+    UPD HdlOp@@OR to OR
+        UPD HdlOp@@AND to AND
+            INS HdlOp@@AND to ops
+            UPD HdlOp@@AND to AND
+                INS list@@ops to AND
+                INS HdlOp@@OR_UNARY to ops
+                HdlOp: OR_UNARY
+                    list: ops
+                        HdlValueId: c_state
+
+
+CommitId: 8d8d9461389c5f28fbb495df418d30ffd4ff78a1
+Fixed simulation issue when writing to CR register
+--- a/rtl/vhdl/i2c_master_top.vhd
++++ b/rtl/vhdl/i2c_master_top.vhd
+@@ -219,6 +223,7 @@ begin
+ 	           when "001" => prer(15 downto 8) <= unsigned(wb_dat_i);
+ 	           when "010" => ctr               <= wb_dat_i;
+ 	           when "011" => txr               <= wb_dat_i;
++	           when "100" => null; --write to CR, avoid executing the others clause
+ 
+ 	           -- illegal cases, for simulation only
+ 	           when others =>
+ParseResult:
+UPD HdlStmCase@@wb_adr_i to wb_adr_i
+    INS tuple@@ to cases
+    tuple
+        str
+        HdlStmBlock: SEQ
+            list: body
+                HdlStmNop
+
+
+CommitId: 2764d0451bbd146e8fc1ee06febf0b4f9483cf77
+Fixed slave_wait clocked event syntax
+--- a/rtl/vhdl/i2c_master_bit_ctrl.vhd
++++ b/rtl/vhdl/i2c_master_bit_ctrl.vhd
+@@ -206,7 +209,7 @@ begin
+ 	begin
+ 	    if (nReset = '0') then
+ 	      slave_wait <= '0';
+-	    else
++	    elsif (clk'event and clk = '1') then
+ 	      slave_wait <= (iscl_oen and not dscl_oen and not sSCL) or (slave_wait and not sSCL);
+ 	    end if;
+ 	end process;
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+    INS tuple@@ to elifs
+    INS HdlOp@@AND to 
+    UPD HdlOp@@AND to AND
+        INS list@@ops to AND
+        INS HdlOp@@APOSTROPHE to ops
+        INS HdlOp@@EQ to ops
+        HdlOp: EQ
+            list: ops
+                HdlValueId: clk
+                HdlValueInt: 1
+        UPD HdlOp@@APOSTROPHE to APOSTROPHE
+            INS HdlValueId@@clk to ops
+            INS HdlValueId@@event to ops
+
+UPD HdlStmIf@@ to 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlOp: OR
+                    list: ops
+                        HdlOp: AND
+                            list: ops
+                                HdlOp: AND
+                                    list: ops
+                                        HdlValueId: iscl_oen
+                                        HdlOp: NEG
+                                            list: ops
+                                                HdlValueId: dscl_oen
+                                HdlOp: NEG
+                                    list: ops
+                                        HdlValueId: sSCL
+                        HdlOp: AND
+                            list: ops
+                                HdlValueId: slave_wait
+                                HdlOp: NEG
+                                    list: ops
+                                        HdlValueId: sSCL
+                HdlValueId: slave_wait
+    UPD list@@elifs to ops
+    MOV list@@elifs to 
+    list: elifs
+
+
+CommitId: 9655de19764c0f5af300a10d512b3f51d55cad6b
+Fixed type iscl_oen instead of scl_oen
+--- a/rtl/vhdl/i2c_master_bit_ctrl.vhd
++++ b/rtl/vhdl/i2c_master_bit_ctrl.vhd
+@@ -203,13 +207,13 @@ begin
+ 	    if (nReset = '0') then
+ 	      slave_wait <= '0';
+ 	    else
+-	      slave_wait <= (scl_oen and not dscl_oen and not sSCL) or (slave_wait and not sSCL);
++	      slave_wait <= (iscl_oen and not dscl_oen and not sSCL) or (slave_wait and not sSCL);
+ 	    end if;
+ 	end process;
+ 
+ 	-- master drives SCL high, but another master pulls it low
+ 	-- master start counting down its low cycle now (clock synchronization)
+-	scl_sync <= dSCL and not sSCL and scl_oen;
++	scl_sync <= dSCL and not sSCL and iscl_oen;
+ 
+ 	-- generate clk enable signal
+ 	gen_clken: process(clk, nReset)
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlValueId@@scl_oen to iscl_oen
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@OR to OR
+        UPD HdlOp@@AND to AND
+            UPD HdlOp@@AND to AND
+                UPD HdlValueId@@scl_oen to iscl_oen
+
+

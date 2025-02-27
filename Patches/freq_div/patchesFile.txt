@@ -1,0 +1,389 @@
+CommitId: 8b7134cd157ae470198c3ddb7949859a3c1fe3c9
+added comments and fixed a bug from the trasition between even to odd N
+--- a/rtl/divider.v
++++ b/rtl/divider.v
+@@ -1,27 +1,29 @@
+ 
+ `include "defines.v"
+ 
+-module divider(in, out, P, reset);
++module divider(in, out, N, reset);
+ 
+-	input in;
+-	input [`SIZE-1:0] P;
+-	input reset;
+-	output out;
++	input in;				// input clock
++	input [`SIZE-1:0] N;	// the number to be divided by
++	input reset;			// asynchronous reset
++	output out;				// divided output clock
+ 	
+-	wire out_odd;
+-	wire out_even;
+-	wire not_zero;
+-	wire enable_even;
+-	wire enable_odd;
++	wire out_odd;			// output of odd divider
++	wire out_even;			// output of even divider
++	wire not_zero;			// signal to find divide by 0 case
++	wire enable_even;		// enable of even divider
++	wire enable_odd;		// enable of odd divider
+ 
+-	assign not_zero = | P[`SIZE-1:1];
++	assign not_zero = | N[`SIZE-1:1];
+ 
+-	assign out = (out_odd & P[0] & not_zero) | (out_even & !P[0]);
++	assign out = (out_odd & N[0] & not_zero) | (out_even & !N[0]);
+ 	//assign out = out_odd | out_even;
+-	assign enable_odd = P[0] & not_zero;
+-	assign enable_even = !P[0];
++	assign enable_odd = N[0] & not_zero;
++	assign enable_even = !N[0];
+ 
+-	even even_0(in, out_even, P, reset, not_zero, enable_even);
+-	odd odd_0(in, out_odd, P, reset, enable_odd);
++	// Even divider
++	even even_0(in, out_even, N, reset, not_zero, enable_even);
++	// Odd divider
++	odd odd_0(in, out_odd, N, reset, enable_odd);
+ 	
+ endmodule //divider
+ParseResult:
+UPD HdlIdDef@@P to N
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@OR_UNARY to OR_UNARY
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@P to N
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@P to N
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@NEG_LOG to NEG_LOG
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@P to N
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@OR to OR
+        UPD HdlOp@@AND to AND
+            UPD HdlOp@@AND to AND
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueId@@P to N
+        UPD HdlOp@@AND to AND
+            UPD HdlOp@@NEG_LOG to NEG_LOG
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueId@@P to N
+
+
+CommitId: 4dd69d9d11b816eb0865920870e269102b6a74a6
+fixed another bug in the odd divider
+--- a/rtl/odd.v
++++ b/rtl/odd.v
+@@ -36,14 +36,14 @@ module odd(clk, out, N, reset, enable);
+ 			end
+ 			else
+ 			begin
+-				counter <= counter-1;
++				counter <= counter - 1'b1;
+ 			end
+ 		end
+ 	end
+ 
+ 	reg [`SIZE-1:0] initial_begin;		// this is used to offset the negative edge counter
+ 	wire [`SIZE:0] interm_3;			// from the positive edge counter in order to
+-	assign interm_3 = {1'b0,N} + 3;		// guarante 50% duty cycle.
++	assign interm_3 = {1'b0,N} + 2'b11;		// guarante 50% duty cycle.
+ 
+ 	// counter driven by negative edge of clock.
+ 	always @(negedge clk)
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@ADD to ADD
+        UPD HdlValueInt@@3 to 11
+
+
+CommitId: 4dd69d9d11b816eb0865920870e269102b6a74a6
+fixed another bug in the odd divider
+--- a/rtl/odd.v
++++ b/rtl/odd.v
+@@ -100,6 +100,10 @@ module odd(clk, out, N, reset, enable);
+ 				rst_pulse <= 0;
+ 			end
+ 		end
++	end
++
++	always @(posedge clk)
++	begin
+ 		old_N <= N;	// always save the old N value to guarante reset from
+ 	end				// an even-to-odd transition.
+ 
+ParseResult:
+INS HdlStmProcess@@ to objs
+
+UPD HdlStmProcess@@ to 
+    INS list@@sensitivity to 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueId: N
+    HdlValueId: old_N
+
+
+CommitId: 8b7134cd157ae470198c3ddb7949859a3c1fe3c9
+added comments and fixed a bug from the trasition between even to odd N
+--- a/rtl/odd.v
++++ b/rtl/odd.v
+@@ -1,36 +1,37 @@
+ 
+ `include "defines.v"
+ 
+-module odd(clk, out, P, reset, enable);
++module odd(clk, out, N, reset, enable);
+ 
+-	input clk;	// slow clock
+-	output out;
+-	input [`SIZE-1:0] P;
+-	input reset;
+-	input enable;
++	input clk;					// slow clock
++	output out;					// fast output clock
++	input [`SIZE-1:0] N;		// division factor
++	input reset;				// synchronous reset
++	input enable;				// odd enable
+ 
+-	reg [`SIZE-1:0] counter;
+-	reg [`SIZE-1:0] counter2;
+-	reg out_counter;
+-	reg out_counter2;
+-	reg rst_pulse;
+-	reg [`SIZE-1:0] old_P;
+-	wire not_zero;
+-
+-	assign out = out_counter2 ^ out_counter;
++	reg [`SIZE-1:0] counter;	// these 2 counters are used
++	reg [`SIZE-1:0] counter2;	// to non-overlapping signals
++	reg out_counter;			// positive edge triggered counter
++	reg out_counter2;			// negative edge triggered counter
++	reg rst_pulse;				// pulse generated when vector N changes
++	reg [`SIZE-1:0] old_N;		// gets set to old N when N is changed
++	wire not_zero;				// if !not_zero, we devide by 1
+ 
++	assign out = out_counter2 ^ out_counter;	// xor to generate 50% duty, half-period
++												// waves of final output
++	// positive edge counter/divider
+ 	always @(posedge clk)
+ 	begin
+ 		if(reset | rst_pulse)
+ 		begin
+-			counter <= P;
++			counter <= N;
+ 			out_counter <= 1;
+ 		end
+ 		else if (enable)
+ 		begin
+ 			if(counter == 1)
+ 			begin
+-				counter <= P;
++				counter <= N;
+ 				out_counter <= ~out_counter;
+ 			end
+ 			else
+
+ParseResult:
+UPD HdlIdDef@@old_P to old_N
+
+UPD HdlIdDef@@P to N
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@P to N
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@P to N
+
+
+CommitId: 8b7134cd157ae470198c3ddb7949859a3c1fe3c9
+added comments and fixed a bug from the trasition between even to odd N
+--- a/rtl/odd.v
++++ b/rtl/odd.v
+@@ -40,23 +41,24 @@ module odd(clk, out, P, reset, enable);
+ 		end
+ 	end
+ 
+-	reg [`SIZE-1:0] initial_begin;
+-	wire [`SIZE:0] interm_3;
+-	assign interm_3 = {1'b0,P} + 3;
++	reg [`SIZE-1:0] initial_begin;		// this is used to offset the negative edge counter
++	wire [`SIZE:0] interm_3;			// from the positive edge counter in order to
++	assign interm_3 = {1'b0,N} + 3;		// guarante 50% duty cycle.
+ 
++	// counter driven by negative edge of clock.
+ 	always @(negedge clk)
+ 	begin
+-		if(reset | rst_pulse)
+-		begin
+-			counter2 <= P;
++		if(reset | rst_pulse)						// reset the counter at system reset
++		begin										// or change of N.
++			counter2 <= N;
+ 			initial_begin <= interm_3[`SIZE:1];
+ 			out_counter2 <= 1;
+ 		end
+-		else if(initial_begin <= 1 && enable)
+-		begin
++		else if(initial_begin <= 1 && enable)		// Do normal logic after odd calibration.
++		begin										// This is the same as the even counter.
+ 			if(counter2 == 1)
+ 			begin
+-				counter2 <= P;
++				counter2 <= N;
+ 				out_counter2 <= ~out_counter2;
+ 			end
+ 			else
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@ADD to ADD
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlValueId@@P to N
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@P to N
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@P to N
+
+
+CommitId: 8b7134cd157ae470198c3ddb7949859a3c1fe3c9
+added comments and fixed a bug from the trasition between even to odd N
+--- a/rtl/odd.v
++++ b/rtl/odd.v
+@@ -78,7 +91,7 @@ module odd(clk, out, P, reset, enable);
+ 		end
+ 		else if(enable)
+ 		begin
+-			if(P != old_P)
++			if(N != old_N)		// pulse when reset changes
+ 			begin
+ 				rst_pulse <= 1;
+ 			end
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@NE to NE
+        UPD HdlValueId@@P to N
+        UPD HdlValueId@@old_P to old_N
+
+
+CommitId: 8b7134cd157ae470198c3ddb7949859a3c1fe3c9
+added comments and fixed a bug from the trasition between even to odd N
+--- a/rtl/odd.v
++++ b/rtl/odd.v
+@@ -86,8 +99,8 @@ module odd(clk, out, P, reset, enable);
+ 			begin
+ 				rst_pulse <= 0;
+ 			end
+-			old_P <= P;
+ 		end
+-	end
++		old_N <= N;	// always save the old N value to guarante reset from
++	end				// an even-to-odd transition.
+ 
+ endmodule //odd
+ParseResult:
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueId: N
+    HdlValueId: old_N
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@NE to NE
+        UPD HdlValueId@@P to N
+        UPD HdlValueId@@old_P to old_N
+
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueId: P
+    HdlValueId: old_P
+
+
+CommitId: 8b7134cd157ae470198c3ddb7949859a3c1fe3c9
+added comments and fixed a bug from the trasition between even to odd N
+--- a/rtl/even.v
++++ b/rtl/even.v
+@@ -1,40 +1,42 @@
+ 
+ `include "defines.v"
+ 
+-module even(clk, out, P, reset, not_zero, enable);
++module even(clk, out, N, reset, not_zero, enable);
+ 
+-	input clk;
+-	output out;
+-	input [`SIZE-1:0] P;
+-	input reset;
+-	input not_zero;
+-	input enable;
++	input clk;				// fast input clock
++	output out;				// slower divided clock
++	input [`SIZE-1:0] N;	// divide by factor 'N'
++	input reset;			// asynchronous reset
++	input not_zero;			// if !not_zero divide by 1
++	input enable;			// enable the even divider
+ 
+ 	reg [`SIZE-1:0] counter;
+ 	reg out_counter;
+ 	wire [`SIZE-1:0] div_2;
+ 
+ 
++	// if N=0 just output the clock, otherwise, divide it.
+ 	assign out = (clk & !not_zero) | (out_counter & not_zero);
+-	assign div_2 = {1'b0, P[`SIZE-1:1]};
++	assign div_2 = {1'b0, N[`SIZE-1:1]};
+ 
++	// simple flip-flop even divider
+ 	always @(posedge reset or posedge clk)
+ 	begin
+-		if(reset)
++		if(reset)						// asynch. reset
+ 		begin
+ 			counter <= 1;
+ 			out_counter <= 1;
+ 		end
+-		else if(enable)
++		else if(enable)					// only use switching power if enabled
+ 		begin
+-			if(counter == 1)
+-			begin
++			if(counter == 1)			// divide after counter has reached bottom
++			begin						// of interval 'N' which will be value '1'
+ 				counter <= div_2;
+ 				out_counter <= ~out_counter;
+ 			end
+ 			else
+-			begin
+-				counter <= counter-1;
++			begin						// decrement the counter and wait
++				counter <= counter-1;	// to start next trasition.
+ 			end
+ 		end
+ 	end
+ParseResult:
+UPD HdlIdDef@@P to N
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@P to N
+
+

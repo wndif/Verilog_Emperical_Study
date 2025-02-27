@@ -1,0 +1,7 @@
+,insert,update,move,delete
+HdlIdDef-HdlModuleDef,1.0,,,
+HdlStmProcess-HdlModuleDef,1.0,2.0,,2.0
+HdlStmAssign-HdlStmProcess,2.0,3.0,2.0,
+HdlStmIf-HdlStmProcess,,2.0,,
+HdlOp-InfixExpression-HdlStmIf,,1.0,1.0,
+HdlStmAssign-HdlStmIf,,1.0,1.0,

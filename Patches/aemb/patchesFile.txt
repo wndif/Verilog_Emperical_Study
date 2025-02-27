@@ -1,0 +1,3117 @@
+CommitId: a4f032f32043fbd3cf3956ab2af68e69b795a4dc
+Made some changes to the interrupt control. In some cases, the interrupt logic waits forever and doesn't execute. Bug was discovered by M. Ettus.
+--- a/rtl/verilog/aeMB_core.v
++++ b/rtl/verilog/aeMB_core.v
+@@ -53,8 +56,8 @@ module aeMB_core (/*AUTOARG*/
+    iwb_stb_o, iwb_adr_o, dwb_we_o, dwb_stb_o, dwb_sel_o, dwb_dat_o,
+    dwb_adr_o,
+    // Inputs
+-   sys_rst_i, sys_int_i, sys_exc_i, sys_clk_i, iwb_dat_i, iwb_ack_i,
+-   dwb_dat_i, dwb_ack_i
++   sys_rst_i, sys_int_i, sys_clk_i, iwb_dat_i, iwb_ack_i, dwb_dat_i,
++   dwb_ack_i
+    );
+    // Instruction WB address space
+    parameter ISIZ = 32;
+
+ParseResult:
+DEL HdlIdDef@@sys_exc_i from ports
+HdlIdDef: sys_exc_i
+    HdlDirection: IN
+
+
+CommitId: a4f032f32043fbd3cf3956ab2af68e69b795a4dc
+Made some changes to the interrupt control. In some cases, the interrupt logic waits forever and doesn't execute. Bug was discovered by M. Ettus.
+--- a/rtl/verilog/aeMB_core.v
++++ b/rtl/verilog/aeMB_core.v
+@@ -89,12 +91,13 @@ module aeMB_core (/*AUTOARG*/
+    wire			nclk;			// From control of aeMB_control.v
+    wire			prst;			// From control of aeMB_control.v
+    wire			prun;			// From control of aeMB_control.v
++   wire [1:0]		rATOM;			// From decode of aeMB_decode.v
+    wire			rBRA;			// From decode of aeMB_decode.v
+    wire			rDLY;			// From decode of aeMB_decode.v
+    wire [3:0]		rDWBSEL;		// From aslu of aeMB_aslu.v
+    wire			rDWBSTB;		// From decode of aeMB_decode.v
+    wire			rDWBWE;			// From decode of aeMB_decode.v
+-   wire [1:0]		rFSM;			// From control of aeMB_control.v
++   wire [2:0]		rFSM;			// From control of aeMB_control.v
+    wire [15:0]		rIMM;			// From decode of aeMB_decode.v
+    wire			rIWBSTB;		// From fetch of aeMB_fetch.v
+    wire			rLNK;			// From decode of aeMB_decode.v
+
+ParseResult:
+MOV HdlIdDef@@rFSM to objs
+HdlIdDef: rFSM
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+UPD HdlIdDef@@rFSM to rATOM
+
+INS HdlIdDef@@rFSM to objs
+HdlIdDef: rFSM
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 2
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+
+CommitId: 63f7ec5a1ded33eb53a89a60f28f877c8cb76bc9
+Fixed Carry bit bug.
+--- a/rtl/verilog/aeMB2_aslu.v
++++ b/rtl/verilog/aeMB2_aslu.v
+@@ -101,6 +101,7 @@ module aeMB2_aslu (/*AUTOARG*/
+    reg 			rMSR_C0, 
+ 			rMSR_C1, 
+ 			rMSR_C,
++			rMSR_CC,
+ 			rMSR_CL[0:1];
+    
+    
+
+ParseResult:
+INS HdlIdDef@@rMSR_CC to objs
+HdlIdDef: rMSR_CC
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+
+CommitId: 63f7ec5a1ded33eb53a89a60f28f877c8cb76bc9
+Fixed Carry bit bug.
+--- a/rtl/verilog/aeMB2_aslu.v
++++ b/rtl/verilog/aeMB2_aslu.v
+@@ -163,19 +164,27 @@ module aeMB2_aslu (/*AUTOARG*/
+    // TODO: Optimise
+    
+    wire 		wMSR_CX, wMSR_C;   
+-   assign 		wMSR_CX = (pha_i) ? rMSR_C0 : rMSR_C1;   
++   assign 		wMSR_CX = (pha_i) ? rMSR_C0 : rMSR_C1;
++   
+    assign 		wMSR_C = (rOPC_IF == 6'o44) & wMSR_CX | // SRX
+ 				 (rOPC_IF[5:4] == 2'o0) & rOPC_IF[1] & wMSR_CX | // ADDC/RSUBC
+ 				 (rOPC_IF[5:4] == 2'o0) & (rOPC_IF[1:0] == 2'o1); // RSUB
+-          
++   /* 
++   assign 		wMSR_C = ((rOPC_IF[5:4] == 2'o0) & (rOPC_OF[1:0] == 2'o1)) ? 1'b1 : // RSUB = 1
++				 ((rOPC_IF[5:4] == 2'o0) & (rOPC_OF[1:0] == 2'o0)) ? 1'b0 : // ADD = 0
++				 wMSR_CX;   
++   */
++     
+    always @(posedge clk_i)
+      if (rst_i) begin
+ 	/*AUTORESET*/
+ 	// Beginning of autoreset for uninitialized flops
+ 	rMSR_C <= 1'h0;
++	rMSR_CC <= 1'h0;
+ 	// End of automatics
+      end else if (ena_i) begin
+-	rMSR_C <= #1 wMSR_C;	
++	rMSR_C <= #1 wMSR_CX;
++	rMSR_CC <= #1 wMSR_C;	
+      end
+    
+    /* 
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+
+UPD HdlStmProcess@@ to 
+    MOV list@@sensitivity to 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk_i
+
+INS HdlStmIf@@body to 
+
+UPD HdlStmIf@@body to body
+    MOV HdlStmBlock@@SEQ to body
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: rMSR_C
+    DEL HdlValueId@@rst_i from body
+    DEL list@@elifs from body
+    list: elifs
+        tuple
+            HdlValueId: ena_i
+            HdlStmBlock: SEQ
+                list: body
+                    HdlStmAssign
+                        HdlValueId: wMSR_C
+                        HdlValueId: rMSR_C
+                        HdlValueInt: 1
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: rMSR_CC
+
+DEL HdlStmIf@@body from 
+
+DEL HdlStmProcess@@ from objs
+
+
+CommitId: 63f7ec5a1ded33eb53a89a60f28f877c8cb76bc9
+Fixed Carry bit bug.
+--- a/rtl/verilog/aeMB2_aslu.v
++++ b/rtl/verilog/aeMB2_aslu.v
+@@ -196,8 +205,8 @@ module aeMB2_aslu (/*AUTOARG*/
+    
+    assign 		{wCMPC,wCMP} = {wSUBC,wCMPF,wSUB[30:0]};  
+    assign 		wOPX = (rOPC[0] & !rOPC[5]) ? ~rOPA : rOPA ;
+-   //assign 		wOPC = ((wMSR_C & rOPC[1]) | (rOPC[0] & !rOPC[1])) & (!rOPC[5] & ~&rOPC[5:4]);
+-   assign 		wOPC = rMSR_C;   
++   //assign 		wOPC = ((rMSR_C & rOPC[1]) | (rOPC[0] & !rOPC[1])) & (!rOPC[5] & ~&rOPC[5:4]);
++   assign 		wOPC = rMSR_CC;   
+    
+    assign 		{wSUBC,wSUB} = {wADDC,wADD}; 
+    assign 		{wADDC,wADD} = (rOPB + wOPX) + wOPC; 
+
+ParseResult:
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlValueId: rMSR_CC
+    HdlValueId: wOPC
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlValueId: rMSR_C
+    HdlValueId: wOPC
+
+
+CommitId: 63f7ec5a1ded33eb53a89a60f28f877c8cb76bc9
+Fixed Carry bit bug.
+--- a/rtl/verilog/aeMB2_aslu.v
++++ b/rtl/verilog/aeMB2_aslu.v
+@@ -207,8 +216,8 @@ module aeMB2_aslu (/*AUTOARG*/
+    always @(rIMM or rOPC or wADD or wADDC or wCMP
+ 	    or wCMPC or wSUB or wSUBC)
+      case ({rOPC[3],rOPC[0],rIMM[0]})
+-       4'h2, 4'h6, 4'h7: {rRES_ADDC,rRES_ADD} <= #1 {~wSUBC,wSUB}; // SUB
+-       4'h3: {rRES_ADDC,rRES_ADD} <= #1 {~wCMPC,wCMP}; // CMP
++       4'h2, 4'h6, 4'h7: {rRES_ADDC,rRES_ADD} <= #1 {wSUBC,wSUB}; // SUB
++       4'h3: {rRES_ADDC,rRES_ADD} <= #1 {wCMPC,wCMP}; // CMP
+        default: {rRES_ADDC,rRES_ADD} <= #1 {wADDC,wADD};       
+      endcase // case ({rOPC[3],rOPC[0],rIMM[0]})
+ 
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlOp@@NEG to NEG
+            MOV HdlValueId@@wSUBC to ops
+            HdlValueId: wSUBC
+            DEL list@@ops from NEG
+        DEL HdlOp@@NEG from ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlOp@@NEG to NEG
+            MOV HdlValueId@@wSUBC to ops
+            HdlValueId: wSUBC
+            DEL list@@ops from NEG
+        DEL HdlOp@@NEG from ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlOp@@NEG to NEG
+            MOV HdlValueId@@wSUBC to ops
+            HdlValueId: wSUBC
+            DEL list@@ops from NEG
+        DEL HdlOp@@NEG from ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlOp@@NEG to NEG
+            MOV HdlValueId@@wCMPC to ops
+            HdlValueId: wCMPC
+            DEL list@@ops from NEG
+        DEL HdlOp@@NEG from ops
+
+
+CommitId: 63f7ec5a1ded33eb53a89a60f28f877c8cb76bc9
+Fixed Carry bit bug.
+--- a/rtl/verilog/aeMB2_aslu.v
++++ b/rtl/verilog/aeMB2_aslu.v
+@@ -428,7 +437,7 @@ module aeMB2_aslu (/*AUTOARG*/
+      //case (rOPC[5:4])
+        3'o0: xMSR_C <= (fADDC) ? rRES_ADDC : rMSR_C; // ADD/SUB
+        3'o2: case (rOPC[2:0])
+-	       3'o5: xMSR_C <= (rIMM[14]) ? rOPC[2] : rMSR_C; // MTS
++	       3'o5: xMSR_C <= (rIMM[14]) ? rOPA[2] : rMSR_C; // MTS
+ 	       3'o4: xMSR_C <= (&rIMM[6:5]) ? rMSR_C : rRES_SFTC; // SRX
+ 	       default: xMSR_C <= rMSR_C;
+ 	     endcase // case (rOPC[2:0])
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@rOPC to rOPA
+
+
+CommitId: 0b2afa9905909e6ab8b47b0870ebfcc900deb097
+Minor enable fix
+--- a/rtl/verilog/aeMB2_sysc.v
++++ b/rtl/verilog/aeMB2_sysc.v
+@@ -181,7 +181,7 @@ module aeMB2_sysc (/*AUTOARG*/
+ 	dwb_wre_o <= 1'h0;
+ 	iwb_stb_o <= 1'h0;
+ 	// End of automatics
+-     end else begin
++     end else if (ena_o) begin
+ 	iwb_stb_o <= #1 (TXE | pha_o);
+ 
+ 	dwb_cyc_o <= #1 fLOD | fSTR | rMSR_BE;	
+
+ParseResult:
+UPD HdlStmIf@@body to body
+    INS list@@elifs to body
+    INS tuple@@ to elifs
+    INS HdlValueId@@ena_o to 
+
+UPD HdlStmIf@@body to body
+    MOV HdlStmBlock@@SEQ to body
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlOp: OR
+                    list: ops
+                        HdlValueId: TXE
+                        HdlValueId: pha_o
+                HdlValueId: iwb_stb_o
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlOp: OR
+                    list: ops
+                        HdlOp: OR
+                            list: ops
+                                HdlValueId: fLOD
+                                HdlValueId: fSTR
+                        HdlValueId: rMSR_BE
+                HdlValueId: dwb_cyc_o
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlOp: OR
+                    list: ops
+                        HdlValueId: fLOD
+                        HdlValueId: fSTR
+                HdlValueId: dwb_stb_o
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueId: fSTR
+                HdlValueId: dwb_wre_o
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlOp: TERNARY
+                    list: ops
+                        HdlValueId: FSL
+                        HdlOp: OR
+                            list: ops
+                                HdlValueId: fGET
+                                HdlValueId: fPUT
+                        HdlValueInt: x
+                HdlValueId: cwb_stb_o
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlOp: TERNARY
+                    list: ops
+                        HdlValueId: FSL
+                        HdlValueId: fPUT
+                        HdlValueInt: x
+                HdlValueId: cwb_wre_o
+                HdlValueInt: 1
+    DEL list@@elifs from body
+
+
+CommitId: 0b2afa9905909e6ab8b47b0870ebfcc900deb097
+Minor enable fix
+--- a/rtl/verilog/aeMB2_sysc.v
++++ b/rtl/verilog/aeMB2_sysc.v
+@@ -197,6 +197,9 @@ module aeMB2_sysc (/*AUTOARG*/
+ endmodule // aeMB2_sysc
+ 
+ /* $Log: not supported by cvs2svn $
++/* Revision 1.4  2007/12/16 03:25:02  sybreon
++/* Added interrupt support.
++/*
+ /* Revision 1.3  2007/12/13 20:12:11  sybreon
+ /* Code cleanup + minor speed regression.
+ /*
+ParseResult:
+UPD HdlStmIf@@body to body
+    INS list@@elifs to body
+    INS tuple@@ to elifs
+    INS HdlValueId@@ena_o to 
+
+
+CommitId: a4f032f32043fbd3cf3956ab2af68e69b795a4dc
+Made some changes to the interrupt control. In some cases, the interrupt logic waits forever and doesn't execute. Bug was discovered by M. Ettus.
+--- a/rtl/verilog/aeMB_aslu.v
++++ b/rtl/verilog/aeMB_aslu.v
+@@ -248,10 +252,10 @@ module aeMB_aslu (/*AUTOARG*/
+   
+    reg 		    rMSR_IE, xMSR_IE;   
+    wire 	    fMTS = (rOPC == 6'o45) & rIMM[14];      
+-   always @(/*AUTOSENSE*/fMTS or rMSR_C or rMXALU or rOPC or rRES_AC
+-	    or rRES_SC or wOPA)
++   always @(/*AUTOSENSE*/drun or fMTS or rMSR_C or rMXALU or rOPC
++	    or rRES_AC or rRES_SC or wOPA)
+ 	case (rMXALU)
+-	  2'o0: xMSR_C <= #1 (rOPC[2]) ? rMSR_C : rRES_AC;
++	  2'o0: xMSR_C <= #1 !(rOPC[5] | rOPC[2] | !drun) ? rRES_AC : rMSR_C;
+ 	  2'o2: xMSR_C <= #1 rRES_SC;
+ 	  2'o1: xMSR_C <= #1 (fMTS) ? wOPA[2] : rMSR_C;
+ 	  default: xMSR_C <= #1 rMSR_C;
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS HdlValueId@@drun to sensitivity
+
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@TERNARY to 
+    UPD HdlOp@@TERNARY to TERNARY
+        INS list@@ops to TERNARY
+        INS HdlOp@@NEG_LOG to ops
+        INS HdlValueId@@rMSR_C to ops
+        UPD HdlOp@@NEG_LOG to NEG_LOG
+            INS list@@ops to NEG_LOG
+            INS HdlOp@@OR to ops
+            UPD HdlOp@@OR to OR
+                INS list@@ops to OR
+                INS HdlOp@@NEG_LOG to ops
+                UPD HdlOp@@NEG_LOG to NEG_LOG
+                    INS list@@ops to NEG_LOG
+                UPD HdlOp@@OR to OR
+                    INS HdlOp@@INDEX to ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: rOPC
+                            HdlValueInt: 5
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        MOV HdlValueId@@rRES_AC to ops
+        HdlValueId: rRES_AC
+        UPD HdlValueId@@rMSR_C to drun
+        MOV HdlValueId@@rMSR_C to ops
+        HdlValueId: rMSR_C
+    UPD HdlOp@@TERNARY to OR
+    MOV HdlOp@@TERNARY to 
+    HdlOp: TERNARY
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: rOPC
+                    HdlValueInt: 2
+            HdlValueId: rMSR_C
+            HdlValueId: rRES_AC
+
+
+CommitId: a4f032f32043fbd3cf3956ab2af68e69b795a4dc
+Made some changes to the interrupt control. In some cases, the interrupt logic waits forever and doesn't execute. Bug was discovered by M. Ettus.
+--- a/rtl/verilog/aeMB_aslu.v
++++ b/rtl/verilog/aeMB_aslu.v
+@@ -259,7 +263,7 @@ module aeMB_aslu (/*AUTOARG*/
+ 
+    wire 	    fRTID = (rOPC == 6'o55) & rRD[0];   
+    always @(/*AUTOSENSE*/fMTS or fRTID or rFSM or rMSR_IE or wOPA) begin
+-      xMSR_IE <= (rFSM == 2'o1) ? 1'b0 :
++      xMSR_IE <= (rFSM == 3'o4) ? 1'b0 :
+ 		 (fRTID) ? 1'b1 : 
+ 		 (fMTS) ? wOPA[1] :
+ 		 rMSR_IE;      
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS HdlValueId@@drun to sensitivity
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        UPD HdlOp@@EQ to EQ
+            UPD HdlValueInt@@1 to 4
+
+
+CommitId: e2aeed675664c7251012c58731d013be20bbc71e
+Fixed data WISHBONE arbitration problem (reported by J Lee).
+--- a/rtl/verilog/aeMB_ctrl.v
++++ b/rtl/verilog/aeMB_ctrl.v
+@@ -36,7 +39,7 @@ module aeMB_ctrl (/*AUTOARG*/
+    dwb_wre_o,
+    // Inputs
+    rXCE, rDLY, rIMM, rALT, rOPC, rRD, rRA, rRB, rPC, rBRA, rMSR_IE,
+-   dwb_ack_i, gclk, grst, gena
++   dwb_ack_i, iwb_ack_i, gclk, grst, gena
+    );
+    // INTERNAL   
+    //output [31:2] rPCLNK;
+
+ParseResult:
+INS HdlIdDef@@iwb_ack_i to ports
+HdlIdDef: iwb_ack_i
+    HdlDirection: IN
+
+
+CommitId: e2aeed675664c7251012c58731d013be20bbc71e
+Fixed data WISHBONE arbitration problem (reported by J Lee).
+--- a/rtl/verilog/aeMB_ctrl.v
++++ b/rtl/verilog/aeMB_ctrl.v
+@@ -139,8 +145,9 @@ module aeMB_ctrl (/*AUTOARG*/
+    reg [4:0] 	 rRW, xRW;   
+    
+    wire 	 fSKIP = (rBRA & !rDLY);
+-
+-   always @(/*AUTOSENSE*/fLOD or fSKIP or fSTR or rXCE)
++   wire 	 fDACK = !(rDWBSTB ^ dwb_ack_i);
++   
++   always @(/*AUTOSENSE*/fLOD or fSKIP or fSTR or iwb_ack_i or rXCE)
+      if (fSKIP | |rXCE) begin
+ 	/*AUTORESET*/
+ 	// Beginning of autoreset for uninitialized flops
+
+ParseResult:
+INS HdlIdDef@@fDACK to objs
+HdlIdDef: fDACK
+    HdlOp: NEG_LOG
+        list: ops
+            HdlOp: XOR
+                list: ops
+                    HdlValueId: rDWBSTB
+                    HdlValueId: dwb_ack_i
+    HdlDirection: INTERNAL
+
+UPD HdlStmIf@@body to body
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD list@@body to ops
+        MOV list@@body to SEQ
+        list: body
+            HdlStmAssign
+                HdlOp: OR
+                    list: ops
+                        HdlValueId: fLOD
+                        HdlValueId: fSTR
+                HdlValueId: xDWBSTB
+            HdlStmAssign
+                HdlValueId: fSTR
+                HdlValueId: xDWBWRE
+
+
+CommitId: e2aeed675664c7251012c58731d013be20bbc71e
+Fixed data WISHBONE arbitration problem (reported by J Lee).
+--- a/rtl/verilog/aeMB_ctrl.v
++++ b/rtl/verilog/aeMB_ctrl.v
+@@ -148,8 +155,8 @@ module aeMB_ctrl (/*AUTOARG*/
+ 	xDWBWRE <= 1'h0;
+ 	// End of automatics
+      end else begin
+-	xDWBSTB <= (fLOD | fSTR);
+-	xDWBWRE <= fSTR;	
++	xDWBSTB <= (fLOD | fSTR) & iwb_ack_i;
++	xDWBWRE <= fSTR & iwb_ack_i;	
+      end
+    
+    always @(/*AUTOSENSE*/fBCC or fBRU or fLOD or fRTD or fSKIP or fSTR
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS HdlValueId@@iwb_ack_i to sensitivity
+
+UPD HdlStmIf@@body to body
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlOp: OR
+        list: ops
+            HdlValueId: fLOD
+            HdlValueId: fSTR
+    HdlValueId: xDWBSTB
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueId: fSTR
+    HdlValueId: xDWBWRE
+
+UPD HdlStmIf@@body to body
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD list@@body to ops
+        MOV list@@body to SEQ
+        list: body
+            HdlStmAssign
+                HdlOp: OR
+                    list: ops
+                        HdlValueId: fLOD
+                        HdlValueId: fSTR
+                HdlValueId: xDWBSTB
+            HdlStmAssign
+                HdlValueId: fSTR
+                HdlValueId: xDWBWRE
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@OR to 
+    HdlOp: OR
+        list: ops
+            HdlValueId: fLOD
+            HdlValueId: fSTR
+
+UPD HdlStmAssign@@ to 
+    MOV HdlValueId@@fSTR to 
+    HdlValueId: fSTR
+
+
+CommitId: e2aeed675664c7251012c58731d013be20bbc71e
+Fixed data WISHBONE arbitration problem (reported by J Lee).
+--- a/rtl/verilog/aeMB_ctrl.v
++++ b/rtl/verilog/aeMB_ctrl.v
+@@ -183,8 +190,6 @@ module aeMB_ctrl (/*AUTOARG*/
+      if (grst) begin
+ 	/*AUTORESET*/
+ 	// Beginning of autoreset for uninitialized flops
+-	rDWBSTB <= 1'h0;
+-	rDWBWRE <= 1'h0;
+ 	rMXDST <= 2'h0;
+ 	rRW <= 5'h0;
+ 	// End of automatics
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    MOV list@@sensitivity to 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: gclk
+
+UPD HdlStmIf@@body to body
+    MOV HdlStmBlock@@SEQ to body
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: rDWBSTB
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: rDWBWRE
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: rMXDST
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: rRW
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: rMXDST
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: rRW
+
+
+CommitId: e2aeed675664c7251012c58731d013be20bbc71e
+Fixed data WISHBONE arbitration problem (reported by J Lee).
+--- a/rtl/verilog/aeMB_ctrl.v
++++ b/rtl/verilog/aeMB_ctrl.v
+@@ -192,9 +197,19 @@ module aeMB_ctrl (/*AUTOARG*/
+ 	//rPCLNK <= #1 xPCLNK;
+ 	rMXDST <= #1 xMXDST;
+ 	rRW <= #1 xRW;
++     end
++
++   always @(posedge gclk)
++     if (grst) begin
++	/*AUTORESET*/
++	// Beginning of autoreset for uninitialized flops
++	rDWBSTB <= 1'h0;
++	rDWBWRE <= 1'h0;
++	// End of automatics
++     end else if (fDACK) begin
+ 	rDWBSTB <= #1 xDWBSTB;
+ 	rDWBWRE <= #1 xDWBWRE;	
+-     end
++     end	
+    
+    
+ endmodule // aeMB_ctrl
+ParseResult:
+INS HdlStmProcess@@ to objs
+
+UPD HdlStmProcess@@ to 
+    INS list@@sensitivity to 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: gclk
+
+UPD HdlStmProcess@@ to 
+    MOV list@@sensitivity to 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: gclk
+
+INS HdlStmIf@@body to 
+
+UPD HdlStmIf@@body to body
+    INS HdlStmBlock@@SEQ to body
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+UPD HdlStmIf@@body to body
+    MOV HdlStmBlock@@SEQ to body
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: rDWBSTB
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: rDWBWRE
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: rMXDST
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: rRW
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueId: xDWBSTB
+    HdlValueId: rDWBSTB
+    HdlValueInt: 1
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueId: xDWBWRE
+    HdlValueId: rDWBWRE
+    HdlValueInt: 1
+
+
+CommitId: 8ca4f3ad50adb7fe4ddf891fec8c1309c133c472
+Fix MTS during interrupt vectoring bug (reported by M. Ettus).
+--- a/rtl/verilog/aeMB_xecu.v
++++ b/rtl/verilog/aeMB_xecu.v
+@@ -255,7 +255,7 @@ module aeMB_xecu (/*AUTOARG*/
+    // --- MSR REGISTER -----------------
+    
+    // C
+-   wire 	   fMTS = (rOPC == 6'o45) & rIMM[14];
++   wire 	   fMTS = (rOPC == 6'o45) & rIMM[14] & !fSKIP;
+    wire 	   fADDC = ({rOPC[5:4], rOPC[2]} == 3'o0);
+    
+    always @(/*AUTOSENSE*/fADDC or fMTS or fSKIP or rMSR_C or rMXALU
+
+ParseResult:
+UPD HdlIdDef@@fMTS to fMTS
+    INS HdlOp@@AND to fMTS
+    UPD HdlOp@@AND to AND
+        INS list@@ops to AND
+        INS HdlOp@@NEG_LOG to ops
+        HdlOp: NEG_LOG
+            list: ops
+                HdlValueId: fSKIP
+
+UPD HdlIdDef@@fMTS to fMTS
+    MOV HdlOp@@AND to fMTS
+    HdlOp: AND
+        list: ops
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: rOPC
+                    HdlValueInt: 45
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: rIMM
+                    HdlValueInt: 14
+
+
+CommitId: 8ca4f3ad50adb7fe4ddf891fec8c1309c133c472
+Fix MTS during interrupt vectoring bug (reported by M. Ettus).
+--- a/rtl/verilog/aeMB_xecu.v
++++ b/rtl/verilog/aeMB_xecu.v
+@@ -272,11 +272,11 @@ module aeMB_xecu (/*AUTOARG*/
+ 	 3'o4: xMSR_C <= rMSR_C;	 
+ 	 3'o5: xMSR_C <= rMSR_C;	 
+ 	 default: xMSR_C <= 1'hX;       
+-       endcase
++       endcase // case (rMXALU)
+ 
+    // IE/BIP/BE
+-   wire 	    fRTID = (rOPC == 6'o55) & rRD[0];   
+-   wire 	    fRTBD = (rOPC == 6'o55) & rRD[1];
++   wire 	    fRTID = (rOPC == 6'o55) & rRD[0] & !fSKIP;   
++   wire 	    fRTBD = (rOPC == 6'o55) & rRD[1] & !fSKIP;
+    wire 	    fBRK = ((rOPC == 6'o56) | (rOPC == 6'o66)) & (rRA == 5'hC);
+    wire 	    fINT = ((rOPC == 6'o56) | (rOPC == 6'o66)) & (rRA == 5'hE);
+    
+
+ParseResult:
+UPD HdlIdDef@@fRTID to fRTID
+    INS HdlOp@@AND to fRTID
+    UPD HdlOp@@AND to AND
+        INS list@@ops to AND
+        INS HdlOp@@NEG_LOG to ops
+        HdlOp: NEG_LOG
+            list: ops
+                HdlValueId: fSKIP
+
+UPD HdlIdDef@@fRTBD to fRTBD
+    INS HdlOp@@AND to fRTBD
+    UPD HdlOp@@AND to AND
+        INS list@@ops to AND
+        INS HdlOp@@NEG_LOG to ops
+        HdlOp: NEG_LOG
+            list: ops
+                HdlValueId: fSKIP
+
+UPD HdlIdDef@@fRTID to fRTID
+    MOV HdlOp@@AND to fRTID
+    HdlOp: AND
+        list: ops
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: rOPC
+                    HdlValueInt: 55
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: rRD
+                    HdlValueInt: 0
+
+UPD HdlIdDef@@fRTBD to fRTBD
+    MOV HdlOp@@AND to fRTBD
+    HdlOp: AND
+        list: ops
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: rOPC
+                    HdlValueInt: 55
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: rRD
+                    HdlValueInt: 1
+
+
+CommitId: ba5c09ab0d8201f85dad7c1998687d4373b743b5
+Fixed minor data hazard bug spotted by Matt Ettus.
+--- a/rtl/verilog/aeMB_decode.v
++++ b/rtl/verilog/aeMB_decode.v
+@@ -86,7 +89,7 @@ module aeMB_decode (/*AUTOARG*/
+     TODO: Modify this for block RAM based instruction cache.
+     */
+    wire [31:0] 	 wIREG;
+-   assign 	 wIREG = {iwb_dat_i[7:0],iwb_dat_i[15:8],iwb_dat_i[23:16],iwb_dat_i[31:24]};
++   assign 	 wIREG = iwb_dat_i;   
+          
+    wire [5:0] 	 wOPC = wIREG[31:26];
+    wire [4:0] 	 wRD = wIREG[25:21];
+
+ParseResult:
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlValueId: iwb_dat_i
+    HdlValueId: wIREG
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlOp: CONCAT
+        list: ops
+            HdlOp: CONCAT
+                list: ops
+                    HdlOp: CONCAT
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: iwb_dat_i
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 7
+                                            HdlValueInt: 0
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: iwb_dat_i
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 15
+                                            HdlValueInt: 8
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: iwb_dat_i
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 23
+                                    HdlValueInt: 16
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: iwb_dat_i
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 31
+                            HdlValueInt: 24
+    HdlValueId: wIREG
+
+
+CommitId: ba5c09ab0d8201f85dad7c1998687d4373b743b5
+Fixed minor data hazard bug spotted by Matt Ettus.
+--- a/rtl/verilog/aeMB_decode.v
++++ b/rtl/verilog/aeMB_decode.v
+@@ -245,7 +248,7 @@ module aeMB_decode (/*AUTOARG*/
+     */
+    
+    reg [1:0] 	  rMXSRC, rMXTGT, rMXALT, xMXSRC,xMXTGT,xMXALT;
+-   wire 	  fRWE = (|rRD) & !(&rMXBRA);
++   wire 	  fRWE = (|rRD) & !(&rMXBRA) & !(|rMXLDST);
+ 
+    always @(/*AUTOSENSE*/fBCC or fBRU or fRWE or rMXLDST or rRD
+ 	    or wOPC or wRA or wRB) begin // frun
+ParseResult:
+UPD HdlIdDef@@fRWE to fRWE
+    INS HdlOp@@AND to fRWE
+    UPD HdlOp@@AND to AND
+        INS list@@ops to AND
+        INS HdlOp@@NEG_LOG to ops
+        HdlOp: NEG_LOG
+            list: ops
+                HdlOp: OR_UNARY
+                    list: ops
+                        HdlValueId: rMXLDST
+
+UPD HdlIdDef@@fRWE to fRWE
+    MOV HdlOp@@AND to fRWE
+    HdlOp: AND
+        list: ops
+            HdlOp: OR_UNARY
+                list: ops
+                    HdlValueId: rRD
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlOp: AND_UNARY
+                        list: ops
+                            HdlValueId: rMXBRA
+
+
+CommitId: d25dde3355588c77244815b5f54703311865de31
+Fixed minor typos.
+--- a/rtl/verilog/aeMB2_exec.v
++++ b/rtl/verilog/aeMB2_exec.v
+@@ -38,6 +38,7 @@ module aeMB2_exec (/*AUTOARG*/
+    parameter AEMB_DWB = 32;
+    parameter AEMB_MUL = 1;
+    parameter AEMB_BSF = 1;   
++   parameter AEMB_HTX = 1;   
+    
+    /*AUTOOUTPUT*/
+    // Beginning of automatic outputs (from unused autoinst outputs)
+
+ParseResult:
+INS HdlIdDef@@AEMB_HTX to params
+HdlIdDef: AEMB_HTX
+    HdlValueInt: 1
+    HdlDirection: INTERNAL
+
+
+CommitId: cb10644e01a19fd76bbf331ce09ed41bf0c0b651
+Fixed memory read-write data hazard
+--- a/rtl/verilog/aeMB_regfile.v
++++ b/rtl/verilog/aeMB_regfile.v
+@@ -92,12 +95,17 @@ module aeMB_regfile(/*AUTOARG*/
+    
+    // DWB data - Endian Correction
+    reg [31:0] 	 rDWBDAT;
+-   wire 	 fDFWD = (rRD == rRD_) & fWE;
+    //assign 	 dwb_dat_o = rDWBDAT;
+    //wire [31:0] 	 wDWBDAT = dwb_dat_i;
+    assign 	 dwb_dat_o = {rDWBDAT[7:0],rDWBDAT[15:8],rDWBDAT[23:16],rDWBDAT[31:24]};   
+    wire [31:0] 	 wDWBDAT = {dwb_dat_i[7:0],dwb_dat_i[15:8],dwb_dat_i[23:16],dwb_dat_i[31:24]};   
+-   
++
++   // Forwarding Control
++   wire 	 fDFWD = (rRD == rRD_) & fWE;
++   wire 	 fMFWD = rDWBSTB & ~rDWBWE;   
++   wire [31:0] 	 wRESULT = (fMFWD) ? wDWBDAT : rRESULT;   
++
++   // Register Load
+    always @(negedge nclk or negedge nrst)
+      if (!nrst) begin
+ 	/*AUTORESET*/
+
+ParseResult:
+MOV HdlIdDef@@fDFWD to objs
+HdlIdDef: fDFWD
+    HdlOp: AND
+        list: ops
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: rRD
+                    HdlValueId: rRD_
+            HdlValueId: fWE
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@fMFWD to objs
+HdlIdDef: fMFWD
+    HdlOp: AND
+        list: ops
+            HdlValueId: rDWBSTB
+            HdlOp: NEG
+                list: ops
+                    HdlValueId: rDWBWE
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@wRESULT to objs
+HdlIdDef: wRESULT
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 31
+                    HdlValueInt: 0
+    HdlOp: TERNARY
+        list: ops
+            HdlValueId: fMFWD
+            HdlValueId: wDWBDAT
+            HdlValueId: rRESULT
+    HdlDirection: INTERNAL
+
+INS HdlStmProcess@@ to objs
+
+UPD HdlStmProcess@@ to 
+    MOV list@@sensitivity to 
+    list: sensitivity
+        HdlOp: FALLING
+            list: ops
+                HdlValueId: nclk
+        HdlOp: FALLING
+            list: ops
+                HdlValueId: nrst
+
+INS HdlStmIf@@body to 
+
+UPD HdlStmIf@@body to body
+    MOV HdlOp@@NEG_LOG to body
+    HdlOp: NEG_LOG
+        list: ops
+            HdlValueId: nrst
+    MOV HdlStmBlock@@SEQ to body
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: rDWBDAT
+    MOV HdlStmBlock@@SEQ to body
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: rDWBDAT
+    DEL list@@elifs from body
+    list: elifs
+        tuple
+            HdlValueId: drun
+            HdlStmBlock: SEQ
+                list: body
+                    HdlStmCase: rRD
+                        HdlStmCaseType: CASE
+                        HdlValueId: rRD
+                        list: cases
+                            tuple
+                                HdlValueInt: 00
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r00
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 01
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r01
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 02
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r02
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 03
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r03
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 04
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r04
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 05
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r05
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 06
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r06
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 07
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r07
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 08
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r08
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 09
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r09
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 0a
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r0A
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 0b
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r0B
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 0c
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r0C
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 0d
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r0D
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 0e
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r0E
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 0f
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r0F
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 10
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r10
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 11
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r11
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 12
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r12
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 13
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r13
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 14
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r14
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 15
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r15
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 16
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r16
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 17
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r17
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 18
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r18
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 19
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r19
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 1a
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r1A
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 1b
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r1B
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 1c
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r1C
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 1d
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r1D
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 1e
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r1E
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+                            tuple
+                                HdlValueInt: 1f
+                                HdlStmAssign
+                                    HdlOp: TERNARY
+                                        list: ops
+                                            HdlValueId: fDFWD
+                                            HdlValueId: rRESULT
+                                            HdlValueId: r1F
+                                    HdlValueId: rDWBDAT
+                                    HdlValueInt: 1
+
+DEL HdlStmIf@@body from 
+
+DEL HdlStmProcess@@ from objs
+
+
+CommitId: fe11d7356e2055e5bfa01219e4794b50d14dc01e
+Fixed endian correction issues on data bus.
+--- a/rtl/verilog/aeMB_decode.v
++++ b/rtl/verilog/aeMB_decode.v
+@@ -65,7 +68,8 @@ module aeMB_decode (/*AUTOARG*/
+    input 	 nclk, nrst, drun, frun, frst, drst;
+ 
+    // Endian Correction
+-   wire [31:0] 	 wWBDAT = dwb_dat_i;   
++   //wire [31:0] 	 wWBDAT = dwb_dat_i; 	 
++   wire [31:0] 	 wWBDAT = {dwb_dat_i[7:0],dwb_dat_i[15:8],dwb_dat_i[23:16],dwb_dat_i[31:24]}; 	 
+    wire [31:0] 	 wIREG = {iwb_dat_i[7:0],iwb_dat_i[15:8],iwb_dat_i[23:16],iwb_dat_i[31:24]};
+ 
+    // Decode
+ParseResult:
+INS HdlIdDef@@wWBDAT to objs
+
+UPD HdlIdDef@@wWBDAT to wWBDAT
+    MOV HdlOp@@PARAMETRIZATION to wWBDAT
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 31
+                    HdlValueInt: 0
+    DEL HdlValueId@@dwb_dat_i from wWBDAT
+    DEL HdlDirection@@INTERNAL from wWBDAT
+
+UPD HdlIdDef@@wWBDAT to wWBDAT
+    INS HdlOp@@CONCAT to wWBDAT
+    HdlOp: CONCAT
+        list: ops
+            HdlOp: CONCAT
+                list: ops
+                    HdlOp: CONCAT
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: dwb_dat_i
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 7
+                                            HdlValueInt: 0
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: dwb_dat_i
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 15
+                                            HdlValueInt: 8
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: dwb_dat_i
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 23
+                                    HdlValueInt: 16
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: dwb_dat_i
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 31
+                            HdlValueInt: 24
+    INS HdlDirection@@INTERNAL to wWBDAT
+
+DEL HdlIdDef@@wWBDAT from objs
+
+
+CommitId: a4f032f32043fbd3cf3956ab2af68e69b795a4dc
+Made some changes to the interrupt control. In some cases, the interrupt logic waits forever and doesn't execute. Bug was discovered by M. Ettus.
+--- a/rtl/verilog/aeMB_decode.v
++++ b/rtl/verilog/aeMB_decode.v
+@@ -58,7 +61,8 @@
+ module aeMB_decode (/*AUTOARG*/
+    // Outputs
+    rSIMM, rMXALU, rMXSRC, rMXTGT, rRA, rRB, rRD, rOPC, rIMM, rDWBSTB,
+-   rDWBWE, rDLY, rLNK, rBRA, rRWE, rMXLDST, dwb_stb_o, dwb_we_o,
++   rDWBWE, rDLY, rLNK, rBRA, rRWE, rMXLDST, rATOM, dwb_stb_o,
++   dwb_we_o,
+    // Inputs
+    sDWBDAT, rDWBSEL, rREGA, rRESULT, rFSM, iwb_dat_i, nclk, prst,
+    drun, frun, prun
+
+ParseResult:
+MOV HdlIdDef@@rFSM to ports
+HdlIdDef: rFSM
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: IN
+
+UPD HdlIdDef@@rFSM to rATOM
+
+INS HdlIdDef@@rFSM to ports
+HdlIdDef: rFSM
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 2
+                    HdlValueInt: 0
+    HdlDirection: IN
+
+UPD HdlIdDef@@rFSM to rFSM
+    UPD HdlDirection@@IN to OUT
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlValueId@@wire to reg
+
+
+CommitId: a4f032f32043fbd3cf3956ab2af68e69b795a4dc
+Made some changes to the interrupt control. In some cases, the interrupt logic waits forever and doesn't execute. Bug was discovered by M. Ettus.
+--- a/rtl/verilog/aeMB_decode.v
++++ b/rtl/verilog/aeMB_decode.v
+@@ -127,7 +133,7 @@ module aeMB_decode (/*AUTOARG*/
+ 	xRB <= wRB;
+ 	xIMM <= wIMM;	
+      end else begin
+-	xOPC <= 6'o44;	
++	xOPC <= 6'o40;	
+ 	/*AUTORESET*/
+ 	// Beginning of autoreset for uninitialized flops
+ 	xIMM <= 16'h0;
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlValueInt@@44 to 40
+
+
+CommitId: a4f032f32043fbd3cf3956ab2af68e69b795a4dc
+Made some changes to the interrupt control. In some cases, the interrupt logic waits forever and doesn't execute. Bug was discovered by M. Ettus.
+--- a/rtl/verilog/aeMB_decode.v
++++ b/rtl/verilog/aeMB_decode.v
+@@ -341,7 +347,8 @@ module aeMB_decode (/*AUTOARG*/
+     This controls the generation of the BRANCH, DELAY and LINK
+     signals.
+     */
+-   wire        fXCE = |rFSM;   
++
++   wire        fXCE = rFSM[2];   
+    reg 	       rBRA, rDLY, rLNK, xBRA, xDLY, xLNK;
+    always @(/*AUTOSENSE*/drun or rBCC or rMXBRA or rMXDLY or rMXLNK)
+      if (drun) begin
+
+ParseResult:
+INS HdlIdDef@@fXCE to objs
+HdlIdDef: fXCE
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: rFSM
+            HdlValueInt: 2
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@fXCE from objs
+HdlIdDef: fXCE
+    HdlOp: OR_UNARY
+        list: ops
+            HdlValueId: rFSM
+    HdlDirection: INTERNAL
+
+
+CommitId: a4f032f32043fbd3cf3956ab2af68e69b795a4dc
+Made some changes to the interrupt control. In some cases, the interrupt logic waits forever and doesn't execute. Bug was discovered by M. Ettus.
+--- a/rtl/verilog/aeMB_decode.v
++++ b/rtl/verilog/aeMB_decode.v
+@@ -415,6 +422,17 @@ module aeMB_decode (/*AUTOARG*/
+ 	xDWBWE <= 1'h0;
+ 	// End of automatics
+      end
++
++
++   /**
++    Atomicity Check
++    ---------------
++    Checks that the current instruction being executed is ATOMIC
++    */
++   
++   wire 	fATOM = ~(({wOPC[5:4],wOPC[2:1]} == 4'b1011) | (wOPC == 6'o55) | (wOPC == 6'o54) );
++   reg [1:0] 	rATOM;
++   
+    
+    // PIPELINE REGISTERS ///////////////////////////////////////////////
+ 
+
+ParseResult:
+INS HdlIdDef@@fATOM to objs
+HdlIdDef: fATOM
+    HdlOp: NEG
+        list: ops
+            HdlOp: OR
+                list: ops
+                    HdlOp: OR
+                        list: ops
+                            HdlOp: EQ
+                                list: ops
+                                    HdlOp: CONCAT
+                                        list: ops
+                                            HdlOp: INDEX
+                                                list: ops
+                                                    HdlValueId: wOPC
+                                                    HdlOp: DOWNTO
+                                                        list: ops
+                                                            HdlValueInt: 5
+                                                            HdlValueInt: 4
+                                            HdlOp: INDEX
+                                                list: ops
+                                                    HdlValueId: wOPC
+                                                    HdlOp: DOWNTO
+                                                        list: ops
+                                                            HdlValueInt: 2
+                                                            HdlValueInt: 1
+                                    HdlValueInt: 1011
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: wOPC
+                                    HdlValueInt: 55
+                    HdlOp: EQ
+                        list: ops
+                            HdlValueId: wOPC
+                            HdlValueInt: 54
+    HdlDirection: INTERNAL
+
+
+CommitId: a4f032f32043fbd3cf3956ab2af68e69b795a4dc
+Made some changes to the interrupt control. In some cases, the interrupt logic waits forever and doesn't execute. Bug was discovered by M. Ettus.
+--- a/rtl/verilog/aeMB_decode.v
++++ b/rtl/verilog/aeMB_decode.v
+@@ -423,6 +441,7 @@ module aeMB_decode (/*AUTOARG*/
+ 	//rOPC <= 6'o40;	
+ 	/*AUTORESET*/
+ 	// Beginning of autoreset for uninitialized flops
++	rATOM <= 2'h0;
+ 	rBRA <= 1'h0;
+ 	rDLY <= 1'h0;
+ 	rDWBSTB <= 1'h0;
+
+ParseResult:
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: rATOM
+
+
+CommitId: a4f032f32043fbd3cf3956ab2af68e69b795a4dc
+Made some changes to the interrupt control. In some cases, the interrupt logic waits forever and doesn't execute. Bug was discovered by M. Ettus.
+--- a/rtl/verilog/aeMB_decode.v
++++ b/rtl/verilog/aeMB_decode.v
+@@ -447,6 +466,8 @@ module aeMB_decode (/*AUTOARG*/
+ 	rSIMM <= 32'h0;
+ 	// End of automatics
+      end else if (prun) begin // if (prst)
++	rATOM <= #1 {rATOM[0], fATOM};	
++	
+ 	rIMM <= #1 xIMM;
+ 	rOPC <= #1 xOPC;
+ 	rRA <= #1 xRA;
+ParseResult:
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlOp: CONCAT
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: rATOM
+                    HdlValueInt: 0
+            HdlValueId: fATOM
+    HdlValueId: rATOM
+    HdlValueInt: 1
+
+
+CommitId: a3412a5a85abb96ecbc4d3624e1caef5ba2ba48b
+Patched problem where memory access followed by dual cycle instructions were not stalling correctly (submitted by M. Ettus)
+--- a/rtl/verilog/aeMB_edk32.v
++++ b/rtl/verilog/aeMB_edk32.v
+@@ -32,7 +32,7 @@ module aeMB_edk32 (/*AUTOARG*/
+    parameter DW = 32; /// Data bus address width
+ 
+    // Optional functions
+-   parameter MUL = 1; // Multiplier
++   parameter MUL = 0; // Multiplier
+    parameter BSF = 1; // Barrel Shifter
+    
+    /*AUTOOUTPUT*/
+
+ParseResult:
+UPD HdlIdDef@@MUL to MUL
+    UPD HdlValueInt@@1 to 0
+
+
+CommitId: a3412a5a85abb96ecbc4d3624e1caef5ba2ba48b
+Patched problem where memory access followed by dual cycle instructions were not stalling correctly (submitted by M. Ettus)
+--- a/rtl/verilog/aeMB_edk32.v
++++ b/rtl/verilog/aeMB_edk32.v
+@@ -96,6 +96,7 @@ module aeMB_edk32 (/*AUTOARG*/
+    wire 		grst = sys_rst_i;
+    wire 		gclk = sys_clk_i;
+    wire 		gena = !((dwb_stb_o ^ dwb_ack_i) | (fsl_stb_o ^ fsl_ack_i) | !iwb_ack_i) & !rSTALL;   
++   wire 		oena = ((dwb_stb_o ^ dwb_ack_i) | (fsl_stb_o ^ fsl_ack_i) | !iwb_ack_i);   
+    
+    // --- INSTANTIATIONS -------------------------------------
+           
+
+ParseResult:
+INS HdlIdDef@@oena to objs
+HdlIdDef: oena
+    HdlOp: OR
+        list: ops
+            HdlOp: OR
+                list: ops
+                    HdlOp: XOR
+                        list: ops
+                            HdlValueId: dwb_stb_o
+                            HdlValueId: dwb_ack_i
+                    HdlOp: XOR
+                        list: ops
+                            HdlValueId: fsl_stb_o
+                            HdlValueId: fsl_ack_i
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlValueId: iwb_ack_i
+    HdlDirection: INTERNAL
+
+
+CommitId: b8f34afe2c62151fe4e5eac6456033754390bd90
+Fixed minor typos.
+--- a/sim/verilog/edk62.v
++++ b/sim/verilog/edk62.v
+@@ -26,9 +26,9 @@
+ */
+ 
+ module edk62();
+-   localparam AEMB_DWB = 20;
++   localparam AEMB_DWB = 18;
+    localparam AEMB_XWB = 5;   
+-   localparam AEMB_IWB = 20;
++   localparam AEMB_IWB = 18;
+    localparam AEMB_ICH = 11;
+    localparam AEMB_IDX = 6;   
+    localparam AEMB_HTX = 1; 
+
+ParseResult:
+UPD HdlIdDef@@AEMB_DWB to AEMB_DWB
+    UPD HdlValueInt@@20 to 18
+
+UPD HdlIdDef@@AEMB_IWB to AEMB_IWB
+    UPD HdlValueInt@@20 to 18
+
+
+CommitId: b8f34afe2c62151fe4e5eac6456033754390bd90
+Fixed minor typos.
+--- a/sim/verilog/edk62.v
++++ b/sim/verilog/edk62.v
+@@ -44,7 +44,6 @@ module edk62();
+    reg			sys_ena_i;		// To uut of aeMB2_edk62.v
+    reg			sys_rst_i;		// To uut of aeMB2_edk62.v
+    reg			xwb_ack_i;		// To uut of aeMB2_edk62.v
+-   reg [31:0]		xwb_dat_i;		// To uut of aeMB2_edk62.v
+    // End of automatics
+ 
+    always #5 sys_clk_i <= !sys_clk_i;
+
+ParseResult:
+MOV HdlIdDef@@xwb_dat_i to objs
+HdlIdDef: xwb_dat_i
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 31
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+UPD HdlIdDef@@xwb_dat_i to xwblat
+
+
+CommitId: b8f34afe2c62151fe4e5eac6456033754390bd90
+Fixed minor typos.
+--- a/sim/verilog/edk62.v
++++ b/sim/verilog/edk62.v
+@@ -52,7 +51,7 @@ module edk62();
+    initial begin
+       `ifdef VCD_DUMP
+       $dumpfile ("dump.vcd");
+-      $dumpvars (3,uut);           
++      $dumpvars (1,uut);           
+       `endif
+       
+       sys_clk_i = 0;
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@CALL to CALL
+            INS HdlOp@@CALL to ops
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: $stime
+            INS str@@ to ops
+
+
+CommitId: b8f34afe2c62151fe4e5eac6456033754390bd90
+Fixed minor typos.
+--- a/sim/verilog/edk62.v
++++ b/sim/verilog/edk62.v
+@@ -61,7 +60,7 @@ module edk62();
+       xwb_ack_i = 0;      
+       
+       #50 sys_rst_i = 0;      
+-      #4000000 $display("\n*** TIMEOUT ***"); $finish;
++      #4000000 $displayh("\n*** TIMEOUT ", $stime, " ***"); $finish;
+       
+    end // initial begin
+    
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@CALL to CALL
+            UPD HdlValueId@@$display to $displayh
+
+
+CommitId: b8f34afe2c62151fe4e5eac6456033754390bd90
+Fixed minor typos.
+--- a/sim/verilog/edk62.v
++++ b/sim/verilog/edk62.v
+@@ -93,12 +92,14 @@ module edk62();
+    reg [31:0]  rom[0:65535];
+    reg [31:0]  ram[0:65535];
+    reg [31:0]  dwblat;
+-   reg [15:2]  dadr, iadr;
++   reg [31:0]  xwblat;   
++   reg [31:2] dadr, iadr;
+ 
+    wire [31:0] dwb_dat_t = ram[dwb_adr_o];   
+    wire [31:0] iwb_dat_i = rom[iadr]; 
+    wire [31:0] dwb_dat_i = ram[dadr];     
+-
++   wire [31:0] xwb_dat_i = xwblat;   
++   
+    always @(posedge sys_clk_i) 
+      if (sys_rst_i) begin
+ 	/*AUTORESET*/
+
+ParseResult:
+INS HdlIdDef@@xwb_dat_i to objs
+HdlIdDef: xwb_dat_i
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 31
+                    HdlValueInt: 0
+    HdlValueId: xwblat
+    HdlDirection: INTERNAL
+
+UPD HdlIdDef@@dadr to dadr
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueInt@@15 to 31
+
+UPD HdlIdDef@@iadr to iadr
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueInt@@15 to 31
+
+
+CommitId: b8f34afe2c62151fe4e5eac6456033754390bd90
+Fixed minor typos.
+--- a/sim/verilog/edk62.v
++++ b/sim/verilog/edk62.v
+@@ -117,6 +118,10 @@ module edk62();
+       iadr <= #1 iwb_adr_o;      
+       dadr <= #1 dwb_adr_o;
+ 
++      if (xwb_wre_o & xwb_stb_o & xwb_ack_i) begin
++	 xwblat <= #1 xwb_dat_o;	 
++      end
++      
+       // SPECIAL PORTS
+       if (dwb_wre_o & dwb_stb_o & dwb_ack_i) begin
+ 	 case ({dwb_adr_o,2'o0})
+
+ParseResult:
+INS HdlStmIf@@ to body
+HdlStmIf
+    HdlOp: AND
+        list: ops
+            HdlOp: AND
+                list: ops
+                    HdlValueId: xwb_wre_o
+                    HdlValueId: xwb_stb_o
+            HdlValueId: xwb_ack_i
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueId: xwb_dat_o
+                HdlValueId: xwblat
+                HdlValueInt: 1
+    list: elifs
+
+
+CommitId: b8f34afe2c62151fe4e5eac6456033754390bd90
+Fixed minor typos.
+--- a/sim/verilog/edk62.v
++++ b/sim/verilog/edk62.v
+@@ -133,7 +138,7 @@ module edk62();
+ 	   4'hC: ram[dwb_adr_o] <= {dwb_dat_o[31:16], dwb_dat_t[15:0]};
+ 	   4'hF: ram[dwb_adr_o] <= {dwb_dat_o};
+ 	   default: begin
+-	      $displayh("\n*** INVALID WRITE *** ",{dwb_adr_o,2'o0});
++	      $displayh("\n*** INVALID WRITE ",{dwb_adr_o,2'o0}, " ***");
+ 	      $finish;	      
+ 	   end	   
+ 	 endcase // case (dwb_sel_o)
+
+ParseResult:
+UPD HdlStmCase@@dwb_sel_o to dwb_sel_o
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@CALL to CALL
+            INS str@@ to ops
+
+
+CommitId: b8f34afe2c62151fe4e5eac6456033754390bd90
+Fixed minor typos.
+--- a/sim/verilog/edk62.v
++++ b/sim/verilog/edk62.v
+@@ -144,7 +149,7 @@ module edk62();
+ 	   4'h1,4'h2,4'h4,4'h8,4'h3,4'hC,4'hF: begin
+ 	   end
+ 	   default: begin
+-	      $displayh("\n*** INVALID READ *** ",{dwb_adr_o,2'd0});	      
++	      $displayh("\n*** INVALID READ ",{dwb_adr_o,2'd0}, " ***");	      
+ 	      $finish;	      
+ 	   end	   
+ 	 endcase // case (dwb_sel_o)	 
+
+ParseResult:
+UPD HdlStmCase@@dwb_sel_o to dwb_sel_o
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@CALL to CALL
+            INS str@@ to ops
+
+
+CommitId: d72ddced5bad25a03bdb68281edbd052c28f4bf9
+Fixed minor typo causing synthesis failure.
+--- a/rtl/verilog/aeMB_ctrl.v
++++ b/rtl/verilog/aeMB_ctrl.v
+@@ -283,7 +286,7 @@ module aeMB_ctrl (/*AUTOARG*/
+ 
+    // --- DATA WISHBONE ----------------------------------
+ 
+-   wire 	 fDACK = !(rDWBSTB ^ dwb_ack_i);
++   wire 	 fDACK = !(dwb_stb_o ^ dwb_ack_i);
+    
+    reg 		 rDWBSTB, xDWBSTB;
+    reg 		 rDWBWRE, xDWBWRE;
+
+ParseResult:
+UPD HdlIdDef@@fDACK to fDACK
+    UPD HdlOp@@NEG_LOG to NEG_LOG
+        UPD HdlOp@@XOR to XOR
+            UPD HdlValueId@@rDWBSTB to dwb_stb_o
+
+
+CommitId: d72ddced5bad25a03bdb68281edbd052c28f4bf9
+Fixed minor typo causing synthesis failure.
+--- a/rtl/verilog/aeMB_ctrl.v
++++ b/rtl/verilog/aeMB_ctrl.v
+@@ -320,7 +323,7 @@ module aeMB_ctrl (/*AUTOARG*/
+ 
+    // --- FSL WISHBONE -----------------------------------
+ 
+-   wire 	 fFACK = !(rFSLSTB ^ fsl_ack_i);   
++   wire 	 fFACK = !(fsl_stb_o ^ fsl_ack_i);   
+ 	 
+    reg 		 rFSLSTB, xFSLSTB;
+    reg 		 rFSLWRE, xFSLWRE;
+ParseResult:
+UPD HdlIdDef@@fFACK to fFACK
+    UPD HdlOp@@NEG_LOG to NEG_LOG
+        UPD HdlOp@@XOR to XOR
+            UPD HdlValueId@@rFSLSTB to fsl_stb_o
+
+
+CommitId: a4f032f32043fbd3cf3956ab2af68e69b795a4dc
+Made some changes to the interrupt control. In some cases, the interrupt logic waits forever and doesn't execute. Bug was discovered by M. Ettus.
+--- a/rtl/verilog/aeMB_fetch.v
++++ b/rtl/verilog/aeMB_fetch.v
+@@ -83,13 +86,14 @@ module aeMB_fetch (/*AUTOARG*/
+      begin	
+ 	// PC Sources - ALU, Direct, Next
+ 	case (rFSM)
+-	  2'b01: xIWBADR <= 32'h00000010; // HWINT
+-	  //2'b10: xIWBADR <= 32'h00000020; // HWEXC
+-	  //2'b11: xIWBADR <= #1 32'h00000008; // SWEXC
++	  3'o4: xIWBADR <= 32'h00000010; // HWINT
+ 	  default: xIWBADR <= (rBRA) ? rRESULT : wPCNXT;
+ 	endcase // case (rFSM)
+-	
+-	xPC <= {rIWBADR[31:2],2'd0};	
++
++	case (rFSM)
++	  3'o2: xPC <= (rBRA) ? rRESULT : {rIWBADR[31:2],2'd0};	  
++	  default: xPC <= {rIWBADR[31:2],2'd0};
++	endcase // case (rFSM)	
+      end // always @ (...
+ 
+    // PIPELINE REGISTERS //////////////////////////////////////////////////
+ParseResult:
+INS HdlStmCase@@rFSM to body
+
+UPD HdlStmCase@@rFSM to rFSM
+    INS HdlStmCaseType@@CASE to rFSM
+    INS HdlValueId@@rFSM to rFSM
+    INS list@@cases to rFSM
+    list: cases
+        tuple
+            HdlValueInt: 2
+            HdlStmAssign
+                HdlOp: TERNARY
+                    list: ops
+                        HdlValueId: rBRA
+                        HdlValueId: rRESULT
+                        HdlOp: CONCAT
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: rIWBADR
+                                        HdlOp: DOWNTO
+                                            list: ops
+                                                HdlValueInt: 31
+                                                HdlValueInt: 2
+                                HdlValueInt: 0
+                HdlValueId: xPC
+
+UPD HdlStmAssign@@ to default
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlOp: CONCAT
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: rIWBADR
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 31
+                            HdlValueInt: 2
+            HdlValueInt: 0
+    HdlValueId: xPC
+
+UPD HdlStmCase@@rFSM to rFSM
+    UPD HdlValueInt@@01 to 4
+
+
+CommitId: 55b881b6cf0ea92a98e2879126e2ac88f281df0e
+Fixed a minor bug where RD is trashed by a STORE instruction. Spotted by Joon Lee.
+--- a/rtl/verilog/aeMB_regfile.v
++++ b/rtl/verilog/aeMB_regfile.v
+@@ -68,10 +71,10 @@ module aeMB_regfile(/*AUTOARG*/
+    reg [31:0] 	 r18,r19,r1A,r1B,r1C,r1D,r1E,r1F; 		 
+ 
+    // FLAGS
+-   wire fWE = rRWE;
++   wire fWE = rRWE & ~rDWBWE;
+    wire fLNK = rLNK;
+    wire fLD = rDWBSTB ^ rDWBWE;   
+-   
++
+    // PC Latch
+    reg [31:0] 	 rPC_;
+    always @(negedge nclk or negedge nrst)
+
+ParseResult:
+INS HdlIdDef@@fWE to objs
+HdlIdDef: fWE
+    HdlOp: AND
+        list: ops
+            HdlValueId: rRWE
+            HdlOp: NEG
+                list: ops
+                    HdlValueId: rDWBWE
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@fWE from objs
+HdlIdDef: fWE
+    HdlValueId: rRWE
+    HdlDirection: INTERNAL
+
+
+CommitId: a839c4ece9190d99de4eb6103c6ac33a160d2fa5
+Fixed simulation bug.
+--- a/rtl/verilog/aeMB_regfile.v
++++ b/rtl/verilog/aeMB_regfile.v
+@@ -227,7 +230,7 @@ module aeMB_regfile(/*AUTOARG*/
+    // synopsys translate_off
+    integer i;
+    initial begin
+-      for (i=0;i<31;i=i+1) begin
++      for (i=0;i<32;i=i+1) begin
+ 	 rMEMA[i] <= $random;
+ 	 rMEMB[i] <= $random;
+ 	 rMEMD[i] <= $random;	 
+ParseResult:
+UPD HdlStmFor@@ to 
+    UPD HdlOp@@LT to LT
+        UPD HdlValueInt@@31 to 32
+
+
+CommitId: 2eaad90eb3accad59cf1b111e280116c9b615ae8
+Fixed minor typo.
+--- a/rtl/verilog/aeMB_edk32.v
++++ b/rtl/verilog/aeMB_edk32.v
+@@ -48,9 +51,8 @@
+ 
+ module aeMB_edk32 (/*AUTOARG*/
+    // Outputs
+-   rFSLSTB, rDWBSTB, iwb_stb_o, iwb_adr_o, fsl_wre_o, fsl_stb_o,
+-   fsl_dat_o, fsl_adr_o, dwb_wre_o, dwb_stb_o, dwb_sel_o, dwb_dat_o,
+-   dwb_adr_o,
++   iwb_stb_o, iwb_adr_o, fsl_wre_o, fsl_stb_o, fsl_dat_o, fsl_adr_o,
++   dwb_wre_o, dwb_stb_o, dwb_sel_o, dwb_dat_o, dwb_adr_o,
+    // Inputs
+    sys_int_i, iwb_dat_i, iwb_ack_i, fsl_dat_i, fsl_ack_i, dwb_dat_i,
+    dwb_ack_i, sys_clk_i, sys_rst_i
+
+ParseResult:
+DEL HdlIdDef@@rFSLSTB from ports
+HdlIdDef: rFSLSTB
+    HdlDirection: OUT
+
+DEL HdlIdDef@@rDWBSTB from ports
+HdlIdDef: rDWBSTB
+    HdlDirection: OUT
+
+
+CommitId: 30c8c3c6b1e79337f8c12ac9d42b7745c13f61cb
+Fixed minor bugs
+--- a/rtl/verilog/aeMB_decode.v
++++ b/rtl/verilog/aeMB_decode.v
+@@ -32,17 +33,19 @@
+  *
+  * HISTORY
+  * $Log: not supported by cvs2svn $
++ * Revision 1.2  2007/04/03 14:46:26  sybreon
++ * Fixed endian correction issues on data bus.
++ *
+  * Revision 1.1  2007/03/09 17:52:17  sybreon
+  * initial import
+  *
+- * 
+  */
+ 
+ module aeMB_decode (/*AUTOARG*/
+    // Outputs
+    rSIMM, rMXALU, rMXSRC, rMXTGT, rRA, rRB, rRD, rRD_, rOPC, rIMM,
+-   rDWBSTB, rDWBWE, rIWBSTB, rDLY, rLNK, rBRA, rRWE, iwb_sel_o,
+-   iwb_stb_o, iwb_we_o, dwb_stb_o, dwb_we_o,
++   rDWBSTB, rDWBWE, rIWBSTB, rDLY, rLNK, rBRA, rRWE, rMXLDST,
++   iwb_stb_o, dwb_stb_o, dwb_we_o,
+    // Inputs
+    rREGA, rRESULT, iwb_dat_i, dwb_dat_i, nclk, nrst, drun, frun, frst,
+    drst
+
+ParseResult:
+UPD HdlIdDef@@iwb_sel_o to rMXLDST
+
+UPD HdlIdDef@@rIWBSTB to rIWBSTB
+    DEL HdlOp@@PARAMETRIZATION from rIWBSTB
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+
+UPD HdlIdDef@@iwb_sel_o to iwb_sel_o
+    DEL HdlOp@@PARAMETRIZATION from iwb_sel_o
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 3
+                    HdlValueInt: 0
+
+DEL HdlIdDef@@iwb_we_o from ports
+HdlIdDef: iwb_we_o
+    HdlDirection: OUT
+
+
+CommitId: 30c8c3c6b1e79337f8c12ac9d42b7745c13f61cb
+Fixed minor bugs
+--- a/rtl/verilog/aeMB_decode.v
++++ b/rtl/verilog/aeMB_decode.v
+@@ -427,21 +432,19 @@ module aeMB_decode (/*AUTOARG*/
+      end
+    
+    // WB STB signal
+-   reg               rIWBSTB;   
+-   assign 	     iwb_stb_o = rIWBSTB;
+-   always @(negedge nclk or negedge nrst)
+-     if (!nrst) begin
++   //reg               rIWBSTB;   
++   //assign 	     iwb_stb_o = rIWBSTB;
++   //always @(negedge nclk or negedge nrst)
++     //if (!nrst) begin
+ 	/*AUTORESET*/
+-	// Beginning of autoreset for uninitialized flops
+-	rIWBSTB <= 1'h0;
+-	// End of automatics
+-     end else begin
+-	rIWBSTB <= #1 1'b1;
+-     end
+-   
++     //end else begin
++	//rIWBSTB <= #1 1'b1;
++     //end
++
+    // WB other signals
+-   assign 	     iwb_sel_o = 4'hF;
+-   assign 	     iwb_we_o = 1'b0;
++   assign iwb_stb_o = 1'b1;   
++   //assign 	     iwb_sel_o = 4'hF;
++   //assign 	     iwb_we_o = 1'b0;
+    
+    
+ endmodule // aeMB_decode
+ParseResult:
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlValueInt: 1
+    HdlValueId: iwb_stb_o
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlValueId: rIWBSTB
+    HdlValueId: iwb_stb_o
+
+DEL HdlStmProcess@@ from objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: FALLING
+            list: ops
+                HdlValueId: nclk
+        HdlOp: FALLING
+            list: ops
+                HdlValueId: nrst
+    HdlStmIf: body
+        HdlOp: NEG_LOG
+            list: ops
+                HdlValueId: nrst
+        HdlStmBlock: SEQ
+            list: body
+                HdlStmAssign
+                    HdlValueInt: 0
+                    HdlValueId: rIWBSTB
+        list: elifs
+        HdlStmBlock: SEQ
+            list: body
+                HdlStmAssign
+                    HdlValueInt: 1
+                    HdlValueId: rIWBSTB
+                    HdlValueInt: 1
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlValueInt: f
+    HdlValueId: iwb_sel_o
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: iwb_we_o
+
+
+CommitId: 6506e2a4c0e1eda44f2c698eef27a20e26949b42
+Fixed pipelined latching of data bug.
+--- a/rtl/verilog/aeMB2_dwbif.v
++++ b/rtl/verilog/aeMB2_dwbif.v
+@@ -85,20 +85,6 @@ module aeMB2_dwbif (/*AUTOARG*/
+    // ENABLE FEEDBACK
+    assign 		dwb_fb = (dwb_stb_o ~^ dwb_ack_i);   
+ 
+-   // Independent on pipeline
+-   reg [31:0] 		dwb_lat;
+-   
+-   always @(posedge gclk)
+-     if (grst) begin
+-	/*AUTORESET*/
+-	// Beginning of autoreset for uninitialized flops
+-	dwb_mx <= 32'h0;
+-	// End of automatics
+-     end else if (dwb_stb_o & dwb_ack_i) begin
+-	// LATCH READS
+-	dwb_mx <= #1 dwb_dat_i;	
+-     end
+-      
+    // DATA bus
+    assign 		dwb_adr_o = mem_ex; // passthru
+ 
+
+ParseResult:
+MOV HdlIdDef@@dwb_lat to objs
+HdlIdDef: dwb_lat
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 31
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+MOV HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: gclk
+    HdlStmIf: body
+        HdlValueId: grst
+        HdlStmBlock: SEQ
+            list: body
+                HdlStmAssign
+                    HdlValueInt: 0
+                    HdlValueId: dwb_mx
+        list: elifs
+            tuple
+                HdlOp: AND
+                    list: ops
+                        HdlValueId: dwb_stb_o
+                        HdlValueId: dwb_ack_i
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmAssign
+                            HdlValueId: dwb_dat_i
+                            HdlValueId: dwb_mx
+                            HdlValueInt: 1
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@dwb_mx to dwb_lat
+
+
+CommitId: 6506e2a4c0e1eda44f2c698eef27a20e26949b42
+Fixed pipelined latching of data bug.
+--- a/rtl/verilog/aeMB2_dwbif.v
++++ b/rtl/verilog/aeMB2_dwbif.v
+@@ -142,6 +128,9 @@ module aeMB2_dwbif (/*AUTOARG*/
+ 				// depending on dwb_sel_o.
+ 	
+ 	dwb_wre_o <= #1 opc_of[2]; // SXX
++	
++	// FIXME: May clash during cache refills
++	dwb_mx <= #1 (dwb_ack_i) ?  dwb_dat_i : dwb_lat;	
+ 
+ 	case (wSEL)
+ 	  // 32'bit
+
+ParseResult:
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlOp: TERNARY
+        list: ops
+            HdlValueId: dwb_ack_i
+            HdlValueId: dwb_dat_i
+            HdlValueId: dwb_lat
+    HdlValueId: dwb_mx
+    HdlValueInt: 1
+
+
+CommitId: 6506e2a4c0e1eda44f2c698eef27a20e26949b42
+Fixed pipelined latching of data bug.
+--- a/rtl/verilog/aeMB2_dwbif.v
++++ b/rtl/verilog/aeMB2_dwbif.v
+@@ -159,7 +148,21 @@ module aeMB2_dwbif (/*AUTOARG*/
+ 	endcase // case (wSEL)
+      end // if (dena)
+ 
+-   // dislocate from pipeline
++   // Independent on pipeline
++
++   reg [31:0] dwb_lat;   
++   always @(posedge gclk)
++     if (grst) begin
++	/*AUTORESET*/
++	// Beginning of autoreset for uninitialized flops
++	dwb_lat <= 32'h0;
++	dwb_mx <= 32'h0;
++	// End of automatics
++     end else if (dwb_stb_o & dwb_ack_i) begin
++	// LATCH READS
++	dwb_lat <= #1 dwb_dat_i;	
++     end
++      
+    always @(posedge gclk)
+      if (grst) begin
+ 	/*AUTORESET*/
+
+ParseResult:
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: dwb_lat
+
+UPD HdlStmIf@@body to body
+    UPD HdlOp@@XNOR to XNOR
+        UPD HdlValueId@@dwb_ack_i to dwb_fb
+        MOV HdlValueId@@dwb_ack_i to ops
+        HdlValueId: dwb_ack_i
+        DEL HdlValueId@@dwb_stb_o from ops
+        DEL list@@ops from XNOR
+    DEL HdlOp@@XNOR from 
+
+
+CommitId: 6506e2a4c0e1eda44f2c698eef27a20e26949b42
+Fixed pipelined latching of data bug.
+--- a/rtl/verilog/aeMB2_dwbif.v
++++ b/rtl/verilog/aeMB2_dwbif.v
+@@ -167,7 +170,7 @@ module aeMB2_dwbif (/*AUTOARG*/
+ 	dwb_cyc_o <= 1'h0;
+ 	dwb_stb_o <= 1'h0;
+ 	// End of automatics
+-     end else if (dwb_ack_i ~^ dwb_stb_o) begin
++     end else if (dwb_fb) begin
+ 	dwb_stb_o <= #1
+ 		     (dena) ? &opc_of[5:4] : // LXX/SSS
+ 		     (dwb_stb_o & !dwb_ack_i); // LXX/SSS
+
+ParseResult:
+UPD HdlStmIf@@body to body
+    UPD HdlOp@@XNOR to XNOR
+        UPD HdlValueId@@dwb_ack_i to dwb_fb
+        MOV HdlValueId@@dwb_ack_i to ops
+        HdlValueId: dwb_ack_i
+        DEL HdlValueId@@dwb_stb_o from ops
+        DEL list@@ops from XNOR
+    DEL HdlOp@@XNOR from 
+
+
+CommitId: a3412a5a85abb96ecbc4d3624e1caef5ba2ba48b
+Patched problem where memory access followed by dual cycle instructions were not stalling correctly (submitted by M. Ettus)
+--- a/rtl/verilog/aeMB_ibuf.v
++++ b/rtl/verilog/aeMB_ibuf.v
+@@ -24,7 +24,7 @@ module aeMB_ibuf (/*AUTOARG*/
+    rIMM, rRA, rRD, rRB, rALT, rOPC, rSIMM, xIREG, rSTALL, iwb_stb_o,
+    // Inputs
+    rBRA, rMSR_IE, rMSR_BIP, iwb_dat_i, iwb_ack_i, sys_int_i, gclk,
+-   grst, gena
++   grst, gena, oena
+    );
+    // INTERNAL
+    output [15:0] rIMM;
+
+ParseResult:
+INS HdlIdDef@@oena to ports
+HdlIdDef: oena
+    HdlDirection: IN
+
+
+CommitId: a3412a5a85abb96ecbc4d3624e1caef5ba2ba48b
+Patched problem where memory access followed by dual cycle instructions were not stalling correctly (submitted by M. Ettus)
+--- a/rtl/verilog/aeMB_ibuf.v
++++ b/rtl/verilog/aeMB_ibuf.v
+@@ -144,13 +144,16 @@ module aeMB_ibuf (/*AUTOARG*/
+ 	rSTALL <= 1'h0;
+ 	// End of automatics
+      end else begin
+-	rSTALL <= #1 !rSTALL & (fMUL | fBSF);	
++	rSTALL <= #1 (!rSTALL & (fMUL | fBSF)) | (oena & rSTALL);	
+      end
+    
+ endmodule // aeMB_ibuf
+ 
+ /*
+  $Log: not supported by cvs2svn $
++ Revision 1.8  2007/12/25 22:15:09  sybreon
++ Stalls pipeline on MUL/BSF instructions results in minor speed improvements.
++
+  Revision 1.7  2007/11/22 15:11:15  sybreon
+  Change interrupt to positive level triggered interrupts.
+ 
+ParseResult:
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@OR to 
+    INS HdlValueId@@rSTALL to 
+    UPD HdlOp@@OR to OR
+        INS list@@ops to OR
+        INS HdlOp@@AND to ops
+        UPD HdlOp@@AND to AND
+            INS list@@ops to AND
+            INS HdlValueId@@oena to ops
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@AND to 
+    HdlOp: AND
+        list: ops
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlValueId: rSTALL
+            HdlOp: OR
+                list: ops
+                    HdlValueId: fMUL
+                    HdlValueId: fBSF
+    MOV HdlValueId@@rSTALL to 
+    HdlValueId: rSTALL
+
+
+CommitId: fe11d7356e2055e5bfa01219e4794b50d14dc01e
+Fixed endian correction issues on data bus.
+--- a/rtl/verilog/aeMB_regfile.v
++++ b/rtl/verilog/aeMB_regfile.v
+@@ -88,11 +91,12 @@ module aeMB_regfile(/*AUTOARG*/
+      end
+    
+    // DWB data - Endian Correction
+-   wire [31:0] 	 wDWBDAT = dwb_dat_i;
+-   
+    reg [31:0] 	 rDWBDAT;
+    wire 	 fDFWD = (rRD == rRD_) & fWE;
+-   assign 	 dwb_dat_o = rDWBDAT;
++   //assign 	 dwb_dat_o = rDWBDAT;
++   //wire [31:0] 	 wDWBDAT = dwb_dat_i;
++   assign 	 dwb_dat_o = {rDWBDAT[7:0],rDWBDAT[15:8],rDWBDAT[23:16],rDWBDAT[31:24]};   
++   wire [31:0] 	 wDWBDAT = {dwb_dat_i[7:0],dwb_dat_i[15:8],dwb_dat_i[23:16],dwb_dat_i[31:24]};   
+    
+    always @(negedge nclk or negedge nrst)
+      if (!nrst) begin
+
+ParseResult:
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: CONCAT
+        list: ops
+            HdlOp: CONCAT
+                list: ops
+                    HdlOp: CONCAT
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: rDWBDAT
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 7
+                                            HdlValueInt: 0
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: rDWBDAT
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 15
+                                            HdlValueInt: 8
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: rDWBDAT
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 23
+                                    HdlValueInt: 16
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: rDWBDAT
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 31
+                            HdlValueInt: 24
+    HdlValueId: dwb_dat_o
+
+INS HdlIdDef@@wDWBDAT to objs
+
+UPD HdlIdDef@@wDWBDAT to wDWBDAT
+    MOV HdlOp@@PARAMETRIZATION to wDWBDAT
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 31
+                    HdlValueInt: 0
+    DEL HdlValueId@@dwb_dat_i from wDWBDAT
+    DEL HdlDirection@@INTERNAL from wDWBDAT
+
+DEL HdlIdDef@@wDWBDAT from objs
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlValueId: rDWBDAT
+    HdlValueId: dwb_dat_o
+
+
+CommitId: fe11d7356e2055e5bfa01219e4794b50d14dc01e
+Fixed endian correction issues on data bus.
+--- a/rtl/verilog/aeMB_regfile.v
++++ b/rtl/verilog/aeMB_regfile.v
+@@ -387,7 +391,13 @@ module aeMB_regfile(/*AUTOARG*/
+ 	r11 <= #1 (rFSM == 2'b10) ? rPC : // Needs verification
+ 	       (!fR11) ? r11 : (fLD) ? wDWBDAT : (fLNK) ? rPC_ : (fWE) ? rRESULT : r11;	
+      end // else: !if(!nrst)
+-   
++
++
++   // Simulation ONLY
++   always @(negedge nclk) begin
++      if ((fWE & (rRD_== 5'd0)) || (fLNK & (rRD_== 5'd0)) || (fLD & (rRD_== 5'd0))) $displayh("!!! Warning: Write to R0.");
++   end	      
++      
+       
+ endmodule // aeMB_regfile
+ 
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: FALLING
+            list: ops
+                HdlValueId: nclk
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlOp: OR_LOG
+                    list: ops
+                        HdlOp: OR_LOG
+                            list: ops
+                                HdlOp: AND
+                                    list: ops
+                                        HdlValueId: fWE
+                                        HdlOp: EQ
+                                            list: ops
+                                                HdlValueId: rRD_
+                                                HdlValueInt: 0
+                                HdlOp: AND
+                                    list: ops
+                                        HdlValueId: fLNK
+                                        HdlOp: EQ
+                                            list: ops
+                                                HdlValueId: rRD_
+                                                HdlValueInt: 0
+                        HdlOp: AND
+                            list: ops
+                                HdlValueId: fLD
+                                HdlOp: EQ
+                                    list: ops
+                                        HdlValueId: rRD_
+                                        HdlValueInt: 0
+                HdlOp: CALL
+                    list: ops
+                        HdlValueId: $displayh
+                        str
+                list: elifs
+
+
+CommitId: 0bd32dd645e6e04450a8b22152e7467426c8f387
+Patch interrupt bug.
+--- a/rtl/verilog/aeMB_ibuf.v
++++ b/rtl/verilog/aeMB_ibuf.v
+@@ -89,9 +89,14 @@ module aeMB_ibuf (/*AUTOARG*/
+ 	rDINT <= 2'h0;
+ 	rFINT <= 1'h0;
+ 	// End of automatics
+-     end else if (rMSR_IE) begin
+-	rDINT <= #1 {rDINT[0], sys_int_i};	
+-	rFINT <= #1 (wIREG == wINTOP) ? 1'b0 : (rFINT | wSHOT);
++     end else begin
++	if (rMSR_IE)
++	  rDINT <= #1 
++		   {rDINT[0], sys_int_i};
++	
++	rFINT <= #1 
++		 //(wIREG == wINTOP) ? 1'b0 : 
++		 (rFINT | wSHOT) & rMSR_IE;
+      end
+ 
+    wire 	fIMM = (rOPC == 6'o54);
+
+ParseResult:
+UPD HdlStmIf@@body to body
+    INS list@@elifs to body
+
+UPD HdlStmIf@@body to body
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlOp: CONCAT
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: rDINT
+                                HdlValueInt: 0
+                        HdlValueId: sys_int_i
+                HdlValueId: rDINT
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlOp: TERNARY
+                    list: ops
+                        HdlOp: EQ
+                            list: ops
+                                HdlValueId: wIREG
+                                HdlValueId: wINTOP
+                        HdlValueInt: 0
+                        HdlOp: OR
+                            list: ops
+                                HdlValueId: rFINT
+                                HdlValueId: wSHOT
+                HdlValueId: rFINT
+                HdlValueInt: 1
+    DEL HdlValueId@@rMSR_IE from 
+    DEL tuple@@ from elifs
+    DEL list@@elifs from body
+
+INS HdlStmIf@@ to body
+
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@rMSR_IE to 
+    INS list@@elifs to 
+
+UPD HdlStmAssign@@ to if_true
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlOp: CONCAT
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: rDINT
+                    HdlValueInt: 0
+            HdlValueId: sys_int_i
+    HdlValueId: rDINT
+    HdlValueInt: 1
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to AND
+    UPD HdlOp@@TERNARY to TERNARY
+        DEL HdlOp@@EQ from ops
+        HdlOp: EQ
+            list: ops
+                HdlValueId: wIREG
+                HdlValueId: wINTOP
+        DEL HdlValueInt@@0 from ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        INS HdlValueId@@rMSR_IE to ops
+
+
+CommitId: a4f032f32043fbd3cf3956ab2af68e69b795a4dc
+Made some changes to the interrupt control. In some cases, the interrupt logic waits forever and doesn't execute. Bug was discovered by M. Ettus.
+--- a/rtl/verilog/aeMB_control.v
++++ b/rtl/verilog/aeMB_control.v
+@@ -50,13 +53,12 @@ module aeMB_control (/*AUTOARG*/
+    // Outputs
+    rFSM, nclk, prst, prun, frun, drun,
+    // Inputs
+-   sys_rst_i, sys_clk_i, sys_int_i, sys_exc_i, rIWBSTB, iwb_ack_i,
+-   rDWBSTB, dwb_ack_i, rBRA, rDLY, iwb_dat_i, rMSR_IE
++   sys_rst_i, sys_clk_i, sys_int_i, rIWBSTB, iwb_ack_i, rDWBSTB,
++   dwb_ack_i, rBRA, rDLY, rMSR_IE, rATOM
+    );
+    // System
+    input 	sys_rst_i, sys_clk_i;
+    input 	sys_int_i;
+-   input 	sys_exc_i;   
+    
+    // Instruction WB
+    input 	rIWBSTB;
+
+ParseResult:
+UPD HdlIdDef@@rFSM to rFSM
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueInt@@1 to 2
+
+DEL HdlIdDef@@sys_exc_i from ports
+HdlIdDef: sys_exc_i
+    HdlDirection: IN
+
+DEL HdlIdDef@@iwb_dat_i from ports
+HdlIdDef: iwb_dat_i
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 31
+                    HdlValueInt: 0
+    HdlDirection: IN
+
+
+CommitId: a4f032f32043fbd3cf3956ab2af68e69b795a4dc
+Made some changes to the interrupt control. In some cases, the interrupt logic waits forever and doesn't execute. Bug was discovered by M. Ettus.
+--- a/rtl/verilog/aeMB_control.v
++++ b/rtl/verilog/aeMB_control.v
+@@ -93,7 +94,9 @@ module aeMB_control (/*AUTOARG*/
+     
+     TODO: Exceptions
+     */
+-   wire 	fINT;   
++   
++   wire 	wINT = sys_int_i & rMSR_IE;
++   wire 	fATOM = (rATOM == 2'o3) | (rATOM == 2'o1);   
+    reg [2:0] 	rEXC, rINT;
+    always @(negedge nclk)
+      if (prst) begin
+
+ParseResult:
+UPD HdlIdDef@@fINT to wINT
+
+INS HdlIdDef@@fATOM to objs
+HdlIdDef: fATOM
+    HdlOp: OR
+        list: ops
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: rATOM
+                    HdlValueInt: 3
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: rATOM
+                    HdlValueInt: 1
+    HdlDirection: INTERNAL
+
+UPD HdlIdDef@@wINT to wINT
+    INS HdlOp@@AND to wINT
+    HdlOp: AND
+        list: ops
+            HdlValueId: sys_int_i
+            HdlValueId: rMSR_IE
+
+
+CommitId: a4f032f32043fbd3cf3956ab2af68e69b795a4dc
+Made some changes to the interrupt control. In some cases, the interrupt logic waits forever and doesn't execute. Bug was discovered by M. Ettus.
+--- a/rtl/verilog/aeMB_control.v
++++ b/rtl/verilog/aeMB_control.v
+@@ -102,8 +105,7 @@ module aeMB_control (/*AUTOARG*/
+ 	rINT <= 3'h0;
+ 	// End of automatics
+      end else if (prun) begin
+-	//rEXC <= #1 {rEXC[1:0], sys_exc_i};
+-	rINT <= #1 {rINT[1:0], sys_int_i};	
++	rINT <= #1 {rINT[1:0], wINT};	
+      end
+    
+    /**
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlValueId@@sys_int_i to wINT
+
+
+CommitId: a4f032f32043fbd3cf3956ab2af68e69b795a4dc
+Made some changes to the interrupt control. In some cases, the interrupt logic waits forever and doesn't execute. Bug was discovered by M. Ettus.
+--- a/rtl/verilog/aeMB_control.v
++++ b/rtl/verilog/aeMB_control.v
+@@ -188,8 +154,8 @@ module aeMB_control (/*AUTOARG*/
+     */
+ 
+    reg [1:0]    rRUN, xRUN;   
+-   wire 	fXCE = ~|rFSM;   
+-   assign 	{drun,frun} = {xRUN[1] & fXCE , xRUN[0] & fXCE};
++   wire 	fXCE = ~rFSM[2];   
++   assign 	{drun,frun} = {xRUN[1] & fXCE , xRUN[0] & fXCE & !(fATOM & (rFSM==FSM_ATM))};
+ 
+    always @(/*AUTOSENSE*/rBRA or rDLY) begin
+        xRUN <= {~(rBRA ^ rDLY), ~rBRA};
+ParseResult:
+UPD HdlIdDef@@fXCE to fXCE
+    UPD HdlOp@@NOR_UNARY to NEG
+    UPD HdlOp@@NOR_UNARY to NOR_UNARY
+        MOV list@@ops to NOR_UNARY
+        list: ops
+            HdlValueId: rFSM
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        MOV HdlOp@@AND to ops
+        HdlOp: AND
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: xRUN
+                        HdlValueInt: 0
+                HdlValueId: fXCE
+
+
+CommitId: d0d776e899ad2884caedd291b4b581c6d2bb95e1
+Fixed interrupt signal synchronisation.
+--- a/rtl/verilog/aeMB_ibuf.v
++++ b/rtl/verilog/aeMB_ibuf.v
+@@ -97,7 +100,8 @@ module aeMB_ibuf (/*AUTOARG*/
+    reg 		rFINT;
+    reg [1:0] 	rDINT;
+    //wire 	wSHOT = rDINT[0] & !rDINT[1] & sys_int_i;
+-   wire 	wSHOT = !rDINT[0] & sys_int_i;
++   //wire 	wSHOT = !rDINT[0] & sys_int_i;
++   wire 	wSHOT = (rDINT == 2'o1);	
+ 
+    always @(posedge gclk)
+      if (grst) begin
+
+ParseResult:
+UPD HdlIdDef@@wSHOT to wSHOT
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@NEG_LOG to NEG_LOG
+            UPD HdlOp@@INDEX to EQ
+            MOV HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: rDINT
+                    HdlValueInt: 0
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlValueInt@@0 to 1
+            DEL list@@ops from NEG_LOG
+        DEL HdlOp@@NEG_LOG from ops
+        DEL HdlValueId@@sys_int_i from ops
+        DEL list@@ops from AND
+    DEL HdlOp@@AND from wSHOT
+
+
+CommitId: a4f032f32043fbd3cf3956ab2af68e69b795a4dc
+Made some changes to the interrupt control. In some cases, the interrupt logic waits forever and doesn't execute. Bug was discovered by M. Ettus.
+--- a/rtl/verilog/aeMB_regfile.v
++++ b/rtl/verilog/aeMB_regfile.v
+@@ -125,11 +128,10 @@ module aeMB_regfile(/*AUTOARG*/
+    
+    always @(/*AUTOSENSE*/rFSM or rPC or rRD) begin
+       xPC_ <= rPC[31:2];      
+-      xINT <= (rFSM != 2'o0);
++      xINT <= (rFSM[2]);
+       
+       case (rFSM)
+-	2'o1: xRD_ <= 5'd14; // HWINT
+-	//2'o2: xRD_ <= 5'd17; // HWEXC
++	3'o4: xRD_ <= 5'd14; // HWINT
+ 	default: xRD_ <= rRD;
+       endcase // case (rFSM)      
+    end
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@NE to INDEX
+    UPD HdlOp@@NE to NE
+        UPD HdlValueInt@@0 to 2
+
+UPD HdlStmCase@@rFSM to rFSM
+    UPD HdlValueInt@@1 to 4
+
+
+CommitId: a0a8edb5e404b03e4798f5b6be60ddea160bb83d
+Fixed CMP bug.
+--- a/rtl/verilog/aeMB2_intu.v
++++ b/rtl/verilog/aeMB2_intu.v
+@@ -244,7 +244,7 @@ module aeMB2_intu (/*AUTOARG*/
+ 	sfr_ex <= #1
+ 		  {rMSR_CC,
+ 		   AEMB_HTX[0],
+-		   !gpha,
++		   gpha,
+ 		   21'd0,
+ 		   rMSR_DCE,
+ 		   1'b0,
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@CONCAT to CONCAT
+                UPD HdlOp@@CONCAT to CONCAT
+                    UPD HdlOp@@CONCAT to CONCAT
+                        UPD HdlOp@@CONCAT to CONCAT
+                            UPD HdlOp@@CONCAT to CONCAT
+                                UPD HdlOp@@CONCAT to CONCAT
+                                    UPD HdlOp@@CONCAT to CONCAT
+                                        UPD HdlOp@@CONCAT to CONCAT
+                                            UPD HdlOp@@NEG_LOG to NEG_LOG
+                                                MOV HdlValueId@@gpha to ops
+                                                HdlValueId: gpha
+                                                DEL list@@ops from NEG_LOG
+                                            DEL HdlOp@@NEG_LOG from ops
+
+
+CommitId: 2ced5e89358349dd44647077b95aa4607542f5c3
+Fixed minor synthesis bug.
+--- a/rtl/verilog/aeMB_regfile.v
++++ b/rtl/verilog/aeMB_regfile.v
+@@ -116,6 +111,19 @@ module aeMB_regfile(/*AUTOARG*/
+       xPC_ <= rPC[31:2];
+       xRD_ <= rRD;      
+    end
++
++   /**
++    Control Flags
++    -------------
++    Various internal flags.
++    */
++   
++   wire [31:0] 	 wRESULT;
++   wire 	 fWE = rRWE & !rDWBWE;
++   wire 	 fLNK = rLNK;
++   wire 	 fLD = rDWBSTB ^ rDWBWE;   
++   wire 	 fDFWD = !(rRD ^ rRD_) & fWE;
++   wire 	 fMFWD = rDWBSTB & !rDWBWE;      
+    
+    /**
+     Data WISHBONE Bus
+
+ParseResult:
+MOV HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlValueId: rPC
+        HdlValueId: rRD
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: rPC
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 31
+                                HdlValueInt: 2
+                HdlValueId: xPC_
+            HdlStmAssign
+                HdlValueId: rRD
+                HdlValueId: xRD_
+
+
+CommitId: fe11d7356e2055e5bfa01219e4794b50d14dc01e
+Fixed endian correction issues on data bus.
+--- a/rtl/verilog/aeMB_aslu.v
++++ b/rtl/verilog/aeMB_aslu.v
+@@ -65,7 +68,8 @@ module aeMB_aslu (/*AUTOARG*/
+    reg 		    rMSR_C;
+    
+    // Endian correction
+-   wire [31:0] 	    wDWBDAT = dwb_dat_i;   
++   //wire [31:0] 	    wDWBDAT = dwb_dat_i;   
++   wire [31:0] 	    wDWBDAT = {dwb_dat_i[7:0],dwb_dat_i[15:8],dwb_dat_i[23:16],dwb_dat_i[31:24]};   
+    
+    // Source and Target Select
+    wire [31:0] 	    wOPA =
+ParseResult:
+UPD HdlIdDef@@wDWBDAT to wDWBDAT
+    MOV HdlValueId@@dwb_dat_i to wDWBDAT
+    HdlValueId: dwb_dat_i
+
+
+CommitId: 0455bb366885ca48e419bdeb811ca63fd5b3d7e0
+Fixed minor typos.
+--- a/rtl/verilog/aeMB2_xslif.v
++++ b/rtl/verilog/aeMB2_xslif.v
+@@ -123,9 +123,9 @@ module aeMB2_xslif (/*AUTOARG*/
+ 	xBLK <= 1'h0;
+ 	xwb_stb_o <= 1'h0;
+ 	// End of automatics
+-     end else if (xwb_fb) begin
++     end else if (dena) begin
+ 	xBLK <= #1 imm_of[14]; // nGET/nPUT	
+-	xwb_stb_o <= #1 (dena) ? &{!opc_of[5],opc_of[4:3]} : // GET/PUT
++	xwb_stb_o <= #1 (dena) ? !opc_of[5] & opc_of[4] & opc_of[3] & opc_of[1] : // GET/PUT
+ 		     (xwb_stb_o & !xwb_ack_i);	
+      end
+ 
+
+ParseResult:
+UPD HdlStmIf@@body to body
+    UPD HdlValueId@@xwb_fb to dena
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        INS HdlOp@@AND to ops
+        UPD HdlOp@@AND to AND
+            INS list@@ops to AND
+            INS HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: opc_of
+                    HdlValueInt: 1
+            UPD HdlOp@@AND to AND
+                INS HdlOp@@INDEX to ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: opc_of
+                        HdlValueInt: 3
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        UPD HdlOp@@AND_UNARY to AND
+        MOV HdlOp@@AND_UNARY to ops
+        HdlOp: AND_UNARY
+            list: ops
+                HdlOp: CONCAT
+                    list: ops
+                        HdlOp: NEG_LOG
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: opc_of
+                                        HdlValueInt: 5
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: opc_of
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 4
+                                        HdlValueInt: 3
+        UPD HdlOp@@AND_UNARY to AND_UNARY
+            UPD HdlOp@@CONCAT to AND
+            UPD HdlOp@@CONCAT to CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlOp@@DOWNTO to DOWNTO
+                        MOV HdlValueInt@@4 to ops
+                        HdlValueInt: 4
+                        DEL HdlValueInt@@3 from ops
+                        DEL list@@ops from DOWNTO
+                    DEL HdlOp@@DOWNTO from ops
+
+
+CommitId: 2eaad90eb3accad59cf1b111e280116c9b615ae8
+Fixed minor typo.
+--- a/rtl/verilog/aeMB_ctrl.v
++++ b/rtl/verilog/aeMB_ctrl.v
+@@ -45,8 +48,8 @@
+ 
+ module aeMB_ctrl (/*AUTOARG*/
+    // Outputs
+-   rMXDST, rMXSRC, rMXTGT, rMXALT, rMXALU, rRW, rDWBSTB, rFSLSTB,
+-   dwb_stb_o, dwb_wre_o, fsl_stb_o, fsl_wre_o,
++   rMXDST, rMXSRC, rMXTGT, rMXALT, rMXALU, rRW, dwb_stb_o, dwb_wre_o,
++   fsl_stb_o, fsl_wre_o,
+    // Inputs
+    rDLY, rIMM, rALT, rOPC, rRD, rRA, rRB, rPC, rBRA, rMSR_IE, xIREG,
+    dwb_ack_i, iwb_ack_i, fsl_ack_i, gclk, grst, gena
+
+ParseResult:
+MOV HdlIdDef@@rDWBSTB to ports
+HdlIdDef: rDWBSTB
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: OUT
+
+MOV HdlIdDef@@rFSLSTB to ports
+HdlIdDef: rFSLSTB
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: OUT
+
+UPD HdlIdDef@@rDWBSTB to rDWBSTB
+    UPD HdlDirection@@OUT to INTERNAL
+
+UPD HdlIdDef@@rFSLSTB to rFSLSTB
+    UPD HdlDirection@@OUT to INTERNAL
+
+

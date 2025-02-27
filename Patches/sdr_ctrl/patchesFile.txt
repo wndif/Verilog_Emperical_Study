@@ -1,0 +1,499 @@
+CommitId: a163335c17fd927860e63f3662700a04259e8581
+Sdram controller RTL bug fixes done for 16bit SDR Mode
+--- a/rtl/core/sdrc_bs_convert.v
++++ b/rtl/core/sdrc_bs_convert.v
+@@ -152,7 +152,7 @@ always @(*) begin
+             app_wr_data_int = app_wr_data;
+             app_wr_en_n_int = app_wr_en_n;
+             app_req_dma_last_int = app_req_dma_last;
+-            app_req_int = app_req;
++            app_sdr_req_int = app_sdr_req;
+             app_wr_next = app_wr_next_int;
+             app_rd_data = app_rd_data_int;
+             app_rd_valid = app_rd_valid_int;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueId@@app_req_int to app_sdr_req_int
+            UPD HdlValueId@@app_req to app_sdr_req
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueId@@app_req_int to app_sdr_req_int
+            UPD HdlOp@@AND_LOG to AND_LOG
+                UPD HdlValueId@@app_req to app_sdr_req
+
+
+CommitId: ae98f187c41a64dccefc78051af08a11ffb941f4
+Bug fix the request length is fixe
+--- a/rtl/core/sdrc_req_gen.v
++++ b/rtl/core/sdrc_req_gen.v
+@@ -126,19 +130,19 @@ input                   req_wrap      ; // 1 - Wrap the Address on page boundary
+ output 			req_ack       ; // Request Ack
+ 		
+ /* Req to bank_ctl */
+-output 			r2x_idle      ;
+-output                  r2b_req       ;
+-output                  r2b_start     ;
+-output                  r2b_last      ;
+-output                  r2b_write     ;
+-output                  r2b_wrap      ; 
++output 			r2x_idle      ; 
++output                  r2b_req       ; // Request
++output                  r2b_start     ; // First Junk of the Burst Access
++output                  r2b_last      ; // Last Junk of the Burst Access
++output                  r2b_write     ; // 1 - Write, 0 - Read
++output                  r2b_wrap      ; // 1 - Wrap the Address at the page boundary.
+ output [`SDR_REQ_ID_W-1:0] 	r2b_req_id;
+-output [1:0] 		r2b_ba        ;
+-output [11:0] 		r2b_raddr     ;
+-output [11:0] 		r2b_caddr     ;
+-output [APP_RW-1:0] 	r2b_len       ;
+-input 			b2r_ack       ;
+-input                   b2r_arb_ok    ;
++output [1:0] 		r2b_ba        ; // Bank Address
++output [11:0] 		r2b_raddr     ; // Row Address
++output [11:0] 		r2b_caddr     ; // Column Address
++output [REQ_BW-1:0] 	r2b_len       ; // Burst Length
++input 			b2r_ack       ; // Request Ack
++input                   b2r_arb_ok    ; // Bank controller fifo is not full and ready to accept the command
+ //
+ input [1:0] 	        sdr_width; // 2'b00 - 32 Bit, 2'b01 - 16 Bit, 2'b1x - 8Bit
+                                          
+
+ParseResult:
+UPD HdlIdDef@@max_r2b_len to max_r2b_len
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueId@@APP_RW to REQ_BW
+
+UPD HdlIdDef@@lcl_req_len to lcl_req_len
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlOp@@SUB to SUB
+                UPD HdlValueId@@APP_RW to REQ_BW
+
+UPD HdlIdDef@@next_req_len to next_req_len
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlOp@@SUB to SUB
+                UPD HdlValueId@@APP_RW to REQ_BW
+
+
+CommitId: ae98f187c41a64dccefc78051af08a11ffb941f4
+Bug fix the request length is fixe
+--- a/rtl/core/sdrc_bank_ctl.v
++++ b/rtl/core/sdrc_bank_ctl.v
+@@ -122,7 +122,7 @@ parameter  SDR_BW   = 2;   // SDR Byte Width
+    output [`SDR_REQ_ID_W-1:0] 	b2x_id;
+    output [1:0] 		b2x_ba;
+    output [11:0] 		b2x_addr;
+-   output [APP_RW-1:0] 	b2x_len;
++   output [REQ_BW-1:0] 	b2x_len;
+    output [1:0] 		b2x_cmd;
+    input 			x2b_ack;
+ 
+
+ParseResult:
+INS HdlIdDef@@i2x_len0 to objs
+HdlIdDef: i2x_len0
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: REQ_BW
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@i2x_len1 to objs
+HdlIdDef: i2x_len1
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: REQ_BW
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@i2x_len2 to objs
+HdlIdDef: i2x_len2
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: REQ_BW
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@i2x_len3 to objs
+HdlIdDef: i2x_len3
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: REQ_BW
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@i2x_len0 from objs
+HdlIdDef: i2x_len0
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: APP_RW
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@i2x_len1 from objs
+HdlIdDef: i2x_len1
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: APP_RW
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@i2x_len2 from objs
+HdlIdDef: i2x_len2
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: APP_RW
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@i2x_len3 from objs
+HdlIdDef: i2x_len3
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: APP_RW
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+
+CommitId: 59f6326a06fe5ca6cf2bd87d22c4faaef2ccc820
+SDRAM bus converter bug fix and top-level signal clean up
+--- a/rtl/core/sdrc_req_gen.v
++++ b/rtl/core/sdrc_req_gen.v
+@@ -73,6 +74,8 @@ later version.
+ 
+ module sdrc_req_gen (clk,
+ 		    reset_n,
++		    cfg_colbits,
++		    sdr_width,
+ 
+ 		    /* Request from app */
+ 		    req,	        // Transfer Request
+
+ParseResult:
+MOV HdlIdDef@@sdr_width to ports
+HdlIdDef: sdr_width
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: IN
+
+
+CommitId: 59f6326a06fe5ca6cf2bd87d22c4faaef2ccc820
+SDRAM bus converter bug fix and top-level signal clean up
+--- a/rtl/core/sdrc_req_gen.v
++++ b/rtl/core/sdrc_req_gen.v
+@@ -272,11 +281,17 @@ end
+ //
+ // addrs bits for the bank, row and column
+ //
++// Register row/column/bank to improve fpga timing issue
++wire [APP_AW-1:0] 	map_address ;
++
++assign      map_address  = (req_ack) ? req_addr_int :
++		           (req_ld)  ? next_sdr_addr : curr_sdr_addr;
+ 
++always @ (posedge clk) begin
+ // Bank Bits are always - 2 Bits
+-   assign r2b_ba = (cfg_colbits == 2'b00) ? {curr_sdr_addr[9:8]}   :
+-	           (cfg_colbits == 2'b01) ? {curr_sdr_addr[10:9]}  :
+-	           (cfg_colbits == 2'b10) ? {curr_sdr_addr[11:10]} : curr_sdr_addr[12:11];
++    r2b_ba <= (cfg_colbits == 2'b00) ? {map_address[9:8]}   :
++	           (cfg_colbits == 2'b01) ? {map_address[10:9]}  :
++	           (cfg_colbits == 2'b10) ? {map_address[11:10]} : map_address[12:11];
+ 
+ /********************
+ *  Colbits Mapping:
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+
+MOV HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: TERNARY
+        list: ops
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: cfg_colbits
+                    HdlValueInt: 00
+            HdlOp: CONCAT
+                list: ops
+                    HdlValueInt: 0
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: curr_sdr_addr
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 7
+                                    HdlValueInt: 0
+            HdlOp: TERNARY
+                list: ops
+                    HdlOp: EQ
+                        list: ops
+                            HdlValueId: cfg_colbits
+                            HdlValueInt: 01
+                    HdlOp: CONCAT
+                        list: ops
+                            HdlValueInt: 0
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: curr_sdr_addr
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 8
+                                            HdlValueInt: 0
+                    HdlOp: TERNARY
+                        list: ops
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: cfg_colbits
+                                    HdlValueInt: 10
+                            HdlOp: CONCAT
+                                list: ops
+                                    HdlValueInt: 0
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: curr_sdr_addr
+                                            HdlOp: DOWNTO
+                                                list: ops
+                                                    HdlValueInt: 9
+                                                    HdlValueInt: 0
+                            HdlOp: CONCAT
+                                list: ops
+                                    HdlValueInt: 0
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: curr_sdr_addr
+                                            HdlOp: DOWNTO
+                                                list: ops
+                                                    HdlValueInt: 10
+                                                    HdlValueInt: 0
+    HdlValueId: r2b_caddr
+
+MOV HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: TERNARY
+        list: ops
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: cfg_colbits
+                    HdlValueInt: 00
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: curr_sdr_addr
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 21
+                            HdlValueInt: 10
+            HdlOp: TERNARY
+                list: ops
+                    HdlOp: EQ
+                        list: ops
+                            HdlValueId: cfg_colbits
+                            HdlValueInt: 01
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: curr_sdr_addr
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 22
+                                    HdlValueInt: 11
+                    HdlOp: TERNARY
+                        list: ops
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: cfg_colbits
+                                    HdlValueInt: 10
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: curr_sdr_addr
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 23
+                                            HdlValueInt: 12
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: curr_sdr_addr
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 24
+                                            HdlValueInt: 13
+    HdlValueId: r2b_raddr
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@curr_sdr_addr to map_address
+        UPD HdlOp@@TERNARY to TERNARY
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlValueId@@curr_sdr_addr to map_address
+            UPD HdlOp@@TERNARY to TERNARY
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueId@@curr_sdr_addr to map_address
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueId@@curr_sdr_addr to map_address
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlValueId@@curr_sdr_addr to map_address
+        UPD HdlOp@@TERNARY to TERNARY
+            UPD HdlOp@@CONCAT to CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueId@@curr_sdr_addr to map_address
+            UPD HdlOp@@TERNARY to TERNARY
+                UPD HdlOp@@CONCAT to CONCAT
+                    UPD HdlOp@@INDEX to INDEX
+                        UPD HdlValueId@@curr_sdr_addr to map_address
+                UPD HdlOp@@CONCAT to CONCAT
+                    UPD HdlOp@@INDEX to INDEX
+                        UPD HdlValueId@@curr_sdr_addr to map_address
+
+
+CommitId: 59f6326a06fe5ca6cf2bd87d22c4faaef2ccc820
+SDRAM bus converter bug fix and top-level signal clean up
+--- a/rtl/core/sdrc_req_gen.v
++++ b/rtl/core/sdrc_req_gen.v
+@@ -285,13 +300,13 @@ end
+ *           2'b10 - 10 Bit
+ *           2'b11 - 11 Bits
+ ************************/
+-   assign r2b_caddr = (cfg_colbits == 2'b00) ? {4'b0, curr_sdr_addr[7:0]} :
+-	              (cfg_colbits == 2'b01) ? {3'b0, curr_sdr_addr[8:0]} :
+-	              (cfg_colbits == 2'b10) ? {2'b0, curr_sdr_addr[9:0]} : {1'b0, curr_sdr_addr[10:0]};
+-
+-   assign r2b_raddr = (cfg_colbits == 2'b00)  ? curr_sdr_addr[21:10] :
+-	              (cfg_colbits == 2'b01)  ? curr_sdr_addr[22:11] :
+-	              (cfg_colbits == 2'b10)  ? curr_sdr_addr[23:12] : curr_sdr_addr[24:13];
+-	   
++    r2b_caddr <= (cfg_colbits == 2'b00) ? {4'b0, map_address[7:0]} :
++	               (cfg_colbits == 2'b01) ? {3'b0, map_address[8:0]} :
++	               (cfg_colbits == 2'b10) ? {2'b0, map_address[9:0]} : {1'b0, map_address[10:0]};
++
++    r2b_raddr <= (cfg_colbits == 2'b00)  ? map_address[21:10] :
++	               (cfg_colbits == 2'b01)  ? map_address[22:11] :
++	               (cfg_colbits == 2'b10)  ? map_address[23:12] : map_address[24:13];
++end	   
+    
+ endmodule // sdr_req_gen
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS list@@sensitivity to 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+
+CommitId: 59f6326a06fe5ca6cf2bd87d22c4faaef2ccc820
+SDRAM bus converter bug fix and top-level signal clean up
+--- a/rtl/core/sdrc_bs_convert.v
++++ b/rtl/core/sdrc_bs_convert.v
+@@ -141,7 +143,7 @@ always @(*) begin
+         begin
+            // Changed the address and length to match the 16 bit SDR Mode
+             app_wr_next          = (x2a_wrnext & wr_xfr_count[0]);
+-            app_rd_valid         = (rd_xfr_count & rd_xfr_count[0]);
++            app_rd_valid         = (x2a_rdok & rd_xfr_count[0]);
+             if(wr_xfr_count[0] == 1'b1)
+               begin
+                 a2x_wren_n      = app_wr_en_n[3:2];
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@AND to AND
+                UPD HdlValueId@@rd_xfr_count to x2a_rdok
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@AND to AND
+                UPD HdlValueId@@rd_xfr_count to x2a_rdok
+
+
+CommitId: 59f6326a06fe5ca6cf2bd87d22c4faaef2ccc820
+SDRAM bus converter bug fix and top-level signal clean up
+--- a/rtl/core/sdrc_bs_convert.v
++++ b/rtl/core/sdrc_bs_convert.v
+@@ -158,7 +160,7 @@ always @(*) begin
+         begin
+            // Changed the address and length to match the 16 bit SDR Mode
+             app_wr_next         = (x2a_wrnext & (wr_xfr_count[1:0]== 2'b11));
+-            app_rd_valid        = (rd_xfr_count &   (rd_xfr_count[1:0]== 2'b11));
++            app_rd_valid        = (x2a_rdok &   (rd_xfr_count[1:0]== 2'b11));
+             if(wr_xfr_count[1:0] == 2'b11)
+             begin
+                 a2x_wren_n      = app_wr_en_n[3];
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@AND to AND
+                UPD HdlValueId@@rd_xfr_count to x2a_rdok
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@AND to AND
+                UPD HdlValueId@@rd_xfr_count to x2a_rdok
+
+

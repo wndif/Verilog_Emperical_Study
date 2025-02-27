@@ -1,0 +1,955 @@
+CommitId: c8cf727ade9e8c8e996d3d98d12680c6dca480ff
+Fixed the negative period adjustment bug.
+--- a/rtl/rtc/rtc.v
++++ b/rtl/rtc/rtc.v
+@@ -84,21 +84,21 @@ always @(posedge rst or posedge clk) begin
+   end
+ end
+ 
+-reg  [39:0] time_adj_08n_32f;  // 39:32 ns, 31:0 ns_fraction
+-wire [15:0] time_adj_08n_08f;  // 15: 8 ns,  7:0 ns_fraction
+-reg  [23:0] time_adj_00n_24f;  //           23:0 ns_fraction
++reg  [39:0] time_adj_08n_32f;      //             39:32 ns, 31:0 ns_fraction
++reg  [39:0] time_adj_16b_00n_24f;  // 39:24 sign,           23:0 ns_fraction
++wire [37:0] time_adj_22b_08n_08f;  // 37:16 sign, 15: 8 ns,  7:0 ns_fraction
+ // delta-sigma circuit to keep the lower 24bit of time_adj
+ always @(posedge rst or posedge clk) begin
+   if (rst) begin
+-    time_adj_08n_32f <= 40'd0;
+-    time_adj_00n_24f <= 24'd0;
++    time_adj_08n_32f     <= 40'd0;
++    time_adj_16b_00n_24f <= 24'd0;
+   end
+   else begin
+-    time_adj_08n_32f <= time_adj[39: 0] + {16'd0, time_adj_00n_24f};  // add the delta
+-    time_adj_00n_24f <= time_adj_08n_32f[23: 0];                      // save the delta
++    time_adj_08n_32f     <= time_adj[39: 0] + time_adj_16b_00n_24f;  // add the delta
++    time_adj_16b_00n_24f <= {16'h0000, time_adj_08n_32f[23: 0]}; // save the delta
+   end
+ end
+-assign time_adj_08n_08f = time_adj_08n_32f[39:24];  // output w/o the delta
++assign time_adj_22b_08n_08f = time_adj_08n_32f[39]? {22'h3fffff, time_adj_08n_32f[39:24]}: {22'h000000, time_adj_08n_32f[39:24]};  // preserve the sign
+ 
+ reg  [37:0] time_acc_30n_08f_pre_pos;  // 37:8 ns , 7:0 ns_fraction
+ reg  [37:0] time_acc_30n_08f_pre_neg;  // 37:8 ns , 7:0 ns_fraction
+
+ParseResult:
+UPD HdlIdDef@@time_adj_08n_08f to time_adj_16b_00n_24f
+
+UPD HdlIdDef@@time_adj_00n_24f to time_adj_22b_08n_08f
+
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@TERNARY to 
+    UPD HdlOp@@TERNARY to TERNARY
+        INS list@@ops to TERNARY
+        INS HdlOp@@INDEX to ops
+        HdlOp: INDEX
+            list: ops
+                HdlValueId: time_adj_08n_32f
+                HdlValueInt: 39
+        INS HdlOp@@CONCAT to ops
+        INS HdlOp@@CONCAT to ops
+        HdlOp: CONCAT
+            list: ops
+                HdlValueInt: 000000
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: time_adj_08n_32f
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 39
+                                HdlValueInt: 24
+        UPD HdlOp@@CONCAT to CONCAT
+            INS list@@ops to CONCAT
+            INS HdlValueInt@@3fffff to ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@time_adj_08n_08f to time_adj_22b_08n_08f
+    MOV HdlOp@@INDEX to 
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: time_adj_08n_32f
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 39
+                    HdlValueInt: 24
+
+UPD HdlIdDef@@time_adj_08n_08f to time_adj_08n_08f
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlValueId@@wire to reg
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueInt@@15 to 39
+
+UPD HdlIdDef@@time_adj_00n_24f to time_adj_00n_24f
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlValueId@@reg to wire
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueInt@@23 to 37
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@time_adj_00n_24f to time_adj_16b_00n_24f
+
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@CONCAT to 
+    UPD HdlOp@@CONCAT to CONCAT
+        INS list@@ops to CONCAT
+        INS HdlValueInt@@0000 to ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@time_adj_00n_24f to time_adj_16b_00n_24f
+    MOV HdlOp@@INDEX to 
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: time_adj_08n_32f
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 23
+                    HdlValueInt: 0
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@ADD to ADD
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlValueId@@time_adj_00n_24f to time_adj_16b_00n_24f
+            MOV HdlValueId@@time_adj_00n_24f to ops
+            HdlValueId: time_adj_00n_24f
+            DEL HdlValueInt@@0 from ops
+            DEL list@@ops from CONCAT
+        DEL HdlOp@@CONCAT from ops
+
+
+CommitId: c8cf727ade9e8c8e996d3d98d12680c6dca480ff
+Fixed the negative period adjustment bug.
+--- a/rtl/rtc/rtc.v
++++ b/rtl/rtc/rtc.v
+@@ -111,17 +111,17 @@ always @(posedge rst or posedge clk) begin
+   end
+   else begin
+     if (time_ld) begin  // direct write
+-      time_acc_30n_08f_pre_pos <= time_reg_ns_in + {22'd0, time_adj_08n_08f};
+-      time_acc_30n_08f_pre_neg <= time_reg_ns_in + {22'd0, time_adj_08n_08f};
++      time_acc_30n_08f_pre_pos <= time_reg_ns_in + time_adj_22b_08n_08f;
++      time_acc_30n_08f_pre_neg <= time_reg_ns_in + time_adj_22b_08n_08f;
+     end
+     else begin
+       if (time_acc_48s_inc) begin
+-        time_acc_30n_08f_pre_pos <= time_acc_30n_08f_pre_neg + {22'd0, time_adj_08n_08f};
+-        time_acc_30n_08f_pre_neg <= time_acc_30n_08f_pre_neg + {22'd0, time_adj_08n_08f} - time_acc_modulo;
++        time_acc_30n_08f_pre_pos <= time_acc_30n_08f_pre_neg + time_adj_22b_08n_08f;
++        time_acc_30n_08f_pre_neg <= time_acc_30n_08f_pre_neg + time_adj_22b_08n_08f - time_acc_modulo;
+       end
+       else begin
+-        time_acc_30n_08f_pre_pos <= time_acc_30n_08f_pre_pos + {22'd0, time_adj_08n_08f};
+-        time_acc_30n_08f_pre_neg <= time_acc_30n_08f_pre_pos + {22'd0, time_adj_08n_08f} - time_acc_modulo;
++        time_acc_30n_08f_pre_pos <= time_acc_30n_08f_pre_pos + time_adj_22b_08n_08f;
++        time_acc_30n_08f_pre_neg <= time_acc_30n_08f_pre_pos + time_adj_22b_08n_08f - time_acc_modulo;
+       end
+     end
+   end
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@ADD to ADD
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlValueId@@time_adj_08n_08f to time_adj_22b_08n_08f
+            MOV HdlValueId@@time_adj_08n_08f to ops
+            HdlValueId: time_adj_08n_08f
+            DEL HdlValueInt@@0 from ops
+            DEL list@@ops from CONCAT
+        DEL HdlOp@@CONCAT from ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@ADD to ADD
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlValueId@@time_adj_08n_08f to time_adj_22b_08n_08f
+            MOV HdlValueId@@time_adj_08n_08f to ops
+            HdlValueId: time_adj_08n_08f
+            DEL HdlValueInt@@0 from ops
+            DEL list@@ops from CONCAT
+        DEL HdlOp@@CONCAT from ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@ADD to ADD
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlValueId@@time_adj_08n_08f to time_adj_22b_08n_08f
+            MOV HdlValueId@@time_adj_08n_08f to ops
+            HdlValueId: time_adj_08n_08f
+            DEL HdlValueInt@@0 from ops
+            DEL list@@ops from CONCAT
+        DEL HdlOp@@CONCAT from ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@ADD to ADD
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlValueId@@time_adj_08n_08f to time_adj_22b_08n_08f
+            MOV HdlValueId@@time_adj_08n_08f to ops
+            HdlValueId: time_adj_08n_08f
+            DEL HdlValueInt@@0 from ops
+            DEL list@@ops from CONCAT
+        DEL HdlOp@@CONCAT from ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@SUB to SUB
+        UPD HdlOp@@ADD to ADD
+            UPD HdlOp@@CONCAT to CONCAT
+                UPD HdlValueId@@time_adj_08n_08f to time_adj_22b_08n_08f
+                MOV HdlValueId@@time_adj_08n_08f to ops
+                HdlValueId: time_adj_08n_08f
+                DEL HdlValueInt@@0 from ops
+                DEL list@@ops from CONCAT
+            DEL HdlOp@@CONCAT from ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@SUB to SUB
+        UPD HdlOp@@ADD to ADD
+            UPD HdlOp@@CONCAT to CONCAT
+                UPD HdlValueId@@time_adj_08n_08f to time_adj_22b_08n_08f
+                MOV HdlValueId@@time_adj_08n_08f to ops
+                HdlValueId: time_adj_08n_08f
+                DEL HdlValueInt@@0 from ops
+                DEL list@@ops from CONCAT
+            DEL HdlOp@@CONCAT from ops
+
+
+CommitId: c3338a154f548578fe15b83f1f5c0ae58b2ace1d
+1. Added testbench for SOPC Builder example. Need to fully implement the self-check test cases. Just ignore the reported failures, and check the waveform for correct addressing.
+--- a/rtl/top/ha1588.v
++++ b/rtl/top/ha1588.v
+@@ -43,6 +43,17 @@ module ha1588 (
+   input [7:0] tx_gmii_data
+ );
+ 
++parameter addr_is_in_word = 0;
++wire [ 5: 0] word_addr_in;
++wire [ 7: 0] byte_addr_in;
++generate
++  if (addr_is_in_word)
++    assign word_addr_in = addr_in[ 5: 0];
++  else
++    assign word_addr_in = addr_in[ 7: 2];
++endgenerate
++assign byte_addr_in = {word_addr_in, 2'b00};
++
+ wire rtc_rst;
+ wire rtc_time_ld, rtc_period_ld, rtc_adj_ld, adj_ld_done;
+ wire [37:0] rtc_time_reg_ns;
+
+ParseResult:
+INS HdlIdDef@@word_addr_in to objs
+HdlIdDef: word_addr_in
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 5
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@byte_addr_in to objs
+HdlIdDef: byte_addr_in
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 7
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlStmIf@@ to objs
+HdlStmIf
+    HdlValueId: addr_is_in_word
+    HdlStmAssign: if_true
+        HdlOp: INDEX
+            list: ops
+                HdlValueId: addr_in
+                HdlOp: DOWNTO
+                    list: ops
+                        HdlValueInt: 5
+                        HdlValueInt: 0
+        HdlValueId: word_addr_in
+    list: elifs
+    HdlStmAssign: if_false
+        HdlOp: INDEX
+            list: ops
+                HdlValueId: addr_in
+                HdlOp: DOWNTO
+                    list: ops
+                        HdlValueInt: 7
+                        HdlValueInt: 2
+        HdlValueId: word_addr_in
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: CONCAT
+        list: ops
+            HdlValueId: word_addr_in
+            HdlValueInt: 00
+    HdlValueId: byte_addr_in
+
+INS HdlIdDef@@addr_is_in_word to params
+HdlIdDef: addr_is_in_word
+    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+
+CommitId: 4a32f76c7240861f580822676a672f28d69b2929
+1. Corrected GMII BFM preamble+sfd size error: 4B 5555555d changed to 8B 5555555555555555d5.
+--- a/sim/tsu/gmii_rx_bfm.v
++++ b/sim/tsu/gmii_rx_bfm.v
+@@ -91,8 +91,8 @@ begin : feeder_rx
+                 gmii_rxctrl = 1'b0;
+                 gmii_rxdata = 8'h00;
+             end
+-            // send frame preamble and sfd 5555555d=4*8
+-            repeat (3)
++            // send frame preamble and sfd 55555555555555d5=8*8
++            repeat (7)
+             begin
+                 @(posedge gmii_rxclk_offset);
+                 gmii_rxctrl = 1'b1;
+
+ParseResult:
+UPD HdlStmRepeat@@ to 
+    UPD HdlValueInt@@3 to 7
+
+UPD HdlStmWhile@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@5d to d5
+
+
+CommitId: 4a32f76c7240861f580822676a672f28d69b2929
+1. Corrected GMII BFM preamble+sfd size error: 4B 5555555d changed to 8B 5555555555555555d5.
+--- a/sim/tsu/gmii_rx_bfm.v
++++ b/sim/tsu/gmii_rx_bfm.v
+@@ -100,7 +100,7 @@ begin : feeder_rx
+             end
+                 @(posedge gmii_rxclk_offset)
+                 gmii_rxctrl = 1'b1;
+-                gmii_rxdata = 8'h5d;
++                gmii_rxdata = 8'hd5;
+             // send frame content
+             for (index_rx=0; index_rx<packet_leng_rx; index_rx=index_rx+1)
+             begin
+ParseResult:
+UPD HdlStmRepeat@@ to 
+    UPD HdlValueInt@@3 to 7
+
+UPD HdlStmWhile@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@5d to d5
+
+
+CommitId: 4a32f76c7240861f580822676a672f28d69b2929
+1. Corrected GMII BFM preamble+sfd size error: 4B 5555555d changed to 8B 5555555555555555d5.
+--- a/sim/top/nic_drv_bfm/gmii_tx_bfm.v
++++ b/sim/top/nic_drv_bfm/gmii_tx_bfm.v
+@@ -91,8 +91,8 @@ begin : feeder_tx
+                 gmii_txctrl = 1'b0;
+                 gmii_txdata = 8'h00;
+             end
+-            // send frame preamble and sfd 5555555d=4*8
+-            repeat (3)
++            // send frame preamble and sfd 55555555555555d5=8*8
++            repeat (7)
+             begin
+                 @(posedge gmii_txclk_offset);
+                 gmii_txctrl = 1'b1;
+
+ParseResult:
+UPD HdlStmRepeat@@ to 
+    UPD HdlValueInt@@3 to 7
+
+UPD HdlStmWhile@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@5d to d5
+
+
+CommitId: 4a32f76c7240861f580822676a672f28d69b2929
+1. Corrected GMII BFM preamble+sfd size error: 4B 5555555d changed to 8B 5555555555555555d5.
+--- a/sim/top/nic_drv_bfm/gmii_tx_bfm.v
++++ b/sim/top/nic_drv_bfm/gmii_tx_bfm.v
+@@ -100,7 +100,7 @@ begin : feeder_tx
+             end
+                 @(posedge gmii_txclk_offset)
+                 gmii_txctrl = 1'b1;
+-                gmii_txdata = 8'h5d;
++                gmii_txdata = 8'hd5;
+             // send frame content
+             for (index_tx=0; index_tx<packet_leng_tx; index_tx=index_tx+1)
+             begin
+ParseResult:
+UPD HdlStmRepeat@@ to 
+    UPD HdlValueInt@@3 to 7
+
+UPD HdlStmWhile@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@5d to d5
+
+
+CommitId: 4a32f76c7240861f580822676a672f28d69b2929
+1. Corrected GMII BFM preamble+sfd size error: 4B 5555555d changed to 8B 5555555555555555d5.
+--- a/rtl/tsu/ptp_parser.v
++++ b/rtl/tsu/ptp_parser.v
+@@ -111,40 +111,40 @@ always @(posedge rst or posedge clk) begin
+   end
+   else begin
+     // bypass vlan
+-    if      (int_valid && int_cnt==10'd3 && int_data[31:16]==16'h8100)  // ether_type == cvlan
++    if      (int_valid && int_cnt==10'd4 && int_data[31:16]==16'h8100)  // ether_type == cvlan
+       bypass_vlan <= 1'b1;
+-    else if (int_valid && int_cnt==10'd3 && int_data[31:16]==16'h9100)  // ether_type == svlan
++    else if (int_valid && int_cnt==10'd4 && int_data[31:16]==16'h9100)  // ether_type == svlan
+       bypass_vlan <= 1'b1;
+-    else if (int_valid && int_cnt==10'd4 && int_data[31:16]==16'h8100 && bypass_vlan)  // svlan_type == cvlan
++    else if (int_valid && int_cnt==10'd5 && int_data[31:16]==16'h8100 && bypass_vlan)  // svlan_type == cvlan
+       bypass_vlan <= 1'b1;
+     else if (int_valid && bypass_vlan)
+       bypass_vlan <= 1'b0;
+ 
+     // bypass mpls
+-    if      (int_valid && (int_cnt==10'd3 || bypass_vlan && int_cnt==10'd4) && 
++    if      (int_valid && (int_cnt==10'd4 || bypass_vlan && int_cnt==10'd5) && 
+             (int_data[31:16]==16'h8847 || int_data[31:16]==16'h8848))  // ether_type == mpls
+       bypass_mpls <= 1'b1;
+-    else if (int_valid &&  int_cnt==10'd4 && bypass_mpls && 
++    else if (int_valid &&  int_cnt==10'd5 && bypass_mpls && 
+              int_data[24]==1'b0)  // bottom of label stack == 0
+       bypass_mpls <= 1'b1;
+     else if (int_valid && bypass_mpls)
+       bypass_mpls <= 1'b0;
+ 
+     // bypass ipv4
+-    if      (int_valid && (int_cnt==10'd3 || (bypass_vlan || bypass_mpls) && int_cnt==10'd4) && bypass_ipv4_cnt==10'd0 &&
++    if      (int_valid && (int_cnt==10'd4 || (bypass_vlan || bypass_mpls) && int_cnt==10'd5) && bypass_ipv4_cnt==10'd0 &&
+             (int_data[31:16]==16'h0800 || bypass_mpls) && int_data[15:12]==4'h4)  // ether_type == ipv4, ip_version == 4
+       bypass_ipv4 <= 1'b1;
+     else if (int_valid && bypass_ipv4_cnt==10'd4)
+       bypass_ipv4 <= 1'b0;
+ 
+     // bypass ipv6
+-    if      (int_valid && (int_cnt==10'd3 || (bypass_vlan || bypass_mpls) && int_cnt==10'd4) && bypass_ipv6_cnt==10'd0 &&
++    if      (int_valid && (int_cnt==10'd4 || (bypass_vlan || bypass_mpls) && int_cnt==10'd5) && bypass_ipv6_cnt==10'd0 &&
+             (int_data[31:16]==16'h86dd || bypass_mpls) && int_data[15:12]==4'h6)  // ether_type == ipv6, ip_version == 6
+       bypass_ipv6 <= 1'b1;
+     else if (int_valid && bypass_ipv6_cnt==10'd9)
+       bypass_ipv6 <= 1'b0;
+ 
+-    // check if it is UDP
++    // check if it is udp
+     if      (int_valid && bypass_ipv4_cnt==10'd1 && int_data[ 7: 0]== 8'h11)  // ipv4_protocol == udp
+       found_udp <= 1'b1;
+     else if (int_valid && bypass_ipv6_cnt==10'd1 && int_data[31:24]== 8'h11)  // ipv6_protocol == udp
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        MOV HdlOp@@AND_LOG to ops
+        HdlOp: AND_LOG
+            list: ops
+                HdlOp: AND_LOG
+                    list: ops
+                        HdlValueId: int_valid
+                        HdlOp: EQ
+                            list: ops
+                                HdlValueId: int_cnt
+                                HdlValueInt: 4
+                HdlOp: EQ
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: int_data
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 31
+                                        HdlValueInt: 16
+                        HdlValueInt: 8100
+    MOV HdlOp@@AND_LOG to 
+    HdlOp: AND_LOG
+        list: ops
+            HdlOp: AND_LOG
+                list: ops
+                    HdlValueId: int_valid
+                    HdlOp: EQ
+                        list: ops
+                            HdlValueId: int_cnt
+                            HdlValueInt: 3
+            HdlOp: EQ
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: int_data
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 31
+                                    HdlValueInt: 16
+                    HdlValueInt: 8100
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@AND_LOG to AND_LOG
+            UPD HdlOp@@EQ to EQ
+                UPD HdlValueInt@@3 to 5
+    UPD HdlOp@@AND_LOG to AND_LOG
+        DEL HdlOp@@AND_LOG from ops
+        HdlOp: AND_LOG
+            list: ops
+                HdlValueId: int_valid
+                HdlOp: EQ
+                    list: ops
+                        HdlValueId: int_cnt
+                        HdlValueInt: 3
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@AND_LOG to AND_LOG
+            UPD HdlOp@@OR_LOG to AND_LOG
+            MOV HdlOp@@OR_LOG to ops
+            HdlOp: OR_LOG
+                list: ops
+                    HdlOp: EQ
+                        list: ops
+                            HdlValueId: int_cnt
+                            HdlValueInt: 3
+                    HdlOp: AND_LOG
+                        list: ops
+                            HdlValueId: bypass_vlan
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: int_cnt
+                                    HdlValueInt: 4
+            UPD HdlOp@@OR_LOG to OR_LOG
+                UPD HdlOp@@AND_LOG to OR_LOG
+                UPD HdlOp@@AND_LOG to AND_LOG
+                    MOV HdlValueId@@bypass_vlan to ops
+                    HdlValueId: bypass_vlan
+                DEL HdlOp@@EQ from ops
+                HdlOp: EQ
+                    list: ops
+                        HdlValueId: int_cnt
+                        HdlValueInt: 3
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@AND_LOG to AND_LOG
+            MOV HdlOp@@AND_LOG to ops
+            HdlOp: AND_LOG
+                list: ops
+                    HdlValueId: int_valid
+                    HdlOp: EQ
+                        list: ops
+                            HdlValueId: int_cnt
+                            HdlValueInt: 4
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@AND_LOG to AND_LOG
+            UPD HdlOp@@OR_LOG to OR_LOG
+                INS HdlOp@@AND_LOG to ops
+                UPD HdlOp@@AND_LOG to AND_LOG
+                    INS list@@ops to AND_LOG
+                    INS HdlOp@@EQ to ops
+                    HdlOp: EQ
+                        list: ops
+                            HdlValueId: int_cnt
+                            HdlValueInt: 5
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@AND_LOG to AND_LOG
+            INS HdlOp@@AND_LOG to ops
+            HdlOp: AND_LOG
+                list: ops
+                    HdlValueId: int_valid
+                    HdlOp: EQ
+                        list: ops
+                            HdlValueId: int_cnt
+                            HdlValueInt: 5
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@AND_LOG to AND_LOG
+            UPD HdlOp@@AND_LOG to AND_LOG
+                UPD HdlOp@@AND_LOG to AND_LOG
+                    UPD HdlOp@@OR_LOG to OR_LOG
+                        UPD HdlOp@@AND_LOG to AND_LOG
+                            MOV HdlOp@@EQ to ops
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: int_cnt
+                                    HdlValueInt: 4
+                        DEL HdlOp@@EQ from ops
+                        HdlOp: EQ
+                            list: ops
+                                HdlValueId: int_cnt
+                                HdlValueInt: 3
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@AND_LOG to AND_LOG
+            UPD HdlOp@@AND_LOG to AND_LOG
+                UPD HdlOp@@AND_LOG to AND_LOG
+                    UPD HdlOp@@OR_LOG to OR_LOG
+                        UPD HdlOp@@AND_LOG to AND_LOG
+                            MOV HdlOp@@EQ to ops
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: int_cnt
+                                    HdlValueInt: 4
+                        DEL HdlOp@@EQ from ops
+                        HdlOp: EQ
+                            list: ops
+                                HdlValueId: int_cnt
+                                HdlValueInt: 3
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@AND_LOG to AND_LOG
+            UPD HdlOp@@AND_LOG to AND_LOG
+                UPD HdlOp@@AND_LOG to AND_LOG
+                    UPD HdlOp@@OR_LOG to OR_LOG
+                        UPD HdlOp@@AND_LOG to AND_LOG
+                            INS HdlOp@@EQ to ops
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: int_cnt
+                                    HdlValueInt: 5
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@AND_LOG to AND_LOG
+            UPD HdlOp@@AND_LOG to AND_LOG
+                UPD HdlOp@@AND_LOG to AND_LOG
+                    UPD HdlOp@@OR_LOG to OR_LOG
+                        UPD HdlOp@@AND_LOG to AND_LOG
+                            INS HdlOp@@EQ to ops
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: int_cnt
+                                    HdlValueInt: 5
+
+
+CommitId: 4a32f76c7240861f580822676a672f28d69b2929
+1. Corrected GMII BFM preamble+sfd size error: 4B 5555555d changed to 8B 5555555555555555d5.
+--- a/rtl/tsu/ptp_parser.v
++++ b/rtl/tsu/ptp_parser.v
+@@ -159,7 +159,7 @@ always @(posedge rst or posedge clk) begin
+       bypass_udp <= 1'b0;
+ 
+     // check if it is L2 PTP
+-    if (int_valid && (int_cnt==10'd3 || bypass_vlan && int_cnt==10'd4) && int_data[31:16]==16'h88F7)  // ether_type == ptp
++    if (int_valid && (int_cnt==10'd4 || bypass_vlan && int_cnt==10'd5) && int_data[31:16]==16'h88F7)  // ether_type == ptp
+       ptp_l2 <= 1'b1;
+     // check if it is L4 PTP
+     if (int_valid && bypass_udp_cnt==10'd0 && bypass_udp &&
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@AND_LOG to AND_LOG
+            UPD HdlOp@@OR_LOG to OR_LOG
+                UPD HdlOp@@AND_LOG to OR_LOG
+                MOV HdlOp@@AND_LOG to ops
+                HdlOp: AND_LOG
+                    list: ops
+                        HdlValueId: bypass_vlan
+                        HdlOp: EQ
+                            list: ops
+                                HdlValueId: int_cnt
+                                HdlValueInt: 4
+                UPD HdlOp@@AND_LOG to AND_LOG
+                    MOV HdlValueId@@bypass_vlan to ops
+                    HdlValueId: bypass_vlan
+                DEL HdlOp@@EQ from ops
+                HdlOp: EQ
+                    list: ops
+                        HdlValueId: int_cnt
+                        HdlValueInt: 3
+                DEL list@@ops from OR_LOG
+            MOV HdlValueId@@int_valid to ops
+            HdlValueId: int_valid
+            DEL HdlOp@@OR_LOG from ops
+            DEL list@@ops from AND_LOG
+        DEL HdlOp@@AND_LOG from ops
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@AND_LOG to AND_LOG
+            UPD HdlOp@@OR_LOG to OR_LOG
+                INS HdlOp@@AND_LOG to ops
+                UPD HdlOp@@AND_LOG to AND_LOG
+                    INS list@@ops to AND_LOG
+                    INS HdlOp@@EQ to ops
+                    HdlOp: EQ
+                        list: ops
+                            HdlValueId: int_cnt
+                            HdlValueInt: 5
+
+
+CommitId: 4a32f76c7240861f580822676a672f28d69b2929
+1. Corrected GMII BFM preamble+sfd size error: 4B 5555555d changed to 8B 5555555555555555d5.
+--- a/rtl/tsu/ptp_parser.v
++++ b/rtl/tsu/ptp_parser.v
+@@ -167,10 +167,10 @@ always @(posedge rst or posedge clk) begin
+       ptp_l4 <= 1'b1;
+ 
+     // check if it is PTP Event message
+-    if      (int_valid && (int_cnt==10'd3 || bypass_vlan && int_cnt==10'd4) && int_data[31:16]==16'h88F7 &&
++    if      (int_valid && (int_cnt==10'd4 || bypass_vlan && int_cnt==10'd5) && int_data[31:16]==16'h88F7 &&
+             (ptp_msgid_mask[int_data[11: 8]]))  // ptp_message_id == ptp_event
+       ptp_event <= 1'b1;
+-    else if (int_valid && int_cnt==10'd4 && bypass_udp_cnt==10'd1 && ptp_l4 &&
++    else if (int_valid && int_cnt==10'd5 && bypass_udp_cnt==10'd1 && ptp_l4 &&
+             (ptp_msgid_mask[int_data[11: 8]]))  // ptp_message_id == ptp_event 
+       ptp_event <= 1'b1;
+   end
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@AND_LOG to AND_LOG
+            UPD HdlOp@@AND_LOG to AND_LOG
+                UPD HdlOp@@OR_LOG to AND_LOG
+                MOV HdlOp@@OR_LOG to ops
+                HdlOp: OR_LOG
+                    list: ops
+                        HdlOp: EQ
+                            list: ops
+                                HdlValueId: int_cnt
+                                HdlValueInt: 3
+                        HdlOp: AND_LOG
+                            list: ops
+                                HdlValueId: bypass_vlan
+                                HdlOp: EQ
+                                    list: ops
+                                        HdlValueId: int_cnt
+                                        HdlValueInt: 4
+                MOV HdlValueId@@int_valid to ops
+                HdlValueId: int_valid
+                UPD HdlOp@@OR_LOG to OR_LOG
+                    UPD HdlOp@@AND_LOG to OR_LOG
+                    UPD HdlOp@@AND_LOG to AND_LOG
+                        MOV HdlValueId@@bypass_vlan to ops
+                        HdlValueId: bypass_vlan
+                    DEL HdlOp@@EQ from ops
+                    HdlOp: EQ
+                        list: ops
+                            HdlValueId: int_cnt
+                            HdlValueInt: 3
+                DEL list@@ops from AND_LOG
+            DEL HdlOp@@AND_LOG from ops
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@AND_LOG to AND_LOG
+            UPD HdlOp@@AND_LOG to AND_LOG
+                UPD HdlOp@@AND_LOG to AND_LOG
+                    UPD HdlOp@@EQ to EQ
+                        UPD HdlValueInt@@4 to 5
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@AND_LOG to AND_LOG
+            UPD HdlOp@@AND_LOG to AND_LOG
+                UPD HdlOp@@OR_LOG to OR_LOG
+                    INS HdlOp@@AND_LOG to ops
+                    UPD HdlOp@@AND_LOG to AND_LOG
+                        INS list@@ops to AND_LOG
+                        INS HdlOp@@EQ to ops
+                        HdlOp: EQ
+                            list: ops
+                                HdlValueId: int_cnt
+                                HdlValueInt: 5
+
+
+CommitId: a87db3c6353c09e98280d9e4fea2a4434626fe6e
+Corrected AXI4 wrapper timing bug.
+--- a/rtl/reg/reg.v
++++ b/rtl/reg/reg.v
+@@ -208,7 +208,7 @@ reg  [31:0] data_out_reg;
+ always @(posedge clk) begin
+   // register mapping: RTC
+   if (rd_in && cs_00) data_out_reg <= {27'd0, reg_00[ 4: 2], adj_ld_done_in, time_ok};
+-  if (rd_in && cs_04) data_out_reg <= 32'd0;
++  if (rd_in && cs_04) data_out_reg <= reg_04;
+   if (rd_in && cs_08) data_out_reg <= 32'd0;
+   if (rd_in && cs_0c) data_out_reg <= 32'd0;
+   if (rd_in && cs_10) data_out_reg <= {16'd0, time_reg_sec_int[47:32]};
+ParseResult:
+UPD HdlStmAssign@@if_true to if_true
+    INS HdlValueId@@reg_04 to if_true
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@0 from if_true
+
+
+CommitId: 4a32f76c7240861f580822676a672f28d69b2929
+1. Corrected GMII BFM preamble+sfd size error: 4B 5555555d changed to 8B 5555555555555555d5.
+--- a/sim/top/nic_drv_bfm/gmii_rx_bfm.v
++++ b/sim/top/nic_drv_bfm/gmii_rx_bfm.v
+@@ -91,8 +91,8 @@ begin : feeder_rx
+                 gmii_rxctrl = 1'b0;
+                 gmii_rxdata = 8'h00;
+             end
+-            // send frame preamble and sfd 5555555d=4*8
+-            repeat (3)
++            // send frame preamble and sfd 55555555555555d5=8*8
++            repeat (7)
+             begin
+                 @(posedge gmii_rxclk_offset);
+                 gmii_rxctrl = 1'b1;
+
+ParseResult:
+UPD HdlStmRepeat@@ to 
+    UPD HdlValueInt@@3 to 7
+
+UPD HdlStmWhile@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@5d to d5
+
+
+CommitId: 4a32f76c7240861f580822676a672f28d69b2929
+1. Corrected GMII BFM preamble+sfd size error: 4B 5555555d changed to 8B 5555555555555555d5.
+--- a/sim/top/nic_drv_bfm/gmii_rx_bfm.v
++++ b/sim/top/nic_drv_bfm/gmii_rx_bfm.v
+@@ -100,7 +100,7 @@ begin : feeder_rx
+             end
+                 @(posedge gmii_rxclk_offset)
+                 gmii_rxctrl = 1'b1;
+-                gmii_rxdata = 8'h5d;
++                gmii_rxdata = 8'hd5;
+             // send frame content
+             for (index_rx=0; index_rx<packet_leng_rx; index_rx=index_rx+1)
+             begin
+ParseResult:
+UPD HdlStmRepeat@@ to 
+    UPD HdlValueInt@@3 to 7
+
+UPD HdlStmWhile@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@5d to d5
+
+
+CommitId: 4a32f76c7240861f580822676a672f28d69b2929
+1. Corrected GMII BFM preamble+sfd size error: 4B 5555555d changed to 8B 5555555555555555d5.
+--- a/sim/tsu/gmii_tx_bfm.v
++++ b/sim/tsu/gmii_tx_bfm.v
+@@ -91,8 +91,8 @@ begin : feeder_tx
+                 gmii_txctrl = 1'b0;
+                 gmii_txdata = 8'h00;
+             end
+-            // send frame preamble and sfd 5555555d=4*8
+-            repeat (3)
++            // send frame preamble and sfd 55555555555555d5=8*8
++            repeat (7)
+             begin
+                 @(posedge gmii_txclk_offset);
+                 gmii_txctrl = 1'b1;
+
+ParseResult:
+UPD HdlStmRepeat@@ to 
+    UPD HdlValueInt@@3 to 7
+
+UPD HdlStmWhile@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@5d to d5
+
+
+CommitId: 4a32f76c7240861f580822676a672f28d69b2929
+1. Corrected GMII BFM preamble+sfd size error: 4B 5555555d changed to 8B 5555555555555555d5.
+--- a/sim/tsu/gmii_tx_bfm.v
++++ b/sim/tsu/gmii_tx_bfm.v
+@@ -100,7 +100,7 @@ begin : feeder_tx
+             end
+                 @(posedge gmii_txclk_offset)
+                 gmii_txctrl = 1'b1;
+-                gmii_txdata = 8'h5d;
++                gmii_txdata = 8'hd5;
+             // send frame content
+             for (index_tx=0; index_tx<packet_leng_tx; index_tx=index_tx+1)
+             begin
+ParseResult:
+UPD HdlStmRepeat@@ to 
+    UPD HdlValueInt@@3 to 7
+
+UPD HdlStmWhile@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@5d to d5
+
+
+CommitId: a87db3c6353c09e98280d9e4fea2a4434626fe6e
+Corrected AXI4 wrapper timing bug.
+--- a/rtl/bus/xps/pcores/ha1588_axi_v1_00_a/hdl/verilog/ha1588_axi.v
++++ b/rtl/bus/xps/pcores/ha1588_axi_v1_00_a/hdl/verilog/ha1588_axi.v
+@@ -26,7 +26,7 @@ module ha1588_axi
+ 
+     // Register Slave Interface Write Response Ports
+     output wire [2-1:0]                        S_AXI_REG_BRESP,
+-    output wire                                S_AXI_REG_BVALID,
++    output reg                                 S_AXI_REG_BVALID,
+     input  wire                                S_AXI_REG_BREADY,
+ 
+     // Register Slave Interface Read Address Ports
+
+ParseResult:
+UPD HdlIdDef@@S_AXI_REG_BVALID to S_AXI_REG_BVALID
+    INS HdlOp@@PARAMETRIZATION to S_AXI_REG_BVALID
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+
+
+CommitId: a87db3c6353c09e98280d9e4fea2a4434626fe6e
+Corrected AXI4 wrapper timing bug.
+--- a/rtl/bus/xps/pcores/ha1588_axi_v1_00_a/hdl/verilog/ha1588_axi.v
++++ b/rtl/bus/xps/pcores/ha1588_axi_v1_00_a/hdl/verilog/ha1588_axi.v
+@@ -78,7 +78,10 @@ module ha1588_axi
+   assign S_AXI_REG_AWREADY = 1'b1;
+   assign S_AXI_REG_WREADY  = 1'b1;
+   assign S_AXI_REG_BRESP   = 2'b00;
+-  assign S_AXI_REG_BVALID  = S_AXI_REG_WVALID;
++  always @(negedge S_AXI_REG_ARESETN or posedge S_AXI_REG_ACLK) begin
++    if (!S_AXI_REG_ARESETN) S_AXI_REG_BVALID <= 1'b0;
++    else                    S_AXI_REG_BVALID <= S_AXI_REG_WVALID;
++  end
+   assign S_AXI_REG_ARREADY = 1'b1;
+   assign S_AXI_REG_RDATA   = up_data_rd;
+   assign S_AXI_REG_RRESP   = 2'b00;
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+
+UPD HdlStmProcess@@ to 
+    INS list@@sensitivity to 
+    list: sensitivity
+        HdlOp: FALLING
+            list: ops
+                HdlValueId: S_AXI_REG_ARESETN
+        HdlOp: RISING
+            list: ops
+                HdlValueId: S_AXI_REG_ACLK
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+INS HdlStmIf@@ to body
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@NEG_LOG to 
+    HdlOp: NEG_LOG
+        list: ops
+            HdlValueId: S_AXI_REG_ARESETN
+    INS list@@elifs to 
+
+INS HdlStmAssign@@if_true to 
+HdlStmAssign: if_true
+    HdlValueInt: 0
+    HdlValueId: S_AXI_REG_BVALID
+
+UPD HdlStmAssign@@ to if_false
+
+MOV HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlValueId: S_AXI_REG_WVALID
+    HdlValueId: S_AXI_REG_BVALID
+
+

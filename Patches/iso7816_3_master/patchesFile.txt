@@ -1,0 +1,757 @@
+CommitId: 593a725f4bb70f89726a33f9bbb23032a12733a1
+A bunch of synthesis error/warning removed.
+--- a/sources/HalfDuplexUartIf.v
++++ b/sources/HalfDuplexUartIf.v
+@@ -119,7 +119,7 @@ always @(posedge clk, negedge nReset) begin
+       end
+    end
+ end   
+-
++wire endOfTx;
+ 	BasicHalfDuplexUart #(
+ 		.DIVIDER_WIDTH(DIVIDER_WIDTH),
+ 		.CLOCK_PER_BIT_WIDTH(CLOCK_PER_BIT_WIDTH)
+
+ParseResult:
+INS HdlIdDef@@endOfTx to objs
+HdlIdDef: endOfTx
+    HdlDirection: INTERNAL
+
+
+CommitId: 593a725f4bb70f89726a33f9bbb23032a12733a1
+A bunch of synthesis error/warning removed.
+--- a/sources/Iso7816_3_Master.v
++++ b/sources/Iso7816_3_Master.v
+@@ -50,18 +50,22 @@ module Iso7816_3_Master(
+ 	 output wire atrIsEarly,//high if TS received before 400 cycles after reset release
+ 	 output wire atrIsLate,//high if TS is still not received after 40000 cycles after reset release
+ 	 //ISO7816 signals
+-    inout wire isoSio,
++    //inout wire isoSio,//not synthesisable on FPGA :-S
++	 output wire isTx,
++	 input wire isoSioIn,
++	 output wire isoSioOut,
+ 	 output wire isoClk,
+ 	 output reg isoReset,
+ 	 output reg isoVdd
+     );
+ 
+-wire txRun,txPending, rxRun, rxStartBit, isTx, overrunErrorFlag, frameErrorFlag, bufferFull;
++wire txRun,txPending, rxRun, rxStartBit, overrunErrorFlag, frameErrorFlag, bufferFull;
+ assign {txRun, txPending, rxRun, rxStartBit, isTx, overrunErrorFlag, frameErrorFlag, bufferFull} = statusOut;
+ 
+-wire serialOut;
+-assign isoSio = isTx ? serialOut : 1'bz;
+-pullup(isoSio);
++//wire serialOut;
++//not synthesisable on FPGA :-S
++//assign isoSio = isTx ? serialOut : 1'bz;
++//pullup(isoSio);
+ wire comClk;
+ 
+ wire stopBit2=1'b1;//0: 1 stop bit, 1: 2 stop bits 
+
+ParseResult:
+INS HdlIdDef@@isTx to ports
+HdlIdDef: isTx
+    HdlDirection: OUT
+
+INS HdlIdDef@@isoSioIn to ports
+HdlIdDef: isoSioIn
+    HdlDirection: IN
+
+UPD HdlIdDef@@isoSio to isoSioOut
+
+UPD HdlIdDef@@isoSio to isoSio
+    UPD HdlDirection@@INOUT to OUT
+
+DEL HdlIdDef@@isTx from objs
+HdlIdDef: isTx
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@serialOut from objs
+HdlIdDef: serialOut
+    HdlDirection: INTERNAL
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlOp: TERNARY
+        list: ops
+            HdlValueId: isTx
+            HdlValueId: serialOut
+            HdlValueInt: z
+    HdlValueId: isoSio
+
+
+CommitId: 26066f4981eaee5be00d37debd76f28969c3ed93
+draft of t=0 protocol analyzer (to ease debuging, and eventually as an ip itself)
+--- a/sources/RxCore.v
++++ b/sources/RxCore.v
+@@ -26,7 +26,8 @@ module RxCore(
+    output reg frameErrorFlag,		//bad parity or bad stop bits
+    output reg endOfRx,				//one cycle pulse: 1 during last cycle of last stop bit
+    output reg run,					//rx is definitely started, one of the three flag will be set
+-   output wire startBit,				//rx is started, but we don't know yet if real rx or just a glitch
++   output wire startBit,			//rx is started, but we don't know yet if real rx or just a glitch
++	output wire stopBit,				//rx is over but still in stop bits
+ 	input wire [CLOCK_PER_BIT_WIDTH-1:0] clocksPerBit,			
+ 	input wire stopBit2,//0: 1 stop bit, 1: 2 stop bits
+ 	input wire oddParity, //if 1, parity bit is such that data+parity have an odd number of 1
+
+ParseResult:
+INS HdlIdDef@@stopBit to ports
+HdlIdDef: stopBit
+    HdlDirection: OUT
+
+
+CommitId: 26066f4981eaee5be00d37debd76f28969c3ed93
+draft of t=0 protocol analyzer (to ease debuging, and eventually as an ip itself)
+--- a/sources/RxCore.v
++++ b/sources/RxCore.v
+@@ -75,7 +74,8 @@ reg parityBit;
+ wire internalIn;
+ wire parityError;
+ 
+-assign startBit = (nextState == START_STATE);
++assign startBit = (nextState == START_STATE);
++assign stopBit = (nextState == STOP1_STATE) | (nextState == STOP2_STATE);
+ assign internalIn = serialIn;
+ assign parityError= parityBit ^ internalIn ^ 1'b1;
+ reg flagsSet;
+
+ParseResult:
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: OR
+        list: ops
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: nextState
+                    HdlValueId: STOP1_STATE
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: nextState
+                    HdlValueId: STOP2_STATE
+    HdlValueId: stopBit
+
+
+CommitId: acf0f1aea32d2047c66d5307a9688d47ead9c456
+yet another fix of the analyzer: ATR, and convention handling
+--- a/sources/Iso7816_3_Master.v
++++ b/sources/Iso7816_3_Master.v
+@@ -107,7 +107,7 @@ reg [7:0] ts;
+ assign atrIsEarly = ~waitTs & (resetCnt<(16'h100+16'd400));
+ assign atrIsLate = resetCnt>(16'h100+16'd40000);
+ assign useIndirectConvention = ~waitTs & (ts==8'h3F);
+-assign tsError = ~waitTs & (ts!=8'h3B) & ~useIndirectConvention;
++assign tsError = ~waitTs & (ts!=8'h3B) & (ts!=8'h3F);
+ always @(posedge comClk, negedge nReset) begin
+ 	if(~nReset) begin
+ 		isoClkEn <= 1'b0;
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@NEG to NE
+        UPD HdlOp@@NEG to NEG
+            UPD HdlValueId@@useIndirectConvention to ts
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@NE to NE
+            INS HdlValueInt@@3f to ops
+
+
+CommitId: 26066f4981eaee5be00d37debd76f28969c3ed93
+draft of t=0 protocol analyzer (to ease debuging, and eventually as an ip itself)
+--- a/sources/RxCoreSelfContained.v
++++ b/sources/RxCoreSelfContained.v
+@@ -27,6 +27,7 @@ module RxCoreSelfContained(
+     output wire endOfRx,				//one cycle pulse: 1 during last cycle of last stop bit
+     output wire run,					//rx is definitely started, one of the three flag will be set
+     output wire startBit,				//rx is started, but we don't know yet if real rx or just a glitch
++	 output wire stopBit,				//rx is over but still in stop bits
+ 	 input wire [DIVIDER_WIDTH-1:0] clkPerCycle,
+ 	 input wire [CLOCK_PER_BIT_WIDTH-1:0] clocksPerBit,			
+ 	 input wire stopBit2,//0: 1 stop bit, 1: 2 stop bits
+
+ParseResult:
+INS HdlIdDef@@stopBit to ports
+HdlIdDef: stopBit
+    HdlDirection: OUT
+
+
+CommitId: 593a725f4bb70f89726a33f9bbb23032a12733a1
+A bunch of synthesis error/warning removed.
+--- a/sources/TxCore.v
++++ b/sources/TxCore.v
+@@ -116,14 +116,14 @@ assign internalOut = bitSel[nextState];
+ 
+ assign bitClocksCounterInitVal=0;
+ 
+-always @(nextState) begin
++always @(*) begin
+    case(nextState)
+       START_STATE:    
+-         assign bitClocksCounterCompare = clocksPerBit-1;
++         bitClocksCounterCompare = clocksPerBit-1'b1;
+       SEND_STOP2_STATE:    
+-         assign bitClocksCounterCompare = clocksPerBit-1;
++         bitClocksCounterCompare = clocksPerBit-1'b1;
+       default: 
+-         assign bitClocksCounterCompare = clocksPerBit;
++         bitClocksCounterCompare = clocksPerBit;
+    endcase
+ end
+ 
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS HdlAll@@ to sensitivity
+
+UPD HdlStmCase@@nextState to nextState
+    INS HdlOp@@ASSIGN to nextState
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: bitClocksCounterCompare
+            HdlValueId: clocksPerBit
+    INS HdlOp@@ASSIGN to 
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: bitClocksCounterCompare
+            HdlOp: SUB
+                list: ops
+                    HdlValueId: clocksPerBit
+                    HdlValueInt: 1
+    INS HdlOp@@ASSIGN to 
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: bitClocksCounterCompare
+            HdlOp: SUB
+                list: ops
+                    HdlValueId: clocksPerBit
+                    HdlValueInt: 1
+
+UPD HdlStmProcess@@ to 
+    DEL HdlValueId@@nextState from sensitivity
+
+DEL HdlStmNop@@ from 
+
+DEL HdlStmNop@@ from 
+
+DEL HdlStmNop@@default from nextState
+
+
+CommitId: 593a725f4bb70f89726a33f9bbb23032a12733a1
+A bunch of synthesis error/warning removed.
+--- a/sources/Uart.v
++++ b/sources/Uart.v
+@@ -88,10 +88,14 @@ reg safeOddParity;
+ reg safeMsbFirst;
+ always @(posedge clk, negedge nReset) begin
+ 	if(~nReset) begin
+-		safeClocksPerBit<=clocksPerBit;
++		/*safeClocksPerBit<=clocksPerBit;
+ 		safeStopBit2<=stopBit2;
+ 		safeOddParity<=oddParity;
+-		safeMsbFirst<=msbFirst;
++		safeMsbFirst<=msbFirst;*/
++		safeClocksPerBit<={CLOCK_PER_BIT_WIDTH{1'b0}};
++		safeStopBit2<=1'b0;
++		safeOddParity<=1'b0;
++		safeMsbFirst<=1'b0;
+ 	end else if(endOfRx|endOfTx|~(rxRun|rxStartBit|txRun)) begin
+ 		safeClocksPerBit<=clocksPerBit;
+ 		safeStopBit2<=stopBit2;
+ParseResult:
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@REPL_CONCAT to 
+    UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+        INS list@@ops to REPL_CONCAT
+        INS HdlValueInt@@0 to ops
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueInt@@0 to 
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueInt@@0 to 
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueInt@@0 to 
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@clocksPerBit to CLOCK_PER_BIT_WIDTH
+    MOV HdlValueId@@clocksPerBit to 
+    HdlValueId: clocksPerBit
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueId@@stopBit2 from 
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueId@@oddParity from 
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueId@@msbFirst from 
+
+
+CommitId: 274bc004b49909171da9c7c1eb0f67820f1cdfc6
+parity convention fixed
+--- a/sources/RxCore.v
++++ b/sources/RxCore.v
+@@ -144,7 +144,7 @@ always @(posedge clk, negedge nReset) begin
+ 							run <= #1 0;
+                   end
+ 					end else begin
+-						parityBit <= #1 oddParity;
++						parityBit <= #1 ~oddParity;
+ 						run <= #1 0;
+ 						nextState <= #1 START_STATE;
+ 					end
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@NEG to 
+    UPD HdlOp@@NEG to NEG
+        INS list@@ops to NEG
+
+UPD HdlStmAssign@@ to 
+    MOV HdlValueId@@oddParity to 
+    HdlValueId: oddParity
+
+
+CommitId: 2dd00755a2bcf74a3acdc967e5f8e32e9b351fec
+- rx/tx use "cyclesPerEtu" input
+--- a/sources/RxCore.v
++++ b/sources/RxCore.v
+@@ -27,7 +27,7 @@ module RxCore(
+    output reg endOfRx,				//one cycle pulse: 1 during last cycle of last stop bit
+    output reg run,					//rx is definitely started, one of the three flag will be set
+    output wire startBit,			//rx is started, but we don't know yet if real rx or just a glitch
+-	output wire stopBit,				//rx is over but still in stop bits
++	output reg stopBit,				//rx is over but still in stop bits
+ 	input wire [CLOCK_PER_BIT_WIDTH-1:0] clocksPerBit,			
+ 	input wire stopBit2,//0: 1 stop bit, 1: 2 stop bits
+ 	input wire oddParity, //if 1, parity bit is such that data+parity have an odd number of 1
+
+ParseResult:
+UPD HdlIdDef@@stopBit to stopBit
+    INS HdlOp@@PARAMETRIZATION to stopBit
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+
+
+CommitId: 2dd00755a2bcf74a3acdc967e5f8e32e9b351fec
+- rx/tx use "cyclesPerEtu" input
+--- a/sources/RxCore.v
++++ b/sources/RxCore.v
+@@ -42,11 +42,13 @@ module RxCore(
+ 	output reg bitClocksCounterClear,
+ 	output wire bitClocksCounterInitVal,
+    input wire bitClocksCounterEarlyMatch,
+-	input wire bitClocksCounterMatch
++	input wire bitClocksCounterMatch,
++	input wire [CLOCK_PER_BIT_WIDTH-1:0] bitClocksCounter
+     );
+ 
+ //parameters to override
+ parameter CLOCK_PER_BIT_WIDTH = 13;	//allow to support default speed of ISO7816
++parameter PRECISE_STOP_BIT = 0; //if 1, stopBit signal goes high exactly at start of stop bit instead of middle of parity bit
+ 
+ //default conventions
+ parameter START_BIT = 1'b0;
+
+ParseResult:
+INS HdlIdDef@@PRECISE_STOP_BIT to params
+HdlIdDef: PRECISE_STOP_BIT
+    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@bitClocksCounter to ports
+HdlIdDef: bitClocksCounter
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: CLOCK_PER_BIT_WIDTH
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: IN
+
+
+CommitId: 2dd00755a2bcf74a3acdc967e5f8e32e9b351fec
+- rx/tx use "cyclesPerEtu" input
+--- a/sources/RxCore.v
++++ b/sources/RxCore.v
+@@ -75,7 +77,7 @@ wire internalIn;
+ wire parityError;
+ 
+ assign startBit = (nextState == START_STATE);
+-assign stopBit = (nextState == STOP1_STATE) | (nextState == STOP2_STATE);
++//assign stopBit = (nextState == STOP1_STATE) | (nextState == STOP2_STATE);
+ assign internalIn = serialIn;
+ assign parityError= parityBit ^ internalIn ^ 1'b1;
+ reg flagsSet;
+
+ParseResult:
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlOp: OR
+        list: ops
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: nextState
+                    HdlValueId: STOP1_STATE
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: nextState
+                    HdlValueId: STOP2_STATE
+    HdlValueId: stopBit
+
+
+CommitId: 2dd00755a2bcf74a3acdc967e5f8e32e9b351fec
+- rx/tx use "cyclesPerEtu" input
+--- a/sources/RxCore.v
++++ b/sources/RxCore.v
+@@ -117,14 +119,17 @@ always @(posedge clk, negedge nReset) begin
+ 		dataOutReadyFlag <= #1 0;
+ 		frameErrorFlag <= #1 0;
+ 		run <= #1 0;
+-      endOfRx <= #1 0;
++      endOfRx <= #1 0;
++		stopBit<= #1 0;
+ 	end else begin	
+ 		case(nextState)
+ 			IDLE_STATE: begin
+ 				if(bitClocksCounterEarlyMatch)
+                endOfRx <= #1 1'b1;
+-            if(bitClocksCounterMatch)
+-               endOfRx <= #1 0;
++            if(bitClocksCounterMatch) begin
++               endOfRx <= #1 0;
++					stopBit <= #1 0;
++				end
+             if(ackFlags) begin
+ 					//overrunErrorFlag is auto cleared at PARITY_STATE
+ 					//meanwhile, it prevent dataOutReadyFlag to be set by the termination of the lost byte
+
+ParseResult:
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: stopBit
+    HdlValueInt: 1
+
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+UPD HdlStmAssign@@if_true to 
+
+MOV HdlStmAssign@@if_true to 
+HdlStmAssign: if_true
+    HdlValueInt: 0
+    HdlValueId: endOfRx
+    HdlValueInt: 1
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: stopBit
+    HdlValueInt: 1
+
+
+CommitId: 2dd00755a2bcf74a3acdc967e5f8e32e9b351fec
+- rx/tx use "cyclesPerEtu" input
+--- a/sources/RxCore.v
++++ b/sources/RxCore.v
+@@ -188,7 +193,8 @@ always @(posedge clk, negedge nReset) begin
+ 					end else if(ackFlags) begin
+ 						frameErrorFlag <= #1 0;
+ 					end
+-					flagsSet=1;
++					flagsSet=1;
++					if(PRECISE_STOP_BIT==0) stopBit <= #1 1;
+ 					if(stopBit2)
+ 						nextState <= #1 STOP1_STATE;
+ 					else
+
+ParseResult:
+INS HdlStmIf@@ to body
+HdlStmIf
+    HdlOp: EQ
+        list: ops
+            HdlValueId: PRECISE_STOP_BIT
+            HdlValueInt: 0
+    HdlStmAssign: if_true
+        HdlValueInt: 1
+        HdlValueId: stopBit
+        HdlValueInt: 1
+    list: elifs
+
+
+CommitId: 2dd00755a2bcf74a3acdc967e5f8e32e9b351fec
+- rx/tx use "cyclesPerEtu" input
+--- a/sources/RxCore.v
++++ b/sources/RxCore.v
+@@ -211,6 +217,11 @@ always @(posedge clk, negedge nReset) begin
+ 					nextState <= #1 STOP2_STATE;
+ 				end else if(ackFlags) begin
+ 					frameErrorFlag <= #1 0;
++				end
++				if(PRECISE_STOP_BIT!=0) begin
++					if(bitClocksCounter==(bitClocksCounterCompare/2)) begin
++						stopBit <= #1 1;
++					end
+ 				end
+ 			end
+ 			STOP2_STATE: begin
+
+ParseResult:
+INS HdlStmIf@@ to body
+HdlStmIf
+    HdlOp: NE
+        list: ops
+            HdlValueId: PRECISE_STOP_BIT
+            HdlValueInt: 0
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlOp: EQ
+                    list: ops
+                        HdlValueId: bitClocksCounter
+                        HdlOp: DIV
+                            list: ops
+                                HdlValueId: bitClocksCounterCompare
+                                HdlValueInt: 2
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmAssign
+                            HdlValueInt: 1
+                            HdlValueId: stopBit
+                            HdlValueInt: 1
+                list: elifs
+    list: elifs
+
+
+CommitId: 2dd00755a2bcf74a3acdc967e5f8e32e9b351fec
+- rx/tx use "cyclesPerEtu" input
+--- a/sources/RxCore.v
++++ b/sources/RxCore.v
+@@ -226,6 +237,11 @@ always @(posedge clk, negedge nReset) begin
+ 					nextState <= #1 IDLE_STATE;
+ 				end else if(ackFlags) begin
+ 					frameErrorFlag <= #1 0;
++				end
++				if(PRECISE_STOP_BIT!=0) begin
++					if(bitClocksCounter==(bitClocksCounterCompare/2)) begin
++						stopBit <= #1 1;
++					end
+ 				end
+ 			end
+ 			default: nextState <= #1 IDLE_STATE;
+
+ParseResult:
+INS HdlStmIf@@ to body
+HdlStmIf
+    HdlOp: NE
+        list: ops
+            HdlValueId: PRECISE_STOP_BIT
+            HdlValueInt: 0
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlOp: EQ
+                    list: ops
+                        HdlValueId: bitClocksCounter
+                        HdlOp: DIV
+                            list: ops
+                                HdlValueId: bitClocksCounterCompare
+                                HdlValueInt: 2
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmAssign
+                            HdlValueInt: 1
+                            HdlValueId: stopBit
+                            HdlValueInt: 1
+                list: elifs
+    list: elifs
+
+
+CommitId: 2dd00755a2bcf74a3acdc967e5f8e32e9b351fec
+- rx/tx use "cyclesPerEtu" input
+--- a/sources/Iso7816_3_Master.v
++++ b/sources/Iso7816_3_Master.v
+@@ -27,7 +27,7 @@ module Iso7816_3_Master(
+ 	 input wire startDeactivation,//Starts deactivation sequence
+     input wire [7:0] dataIn,
+     input wire nWeDataIn,
+-	 input wire [12:0] cyclePerEtu,
++	 input wire [12:0] cyclesPerEtu,
+     output wire [7:0] dataOut,
+     input wire nCsDataOut,
+     output wire [7:0] statusOut,
+
+ParseResult:
+UPD HdlIdDef@@cyclePerEtu to cyclesPerEtu
+
+
+CommitId: 2cada36fc3d54ba21dcaaf76e37b5c61280e21b5
+ATR analyzer fixed to handle 3b 90 97 40 20 correctly
+--- a/sources/HalfDuplexUartIf.v
++++ b/sources/HalfDuplexUartIf.v
+@@ -91,7 +91,7 @@ assign ackFlags=~txPending & ~txRun & rxFlagsSet & ((bufferFull & ~nCsDataOut)|
+ always @(posedge clk, negedge nReset) begin
+    if(~nReset) begin
+       bufferFull <= 1'b0;
+-      flagsReg <= 1'b0;
++      flagsReg <= 2'b00;
+       txPending <= 1'b0;
+    end else begin
+       if(ackFlags) begin
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlValueInt@@0 to 00
+
+
+CommitId: 26066f4981eaee5be00d37debd76f28969c3ed93
+draft of t=0 protocol analyzer (to ease debuging, and eventually as an ip itself)
+--- a/sources/Uart.v
++++ b/sources/Uart.v
+@@ -94,11 +94,10 @@ ClkDivider #(.DIVIDER_WIDTH(DIVIDER_WIDTH))
+ 		.dividedClk(earlyComClk)
+ 		);
+ */	
+-
++wire stopBit;
+ // Instantiate the module
+ RxCoreSelfContained #(
+-		.DIVIDER_WIDTH(DIVIDER_WIDTH),
+-		.PARITY_POLARITY(PARITY_POLARITY))
++		.DIVIDER_WIDTH(DIVIDER_WIDTH))
+ 	rxCore (
+     .dataOut(rxData), 
+     .overrunErrorFlag(overrunErrorFlag), 
+
+ParseResult:
+INS HdlIdDef@@stopBit to objs
+HdlIdDef: stopBit
+    HdlDirection: INTERNAL
+
+
+CommitId: 2dd00755a2bcf74a3acdc967e5f8e32e9b351fec
+- rx/tx use "cyclesPerEtu" input
+--- a/sources/RxCoreSelfContained.v
++++ b/sources/RxCoreSelfContained.v
+@@ -42,7 +42,8 @@ module RxCoreSelfContained(
+ 
+ //parameters to override
+ parameter DIVIDER_WIDTH = 1;
+-parameter CLOCK_PER_BIT_WIDTH = 13;	//allow to support default speed of ISO7816
++parameter CLOCK_PER_BIT_WIDTH = 13;	//allow to support default speed of ISO7816
++parameter PRECISE_STOP_BIT = 0; //if 1, stopBit signal goes high exactly at start of stop bit instead of middle of parity bit
+ //invert the polarity of the output or not
+ //parameter IN_POLARITY = 1'b0;
+ //parameter PARITY_POLARITY = 1'b1;
+
+ParseResult:
+INS HdlIdDef@@PRECISE_STOP_BIT to params
+HdlIdDef: PRECISE_STOP_BIT
+    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+
+CommitId: 2dd00755a2bcf74a3acdc967e5f8e32e9b351fec
+- rx/tx use "cyclesPerEtu" input
+--- a/sources/HalfDuplexUartIf.v
++++ b/sources/HalfDuplexUartIf.v
+@@ -25,6 +25,7 @@ module HalfDuplexUartIf(
+     input wire [DIVIDER_WIDTH-1:0] clkPerCycle,
+ 	 input wire [7:0] dataIn,
+     input wire nWeDataIn,
++    input wire [CLOCK_PER_BIT_WIDTH-1:0] clocksPerBit,
+     output wire [7:0] dataOut,
+     input wire nCsDataOut,
+     output wire [7:0] statusOut,
+
+ParseResult:
+INS HdlIdDef@@clocksPerBit to ports
+HdlIdDef: clocksPerBit
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: CLOCK_PER_BIT_WIDTH
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: IN
+
+
+CommitId: 2dd00755a2bcf74a3acdc967e5f8e32e9b351fec
+- rx/tx use "cyclesPerEtu" input
+--- a/sources/HalfDuplexUartIf.v
++++ b/sources/HalfDuplexUartIf.v
+@@ -34,13 +35,14 @@ module HalfDuplexUartIf(
+ 	 output wire comClk
+     );
+ //parameters to override
+-parameter DIVIDER_WIDTH = 1;
++parameter DIVIDER_WIDTH = 1;
++parameter CLOCK_PER_BIT_WIDTH = 13;	//allow to support default speed of ISO7816
+ 
+    reg [7:0] dataReg;
+ 
+ 	// Inputs
+ 	wire [7:0] txData;
+-	wire [12:0] clocksPerBit;
++	//wire [12:0] clocksPerBit;
+ 	wire stopBit2=1;
+ 	wire oddParity=0; //if 1, parity bit is such that data+parity have an odd number of 1
+    wire msbFirst=0;  //if 1, bits will be send in the order startBit, b7, b6, b5...b0, parity
+
+ParseResult:
+INS HdlIdDef@@CLOCK_PER_BIT_WIDTH to params
+HdlIdDef: CLOCK_PER_BIT_WIDTH
+    HdlValueInt: 13
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@clocksPerBit from objs
+HdlIdDef: clocksPerBit
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 12
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+
+CommitId: 2dd00755a2bcf74a3acdc967e5f8e32e9b351fec
+- rx/tx use "cyclesPerEtu" input
+--- a/sources/HalfDuplexUartIf.v
++++ b/sources/HalfDuplexUartIf.v
+@@ -64,7 +66,7 @@ parameter DIVIDER_WIDTH = 1;
+    reg [1:0] flagsReg;
+    
+    assign txData = dataReg;
+-   assign clocksPerBit = 7;
++   //assign clocksPerBit = 7;
+ 
+    assign dataOut=dataReg;
+    assign statusOut[7:0]={txRun, txPending, rxRun, rxStartBit, isTx, flagsReg, bufferFull};
+
+ParseResult:
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlValueInt: 7
+    HdlValueId: clocksPerBit
+
+

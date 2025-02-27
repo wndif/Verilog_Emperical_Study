@@ -1,0 +1,525 @@
+CommitId: 2c6102ed42fee65ec6da8c2ca46602775a4aa45d
+Minor bug fix.
+--- a/rtl/verilog/ae18_core.v
++++ b/rtl/verilog/ae18_core.v
+@@ -263,7 +268,7 @@ module ae18_core (/*AUTOARG*/
+     */   
+    
+    // WB Registers
+-   reg [ISIZ-2:0]    rIWBADR;
++   reg [23:0]    rIWBADR;
+    reg 		     rIWBSTB, rIWBWE;
+    reg [1:0] 	     rIWBSEL;   
+    //reg [15:0] 	     rIDAT;
+
+ParseResult:
+INS HdlIdDef@@rIWBADR to objs
+HdlIdDef: rIWBADR
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 23
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@rIWBADR from objs
+HdlIdDef: rIWBADR
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: ISIZ
+                            HdlValueInt: 2
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+
+CommitId: 2c6102ed42fee65ec6da8c2ca46602775a4aa45d
+Minor bug fix.
+--- a/rtl/verilog/ae18_core.v
++++ b/rtl/verilog/ae18_core.v
+@@ -285,7 +290,7 @@ module ae18_core (/*AUTOARG*/
+      if (!qrst) begin
+        /*AUTORESET*/
+        // Beginning of autoreset for uninitialized flops
+-       rIWBADR <= {(1+(ISIZ-2)){1'b0}};
++       rIWBADR <= 24'h0;
+        // End of automatics
+      end else if (qrun)
+        case (qfsm)
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+        MOV HdlValueInt@@0 to ops
+        HdlValueInt: 0
+        DEL HdlOp@@ADD from ops
+        HdlOp: ADD
+            list: ops
+                HdlValueInt: 1
+                HdlOp: SUB
+                    list: ops
+                        HdlValueId: ISIZ
+                        HdlValueInt: 2
+        DEL list@@ops from REPL_CONCAT
+    DEL HdlOp@@REPL_CONCAT from 
+
+
+CommitId: 2c6102ed42fee65ec6da8c2ca46602775a4aa45d
+Minor bug fix.
+--- a/rtl/verilog/ae18_core.v
++++ b/rtl/verilog/ae18_core.v
+@@ -341,7 +346,7 @@ module ae18_core (/*AUTOARG*/
+ 	case (qfsm)
+ 	  FSM_Q0: rROMLAT <= #1 iwb_dat_i;
+ 	  FSM_Q3: rIREG <= #1 rROMLAT;	     
+-	  FSM_Q2: rILAT <= (rTBLPTRL[0]) ? iwb_dat_i[15:8] : iwb_dat_i[7:0];	  
++	  FSM_Q2: rILAT <= (rTBLPTRL[0]) ? iwb_dat_i[7:0] : iwb_dat_i[15:8];	  
+ 	endcase // case(qfsm)
+      end
+ 
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        MOV HdlOp@@INDEX to ops
+        HdlOp: INDEX
+            list: ops
+                HdlValueId: iwb_dat_i
+                HdlOp: DOWNTO
+                    list: ops
+                        HdlValueInt: 15
+                        HdlValueInt: 8
+
+
+CommitId: 2c6102ed42fee65ec6da8c2ca46602775a4aa45d
+Minor bug fix.
+--- a/rtl/verilog/ae18_core.v
++++ b/rtl/verilog/ae18_core.v
+@@ -1078,9 +1083,9 @@ module ae18_core (/*AUTOARG*/
+ 	// Beginning of autoreset for uninitialized flops
+ 	rBCC <= 1'h0;
+ 	// End of automatics
+-     end else if (qena[1] & rNSKP) begin
++     end else if (qena[0]) begin
+ 	case (rMXBCC)
+-	  default: rBCC <= #1 rZ;
++	  MXBCC_BZ: rBCC <= #1 rZ;
+ 	  MXBCC_BNZ: rBCC <= #1 ~rZ;
+ 	  MXBCC_BC: rBCC <= #1 rC;
+ 	  MXBCC_BNC: rBCC <= #1 ~rC;
+
+ParseResult:
+UPD HdlStmIf@@body to body
+    UPD HdlOp@@AND to AND
+        MOV HdlOp@@INDEX to ops
+        HdlOp: INDEX
+            list: ops
+                HdlValueId: qena
+                HdlValueInt: 1
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueInt@@1 to 0
+        DEL HdlValueId@@rNSKP from ops
+        DEL list@@ops from AND
+    DEL HdlOp@@AND from 
+
+UPD HdlStmCase@@rMXBCC to rMXBCC
+    INS tuple@@ to cases
+    tuple
+        HdlValueId: MXBCC_BZ
+        HdlStmAssign
+            HdlValueId: rZ
+            HdlValueId: rBCC
+            HdlValueInt: 1
+
+DEL HdlStmAssign@@default from rMXBCC
+HdlStmAssign: default
+    HdlValueId: rZ
+    HdlValueId: rBCC
+    HdlValueInt: 1
+
+
+CommitId: 2c6102ed42fee65ec6da8c2ca46602775a4aa45d
+Minor bug fix.
+--- a/rtl/verilog/ae18_core.v
++++ b/rtl/verilog/ae18_core.v
+@@ -1088,8 +1093,8 @@ module ae18_core (/*AUTOARG*/
+ 	  MXBCC_BNOV: rBCC <= #1 ~rOV;
+ 	  MXBCC_BN: rBCC <= #1 rN;
+ 	  MXBCC_BNN: rBCC <= #1 ~rN;	  
+-	endcase // case(rMXBCC)
+-     end // if (qena[1] & rNSKP)
++	endcase // case(rMXBCC)	
++     end  
+  
+    // SKIP register
+    wire 	  wSKP = 
+
+ParseResult:
+UPD HdlStmIf@@body to body
+    UPD HdlOp@@AND to AND
+        MOV HdlOp@@INDEX to ops
+        HdlOp: INDEX
+            list: ops
+                HdlValueId: qena
+                HdlValueInt: 1
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueInt@@1 to 0
+        DEL HdlValueId@@rNSKP from ops
+        DEL list@@ops from AND
+    DEL HdlOp@@AND from 
+
+UPD HdlStmCase@@rMXBCC to rMXBCC
+    INS tuple@@ to cases
+    tuple
+        HdlValueId: MXBCC_BZ
+        HdlStmAssign
+            HdlValueId: rZ
+            HdlValueId: rBCC
+            HdlValueInt: 1
+
+
+CommitId: 69ed747df2360f801cf3225dbfa30911798188d9
+Fixed CPFSLT/CPFSGT bug discovered by G. M. Gallant.
+--- a/rtl/verilog/ae18_core.v
++++ b/rtl/verilog/ae18_core.v
+@@ -440,7 +446,8 @@ module ae18_core (/*AUTOARG*/
+      end else if (qena[1]) begin
+ 	case (rMXNPC)
+ 	  MXNPC_RET: rPCNXT <= #1 wPCSTK;
+-	  MXNPC_RESET: rPCNXT <= #1 24'h00;
++	  //MXNPC_RESET: rPCNXT <= #1 24'h00;
++	  //MXNPC_PCL: rPCNXT <= #1 wPCLAT;	  
+ 	  MXNPC_ISRH: rPCNXT <= #1 24'h08;
+ 	  MXNPC_ISRL: rPCNXT <= #1 24'h18;	  
+ 	  MXNPC_NEAR: rPCNXT <= #1 wPCNEAR;	  
+
+ParseResult:
+UPD HdlStmCase@@rMXNPC to rMXNPC
+    DEL tuple@@ from cases
+    tuple
+        HdlValueId: MXNPC_RESET
+        HdlStmAssign
+            HdlValueInt: 00
+            HdlValueId: rPCNXT
+            HdlValueInt: 1
+
+
+CommitId: 69ed747df2360f801cf3225dbfa30911798188d9
+Fixed CPFSLT/CPFSGT bug discovered by G. M. Gallant.
+--- a/rtl/verilog/ae18_core.v
++++ b/rtl/verilog/ae18_core.v
+@@ -1612,7 +1619,7 @@ module ae18_core (/*AUTOARG*/
+    wire 	  wSKP = 
+ 		  (rMXSKP == MXSKP_SZ) ? wZ :
+ 		  (rMXSKP == MXSKP_SNZ) ? ~wZ :
+-		  (rMXSKP == MXSKP_SNC) ? ~wC :
++		  (rMXSKP == MXSKP_SNC) ? wC :
+ 		  (rMXSKP == MXSKP_SCC) ? rBCC :
+ 		  (rMXSKP == MXSKP_SU) ? (1'b1) :
+ 		  1'b0;   
+ParseResult:
+UPD HdlIdDef@@wSKP to wSKP
+    UPD HdlOp@@TERNARY to TERNARY
+        UPD HdlOp@@TERNARY to TERNARY
+            UPD HdlOp@@TERNARY to TERNARY
+                UPD HdlOp@@NEG to NEG
+                    MOV HdlValueId@@wC to ops
+                    HdlValueId: wC
+                    DEL list@@ops from NEG
+                DEL HdlOp@@NEG from ops
+
+
+CommitId: 042ba1cc2a18fa5c3c107ffd6e56aff208b3de7a
+Fixed various bugs:
+--- a/rtl/verilog/ae18_core.v
++++ b/rtl/verilog/ae18_core.v
+@@ -61,7 +64,7 @@ module ae18_core (/*AUTOARG*/
+    output 	     wb_clk_o, wb_rst_o;
+ 
+    // Instruction WB Bus
+-   output [ISIZ-1:1] iwb_adr_o;
++   output [ISIZ-1:0] iwb_adr_o;
+    output [15:0]     iwb_dat_o;
+    output 	     iwb_stb_o, iwb_we_o;
+    output [1:0]      iwb_sel_o;   
+
+ParseResult:
+UPD HdlModuleDec@@ae18_core to ae18_core
+    INS list@@objs to ae18_core
+
+UPD HdlModuleDec@@ae18_core to ae18_core
+    DEL list@@objs from ae18_core
+
+
+CommitId: 042ba1cc2a18fa5c3c107ffd6e56aff208b3de7a
+Fixed various bugs:
+--- a/rtl/verilog/ae18_core.v
++++ b/rtl/verilog/ae18_core.v
+@@ -221,13 +224,13 @@ module ae18_core (/*AUTOARG*/
+ 		     rFSR0H, rFSR0L, rFSR1H, rFSR1L, rFSR2H, rFSR2L;
+    
+    reg  	     rSWDTEN, rSTKFUL, rSTKUNF;
+-   reg 		     rZ,rOV,rDC,rN,rC; 		     
+-   
++   reg 		     rZ,rOV,rDC,rN,rC;
++ 
+    reg [5:0] 	     rSTKPTR, rSTKPTR_;   
+    reg [7:0] 	     rWREG, rWREG_;
+    reg [7:0] 	     rBSR, rBSR_;
+    reg [4:0] 	     rSTATUS_;
+-
++ 
+    // Control Word Registers
+    reg [1:0] 	     rMXSRC, rMXTGT, rMXDST, rMXBSR, rMXSTK, rMXSHA;
+    reg [2:0] 	     rMXSKP, rMXSTA, rMXNPC, rMXBCC;
+
+ParseResult:
+UPD HdlModuleDec@@ae18_core to ae18_core
+    INS list@@objs to ae18_core
+
+UPD HdlModuleDec@@ae18_core to ae18_core
+    DEL list@@objs from ae18_core
+
+
+CommitId: 042ba1cc2a18fa5c3c107ffd6e56aff208b3de7a
+Fixed various bugs:
+--- a/rtl/verilog/ae18_core.v
++++ b/rtl/verilog/ae18_core.v
+@@ -263,6 +266,7 @@ module ae18_core (/*AUTOARG*/
+ 	rWDT <= {(1+(WSIZ)){1'b0}};
+ 	// End of automatics
+      end else if (rCLRWDT|rSLEEP) begin
++	$display("\tWDT cleared.");	
+ 	/*AUTORESET*/
+ 	// Beginning of autoreset for uninitialized flops
+ 	rWDT <= {(1+(WSIZ)){1'b0}};
+
+ParseResult:
+UPD HdlModuleDec@@ae18_core to ae18_core
+    INS list@@objs to ae18_core
+
+UPD HdlStmIf@@body to body
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+
+UPD HdlModuleDec@@ae18_core to ae18_core
+    DEL list@@objs from ae18_core
+
+
+CommitId: 042ba1cc2a18fa5c3c107ffd6e56aff208b3de7a
+Fixed various bugs:
+--- a/rtl/verilog/ae18_core.v
++++ b/rtl/verilog/ae18_core.v
+@@ -389,7 +393,7 @@ module ae18_core (/*AUTOARG*/
+    reg [1:0] 	     rIWBSEL;   
+    //reg [15:0] 	     rIDAT;
+      
+-   assign 	     iwb_adr_o = rIWBADR;
++   assign 	     iwb_adr_o = {rIWBADR,1'b0};
+    assign 	     iwb_stb_o = rIWBSTB;
+    assign 	     iwb_we_o = rIWBWE;
+    assign 	     iwb_dat_o = {rTABLAT,rTABLAT};
+
+ParseResult:
+UPD HdlModuleDec@@ae18_core to ae18_core
+    INS list@@objs to ae18_core
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: CONCAT
+        list: ops
+            HdlValueId: rIWBADR
+            HdlValueInt: 0
+    HdlValueId: iwb_adr_o
+
+UPD HdlModuleDec@@ae18_core to ae18_core
+    DEL list@@objs from ae18_core
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlValueId: rIWBADR
+    HdlValueId: iwb_adr_o
+
+
+CommitId: 042ba1cc2a18fa5c3c107ffd6e56aff208b3de7a
+Fixed various bugs:
+--- a/rtl/verilog/ae18_core.v
++++ b/rtl/verilog/ae18_core.v
+@@ -414,8 +418,8 @@ module ae18_core (/*AUTOARG*/
+ 	    case (rINTF)
+ 	      FSM_ISRH: rIWBADR <= #1 23'h000004;
+ 	      FSM_ISRL: rIWBADR <= #1 23'h00000C;    
+-	      default: rIWBADR <= #1 rPCNXT;
+-	    endcase // case(rINTF)	    
++	      default: rIWBADR <= #1 rPCNXT;	      
++	    endcase // case(rINTF)
+ 	 end
+ 	 FSM_Q1: begin
+ 	    rIWBADR <= #1 (rMXTBL == MXTBL_NOP) ? rIWBADR : {rTBLPTRU,rTBLPTRH,rTBLPTRL[7:1]};
+
+ParseResult:
+UPD HdlModuleDec@@ae18_core to ae18_core
+    INS list@@objs to ae18_core
+
+UPD HdlModuleDec@@ae18_core to ae18_core
+    DEL list@@objs from ae18_core
+
+
+CommitId: 042ba1cc2a18fa5c3c107ffd6e56aff208b3de7a
+Fixed various bugs:
+--- a/rtl/verilog/ae18_core.v
++++ b/rtl/verilog/ae18_core.v
+@@ -809,7 +813,7 @@ module ae18_core (/*AUTOARG*/
+ 		aPOSTINC0 = 16'hFFEE,
+ 		aINDF0 = 16'hFFEF;   
+ 
+-   wire 	   fGFF = (rEAPTR[15:6] == 10'h3FF);
++   wire 	   fGFF = (rEAPTR[15:6] == 10'h03F) | (rEAPTR[15:6] == 10'h3FF);
+    wire 	   fGFSR0 = (rEAPTR[5:3] == 3'o5);
+    wire 	   fGFSR1 = (rEAPTR[5:3] == 3'o4);
+    wire 	   fGFSR2 = (rEAPTR[5:3] == 3'o3);
+
+ParseResult:
+UPD HdlModuleDec@@ae18_core to ae18_core
+    INS list@@objs to ae18_core
+
+UPD HdlIdDef@@fGFF to fGFF
+    MOV HdlOp@@EQ to fGFF
+    HdlOp: EQ
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: rEAPTR
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 15
+                            HdlValueInt: 6
+            HdlValueInt: 3ff
+
+UPD HdlModuleDec@@ae18_core to ae18_core
+    DEL list@@objs from ae18_core
+
+
+CommitId: 042ba1cc2a18fa5c3c107ffd6e56aff208b3de7a
+Fixed various bugs:
+--- a/rtl/verilog/ae18_core.v
++++ b/rtl/verilog/ae18_core.v
+@@ -1048,8 +1052,8 @@ module ae18_core (/*AUTOARG*/
+        case (rMXALU)
+ 	 MXALU_ADD: rC_ <= #1 wADD[8];
+ 	 MXALU_ADDC: rC_ <= #1 wADDC[8];
+-	 MXALU_SUB: rC_ <= #1 wSUB[8];
+-	 MXALU_SUBC: rC_ <= #1 wSUBC[8];
++	 MXALU_SUB: rC_ <= #1 ~wSUB[8];
++	 MXALU_SUBC: rC_ <= #1 ~wSUBC[8];
+ 	 MXALU_RRC: rC_ <= #1 wRRC[8];
+ 	 MXALU_RLC: rC_ <= #1 wRLC[8];	
+ 	 MXALU_NEG: rC_ <= #1 wNEG[8];	 
+
+ParseResult:
+UPD HdlModuleDec@@ae18_core to ae18_core
+    INS list@@objs to ae18_core
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@INDEX to 
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: wSUB
+            HdlValueInt: 8
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@INDEX to 
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: wSUBC
+            HdlValueInt: 8
+
+UPD HdlModuleDec@@ae18_core to ae18_core
+    DEL list@@objs from ae18_core
+
+
+CommitId: 042ba1cc2a18fa5c3c107ffd6e56aff208b3de7a
+Fixed various bugs:
+--- a/rtl/verilog/ae18_core.v
++++ b/rtl/verilog/ae18_core.v
+@@ -1059,7 +1063,7 @@ module ae18_core (/*AUTOARG*/
+    wire 	  wC, wZ, wN, wOV, wDC;
+    assign 	  wN = rRESULT[7];
+    assign 	  wOV = ~(rSRC[7] ^ rTGT[7]) & (rRESULT[7] ^ rSRC[7]);
+-   assign 	  wZ = (rRESULT == 8'h00);
++   assign 	  wZ = (rRESULT[7:0] == 8'h00);
+    assign 	  wDC = rRESULT[4];   
+    assign 	  wC = rC_;
+    
+
+ParseResult:
+UPD HdlModuleDec@@ae18_core to ae18_core
+    INS list@@objs to ae18_core
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: EQ
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: rRESULT
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 7
+                            HdlValueInt: 0
+            HdlValueInt: 00
+    HdlValueId: wZ
+
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@NEG to 
+    UPD HdlOp@@NEG to NEG
+        INS list@@ops to NEG
+
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@NEG to 
+    UPD HdlOp@@NEG to NEG
+        INS list@@ops to NEG
+
+UPD HdlModuleDec@@ae18_core to ae18_core
+    DEL list@@objs from ae18_core
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlOp: EQ
+        list: ops
+            HdlValueId: rRESULT
+            HdlValueInt: 00
+    HdlValueId: wZ
+
+
+CommitId: 042ba1cc2a18fa5c3c107ffd6e56aff208b3de7a
+Fixed various bugs:
+--- a/rtl/verilog/ae18_core.v
++++ b/rtl/verilog/ae18_core.v
+@@ -1271,7 +1275,7 @@ module ae18_core (/*AUTOARG*/
+ 	  aTOSH[5:0]: rSFRDAT <= #1 rTOSH;
+ 	  aTOSL[5:0]: rSFRDAT <= #1 rTOSL;
+ 	  default rSFRDAT <= #1 rSFRDAT;	  
+-	endcase // case(rDWBADR)	
++	endcase // case(rDWBADR)
+      end   
+ 
+    wire wSFRSTB = (rDWBADR[15:6] == 10'h3FF);   
+ParseResult:
+UPD HdlModuleDec@@ae18_core to ae18_core
+    INS list@@objs to ae18_core
+
+UPD HdlModuleDec@@ae18_core to ae18_core
+    DEL list@@objs from ae18_core
+
+

@@ -1,0 +1,186 @@
+CommitId: af5b8ec57475bc6a745e9233d854652ac9cf12a0
+Thanks to Darren O'Connor of SPEC, Inc. for fixing a bug
+--- a/rtl/verilog/sasc_top.v
++++ b/rtl/verilog/sasc_top.v
+@@ -125,7 +128,8 @@ wire		lock_en;
+ reg		change;
+ reg		rx_sio_ce_d, rx_sio_ce_r1, rx_sio_ce_r2, rx_sio_ce;
+ reg	[1:0]	dpll_state, dpll_next_state;
+-
++reg 	[5:0] 	rxd_dly; //New input delay used to ensure no baud clocks
++			// occur twice in one baud period
+ ///////////////////////////////////////////////////////////////////
+ //
+ // IO Fifo's
+
+ParseResult:
+INS HdlIdDef@@rxd_dly to objs
+HdlIdDef: rxd_dly
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 5
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+
+CommitId: af5b8ec57475bc6a745e9233d854652ac9cf12a0
+Thanks to Darren O'Connor of SPEC, Inc. for fixing a bug
+--- a/rtl/verilog/sasc_top.v
++++ b/rtl/verilog/sasc_top.v
+@@ -203,10 +207,13 @@ always @(posedge clk)
+ //
+ 
+ always @(posedge clk)
+-	rxd_s <= #1 rxd_i;
++begin
++    rxd_dly[5:1] <= #1 rxd_dly[4:0];
++	 rxd_dly[0] <= #1rxd_i;
++	 rxd_s <= #1rxd_dly[5];  // rxd_s = delay 1
++    rxd_r <= #1 rxd_s;  // rxd_r = delay 2	 
++end
+ 
+-always @(posedge clk)
+-	rxd_r <= #1 rxd_s;
+ 
+ assign start = (rxd_r == IDLE_BIT) & (rxd_s == START_BIT);
+ 
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+
+UPD HdlStmProcess@@ to 
+    MOV list@@sensitivity to 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: rxd_dly
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 4
+                    HdlValueInt: 0
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: rxd_dly
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 5
+                    HdlValueInt: 1
+    HdlValueInt: 1
+
+UPD HdlStmAssign@@body to 
+
+MOV HdlStmAssign@@body to 
+HdlStmAssign: body
+    HdlValueId: rxd_i
+    HdlValueId: rxd_s
+    HdlValueInt: 1
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: rxd_dly
+            HdlValueInt: 5
+    HdlValueId: rxd_s
+    HdlValueInt: 1
+
+UPD HdlStmAssign@@body to 
+
+MOV HdlStmAssign@@body to 
+HdlStmAssign: body
+    HdlValueId: rxd_s
+    HdlValueId: rxd_r
+    HdlValueInt: 1
+
+UPD HdlStmAssign@@body to body
+    UPD HdlValueId@@rxd_s to rxd_dly
+    MOV HdlValueId@@rxd_s to body
+    HdlValueId: rxd_s
+
+UPD HdlStmProcess@@ to 
+    DEL list@@sensitivity from 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+
+DEL HdlStmProcess@@ from objs
+
+DEL HdlStmProcess@@ from objs
+
+
+CommitId: af5b8ec57475bc6a745e9233d854652ac9cf12a0
+Thanks to Darren O'Connor of SPEC, Inc. for fixing a bug
+--- a/rtl/verilog/sasc_top.v
++++ b/rtl/verilog/sasc_top.v
+@@ -249,11 +256,12 @@ always @(posedge clk)
+ 	if(sio_ce_x4)	rxd_r2 <= #1 rxd_r1;
+ 
+ always @(posedge clk)
+-	if(!rst)		change <= #1 1'b0;
+-	else
+-	if(rxd_r != rxd_s)	change <= #1 1'b1;
+-	else
+-	if(sio_ce_x4)		change <= #1 1'b0;
++    if(!rst)        
++        change <= #1 1'b0;
++    else if ((rxd_dly[1] != rxd_r1) || (rxd_dly[1] != rxd_s))
++        change <= #1 1'b1;
++    else if(sio_ce_x4)
++        change <= #1 1'b0;
+ 
+ // DPLL FSM
+ always @(posedge clk or negedge rst)
+ParseResult:
+UPD HdlStmIf@@body to body
+    MOV HdlOp@@NE to 
+    HdlOp: NE
+        list: ops
+            HdlValueId: rxd_r
+            HdlValueId: rxd_s
+    UPD HdlOp@@NE to NE
+        UPD HdlValueId@@rxd_r to rxd_dly
+        MOV HdlValueId@@rxd_r to ops
+        HdlValueId: rxd_r
+
+
+CommitId: 0044ed19384b02587fc6958367cf9f2727b92735
+
+--- a/rtl/verilog/sasc_brg.v
++++ b/rtl/verilog/sasc_brg.v
+@@ -121,7 +124,8 @@ always @(posedge clk)
+ 	if(!rst)	br_cnt <= #1 8'h0;
+ 	else
+ 	if(br_clr)	br_cnt <= #1 8'h0;
+-	else		br_cnt <= #1 br_cnt + 8'h1;
++	else
++	if(ps_clr)	br_cnt <= #1 br_cnt + 8'h1;
+ 
+ always @(posedge clk)
+ 	br_clr <= #1 (br_cnt == div1); // Prciese number of PS cycles
+ParseResult:
+UPD HdlStmIf@@body to body
+    INS tuple@@ to elifs
+    INS HdlValueId@@ps_clr to 
+
+UPD HdlStmAssign@@if_false to 
+
+MOV HdlStmAssign@@if_false to body
+HdlStmAssign: if_false
+    HdlOp: ADD
+        list: ops
+            HdlValueId: br_cnt
+            HdlValueInt: 1
+    HdlValueId: br_cnt
+    HdlValueInt: 1
+
+

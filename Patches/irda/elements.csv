@@ -1,0 +1,5 @@
+,HdlOp-FunctionCall,HdlOp-RISING,HdlOp-InfixExpression,HdlDirection,HdlOp-Assignment,HdlOp-MemberAccessing,HdlOp-PrefixExpression,HdlOp-PARAMETRIZATION,HdlOp-TERNARY,HdlOp-DOWNTO
+delete,5.0,,,,1.0,,,,,
+update,3.0,1.0,13.0,1.0,5.0,5.0,1.0,3.0,2.0,2.0
+insert,,,10.0,,,,1.0,,,
+move,,,4.0,,,,1.0,,,

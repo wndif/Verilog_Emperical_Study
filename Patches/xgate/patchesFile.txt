@@ -1,0 +1,3505 @@
+CommitId: 3579383fb2ae06f7e0eee6c3aa9872ac7d1a6d56
+Added event signal for compare error tracking in top level test bench.
+--- a/bench/verilog/wb_master_model.v
++++ b/bench/verilog/wb_master_model.v
+@@ -51,35 +51,34 @@
+ 
+ module wb_master_model  #(parameter dwidth = 32,
+                           parameter awidth = 32)
+-(clk, rst, adr, din, dout, cyc, stb, we, sel, ack, err, rty);
+-
+-
+-input                  clk, rst;
+-output [awidth   -1:0]  adr;
+-input  [dwidth   -1:0]  din;
+-output [dwidth   -1:0]  dout;
+-output                 cyc, stb;
+-output                          we;
+-output [dwidth/8 -1:0] sel;
+-input                           ack, err, rty;
++(
++output reg                 cyc,
++output reg                 stb,
++output reg                 we,
++output reg [dwidth/8 -1:0] sel,
++output reg [awidth   -1:0] adr,
++output reg [dwidth   -1:0] dout,
++input      [dwidth   -1:0] din,
++input                      clk,
++input                      ack,
++input                      rst,  // No Connect
++input                      err,  // No Connect
++input                      rty   // No Connect
++);
+ 
+ ////////////////////////////////////////////////////////////////////
+ //
+ // Local Wires
+ //
+ 
+-reg     [awidth   -1:0] adr;
+-reg     [dwidth   -1:0] dout;
+-reg                            cyc, stb;
+-reg                            we;
+-reg [dwidth/8 -1:0] sel;
+-
+ reg [dwidth   -1:0] q;
+ 
+ event test_command_start;
+ event test_command_mid;
+ event test_command_end;
+ 
++event cmp_error_detect;
++
+ ////////////////////////////////////////////////////////////////////
+ //
+ // Memory Logic
+
+ParseResult:
+MOV HdlIdDef@@adr to ports
+HdlIdDef: adr
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: awidth
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: OUT
+
+MOV HdlIdDef@@dout to ports
+HdlIdDef: dout
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: dwidth
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: OUT
+
+MOV HdlIdDef@@din to ports
+HdlIdDef: din
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: dwidth
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: IN
+
+INS HdlIdDef@@cmp_error_detect to objs
+HdlIdDef: cmp_error_detect
+    HdlValueId: event
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@clk to ports
+HdlIdDef: clk
+    HdlValueId: wire
+    HdlDirection: IN
+
+INS HdlIdDef@@rst to ports
+HdlIdDef: rst
+    HdlValueId: wire
+    HdlDirection: IN
+
+UPD HdlIdDef@@ack to ack
+    INS HdlValueId@@wire to ack
+
+UPD HdlIdDef@@err to err
+    INS HdlValueId@@wire to err
+
+UPD HdlIdDef@@rty to rty
+    INS HdlValueId@@wire to rty
+
+DEL HdlIdDef@@clk from ports
+HdlIdDef: clk
+    HdlDirection: IN
+
+DEL HdlIdDef@@rst from ports
+HdlIdDef: rst
+    HdlDirection: IN
+
+
+CommitId: 3579383fb2ae06f7e0eee6c3aa9872ac7d1a6d56
+Added event signal for compare error tracking in top level test bench.
+--- a/bench/verilog/wb_master_model.v
++++ b/bench/verilog/wb_master_model.v
+@@ -203,7 +201,10 @@ task wb_cmp;
+                 wb_read (delay, a, q);
+ 
+                 if (d_exp !== q)
++		  begin
++		        -> cmp_error_detect;
+                         $display("Data compare error at address %h. Received %h, expected %h at time %t", a, q, d_exp, $time);
++		  end
+         end
+ endtask
+ 
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+INS HdlStmNop@@ to body
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@CALL to 
+    HdlOp: CALL
+        list: ops
+            HdlValueId: $display
+            str
+            HdlValueId: a
+            HdlValueId: q
+            HdlValueId: d_exp
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: $time
+
+
+CommitId: ec67494c77749b45662ae45f136f22d30aad846d
+Extensive changes to fix errors in how wait state are handled by the master bus interface and the RISC control logic. Fix to slave mode WISHBONE ack signal.
+--- a/rtl/verilog/xgate_regs.v
++++ b/rtl/verilog/xgate_regs.v
+@@ -77,7 +77,8 @@ module xgate_regs #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+   input                [ 1:0] write_xgif_2,  // Write Strobe for Interrupt Flag Register 2
+   input                [ 1:0] write_xgif_1,  // Write Strobe for Interrupt Flag Register 1
+   input                [ 1:0] write_xgif_0,  // Write Strobe for Interrupt Flag Register 0
+-  input                       write_xgswt    // Write Strobe for XGSWT register
++  input                       write_xgswt,   // Write Strobe for XGSWT register
++  input                       debug_ack      // Clear debug register
+   );
+ 
+ 
+
+ParseResult:
+INS HdlIdDef@@debug_ack to ports
+HdlIdDef: debug_ack
+    HdlValueId: wire
+    HdlDirection: IN
+
+
+CommitId: ec67494c77749b45662ae45f136f22d30aad846d
+Extensive changes to fix errors in how wait state are handled by the master bus interface and the RISC control logic. Fix to slave mode WISHBONE ack signal.
+--- a/rtl/verilog/xgate_regs.v
++++ b/rtl/verilog/xgate_regs.v
+@@ -134,7 +135,7 @@ module xgate_regs #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+       begin
+         xgss        <= 1'b0;
+         xgsweif_c   <= 1'b0;
+-        xgdbg_set   <= 1'b0;
++        xgdbg_set   <= xgdbg_set && !debug_ack;
+         xgdbg_clear <= 1'b0;
+       end
+ 
+ParseResult:
+UPD HdlStmAssign@@ to 
+    MOV HdlValueId@@xgdbg_set to 
+    HdlValueId: xgdbg_set
+    DEL HdlValueInt@@0 from 
+
+
+CommitId: c7457e093adaa47bbe69a8e107349c9b0a892557
+Fix R1 load at boot up, add debug features
+--- a/rtl/verilog/xgate_regs.v
++++ b/rtl/verilog/xgate_regs.v
+@@ -43,7 +43,8 @@ module xgate_regs #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+   (
+   output reg                  xge,          // XGATE Module Enable
+   output reg                  xgfrz,        // Stop XGATE in Freeze Mode
+-  output reg                  xgdbg,        // XGATE Debug Mode
++  output reg                  xgdbg_set,    // Enter XGATE Debug Mode
++  output reg                  xgdbg_clear,  // Leave XGATE Debug Mode
+   output reg                  xgss,         // XGATE Single Step
+   output reg                  xgfact,       // XGATE Flag Activity
+   output reg                  xgsweif_c,    // Clear XGATE Software Error Interrupt FLag
+
+ParseResult:
+UPD HdlIdDef@@xgdbg to xgdbg_set
+
+INS HdlIdDef@@xgdbg_clear to ports
+HdlIdDef: xgdbg_clear
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: OUT
+
+
+CommitId: c7457e093adaa47bbe69a8e107349c9b0a892557
+Fix R1 load at boot up, add debug features
+--- a/rtl/verilog/xgate_regs.v
++++ b/rtl/verilog/xgate_regs.v
+@@ -99,13 +100,13 @@ module xgate_regs #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+ 
+   // generate wishbone write registers
+   // XGMCTL Register
+-  //  xgdbgm;    // XGATE Debug Mode Mask
+   always @(posedge bus_clk or negedge async_rst_b)
+     if (!async_rst_b)
+       begin
+         xge         <= 1'b0;
+         xgfrz       <= 1'b0;
+-        xgdbg       <= 1'b0;
++        xgdbg_set   <= 1'b0;
++        xgdbg_clear <= 1'b0;
+         xgss        <= 1'b0;
+         xgfact      <= 1'b0;
+ 	brk_irq_ena <= 1'b0;
+
+ParseResult:
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: xgdbg_clear
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@xgdbg to xgdbg_set
+
+
+CommitId: c7457e093adaa47bbe69a8e107349c9b0a892557
+Fix R1 load at boot up, add debug features
+--- a/rtl/verilog/xgate_regs.v
++++ b/rtl/verilog/xgate_regs.v
+@@ -116,7 +117,8 @@ module xgate_regs #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+       begin
+         xge         <= 1'b0;
+         xgfrz       <= 1'b0;
+-        xgdbg       <= 1'b0;
++        xgdbg_set   <= 1'b0;
++        xgdbg_clear <= 1'b0;
+         xgss        <= 1'b0;
+         xgfact      <= 1'b0;
+ 	brk_irq_ena <= 1'b0;
+
+ParseResult:
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: xgdbg_clear
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@xgdbg to xgdbg_set
+
+
+CommitId: c7457e093adaa47bbe69a8e107349c9b0a892557
+Fix R1 load at boot up, add debug features
+--- a/rtl/verilog/xgate_regs.v
++++ b/rtl/verilog/xgate_regs.v
+@@ -127,7 +129,8 @@ module xgate_regs #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+       begin
+         xge         <= write_bus[15] ? write_bus[7] : xge;
+         xgfrz       <= write_bus[14] ? write_bus[6] : xgfrz;
+-        xgdbg       <= write_bus[13] ? write_bus[5] : xgdbg;
++        xgdbg_set   <= write_bus[13] && write_bus[5];
++        xgdbg_clear <= write_bus[13] && !write_bus[5];
+         xgss        <= write_bus[12] && write_bus[4];
+         xgfact      <= write_bus[11] ? write_bus[3] : xgfact;
+         brk_irq_ena <= write_bus[10] ? write_bus[2] : brk_irq_ena;
+
+ParseResult:
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlOp: AND_LOG
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: write_bus
+                    HdlValueInt: 13
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: write_bus
+                            HdlValueInt: 5
+    HdlValueId: xgdbg_clear
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to AND_LOG
+    UPD HdlValueId@@xgdbg to xgdbg_set
+    UPD HdlOp@@TERNARY to TERNARY
+        DEL HdlValueId@@xgdbg from ops
+
+
+CommitId: c7457e093adaa47bbe69a8e107349c9b0a892557
+Fix R1 load at boot up, add debug features
+--- a/rtl/verilog/xgate_regs.v
++++ b/rtl/verilog/xgate_regs.v
+@@ -136,8 +139,10 @@ module xgate_regs #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+       end
+     else
+       begin
+-        xgss       <= 1'b0;
+-        xgsweif_c  <= 1'b0;
++        xgss        <= 1'b0;
++        xgsweif_c   <= 1'b0;
++        xgdbg_set   <= 1'b0;
++        xgdbg_clear <= 1'b0;
+       end
+ 
+   // XGVBR Register
+ParseResult:
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: xgdbg_set
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: xgdbg_clear
+
+
+CommitId: 610a1165bb117dd818b822243beab31c87901e8b
+Fixed PC underflow detect error when loading PC at thread startup.
+--- a/rtl/verilog/xgate_risc.v
++++ b/rtl/verilog/xgate_risc.v
+@@ -224,7 +224,7 @@ module xgate_risc #(parameter MAX_CHANNEL = 127)    // Max XGATE Interrupt Chann
+   assign bra_offset   = {{5{op_code[9]}}, op_code[9:0], 1'b0};
+   assign pc_overflow  = pc_carry & !pc_incr_mux[15];
+   assign pc_underflow = !pc_carry & pc_incr_mux[15];
+-  assign pc_error     = pc_overflow || pc_underflow;
++  assign pc_error     = (pc_overflow || pc_underflow) & (cpu_state != BOOT_2);
+ 
+   assign {pc_carry, pc_sum} = program_counter + pc_incr_mux;
+ 
+ParseResult:
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@AND to 
+    UPD HdlOp@@AND to AND
+        INS list@@ops to AND
+        INS HdlOp@@NE to ops
+        HdlOp: NE
+            list: ops
+                HdlValueId: cpu_state
+                HdlValueId: BOOT_2
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@OR_LOG to 
+    HdlOp: OR_LOG
+        list: ops
+            HdlValueId: pc_overflow
+            HdlValueId: pc_underflow
+
+
+CommitId: 229c235e1c30b844b3d61b9fed0817159a1c71df
+Fix lint problems, change lowest interrupt vector from 0 to 1.
+--- a/rtl/verilog/xgate_regs.v
++++ b/rtl/verilog/xgate_regs.v
+@@ -60,10 +60,9 @@ module xgate_regs #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+   output reg                  clear_xgif_1,    // Strobe for decode to clear interrupt flag bank 1
+   output reg                  clear_xgif_0,    // Strobe for decode to clear interrupt flag bank 0
+   output reg           [15:0] clear_xgif_data, // Data for decode to clear interrupt flag
+-  output                      semaph_stat,     // Return Status of Semaphore bit
+   output reg                  brk_irq_ena,     // Enable BRK instruction to generate interrupt
+   output      [MAX_CHANNEL:1] chan_bypass,     // XGATE Interrupt enable or bypass
+-  output reg          [127:1] irq_bypass,      // Register to hold irq bypass control state
++  output reg  [MAX_CHANNEL:1] irq_bypass,      // Register to hold irq bypass control state
+ 
+   input                       bus_clk,       // Control register bus clock
+   input                       async_rst_b,   // Async reset signal
+
+ParseResult:
+UPD HdlIdDef@@irq_bypass to irq_bypass
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            INS HdlValueId@@MAX_CHANNEL to ops
+
+DEL HdlIdDef@@semaph_stat from ports
+HdlIdDef: semaph_stat
+    HdlValueId: wire
+    HdlDirection: OUT
+
+UPD HdlIdDef@@irq_bypass to irq_bypass
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            DEL HdlValueInt@@127 from ops
+
+
+CommitId: 229c235e1c30b844b3d61b9fed0817159a1c71df
+Fix lint problems, change lowest interrupt vector from 0 to 1.
+--- a/rtl/verilog/xgate_regs.v
++++ b/rtl/verilog/xgate_regs.v
+@@ -96,7 +95,7 @@ module xgate_regs #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+   integer k;     // Loop counter for channel bypass counter assigments
+ 
+   // registers
+-  reg [127:1] irq_bypass_d; // Pseudo regester for routing address and data to irq bypass register
++  reg [MAX_CHANNEL:1] irq_bypass_d; // Pseudo regester for routing address and data to irq bypass register
+ 
+   // Wires
+   wire [ 1:0] write_any_xgif;
+
+ParseResult:
+INS HdlIdDef@@irq_bypass_d to objs
+HdlIdDef: irq_bypass_d
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueId: MAX_CHANNEL
+                    HdlValueInt: 1
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@irq_bypass_d from objs
+HdlIdDef: irq_bypass_d
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 127
+                    HdlValueInt: 1
+    HdlDirection: INTERNAL
+
+
+CommitId: 229c235e1c30b844b3d61b9fed0817159a1c71df
+Fix lint problems, change lowest interrupt vector from 0 to 1.
+--- a/rtl/verilog/xgate_regs.v
++++ b/rtl/verilog/xgate_regs.v
+@@ -278,9 +277,9 @@ module xgate_regs #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+   //   Synthesys should eliminate bits that with D input tied to zero
+   always @(posedge bus_clk or negedge async_rst_b)
+     if ( !async_rst_b )
+-      irq_bypass  <= {127{1'b1}};
++      irq_bypass  <= {MAX_CHANNEL{1'b1}};
+     else if (sync_reset)
+-      irq_bypass  <= {127{1'b1}};
++      irq_bypass  <= {MAX_CHANNEL{1'b1}};
+     else
+       irq_bypass  <= irq_bypass_d;
+ 
+ParseResult:
+INS HdlStmProcess@@ to objs
+
+UPD HdlStmProcess@@ to 
+    MOV list@@sensitivity to 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: bus_clk
+        HdlOp: FALLING
+            list: ops
+                HdlValueId: async_rst_b
+
+INS HdlStmIf@@body to 
+
+UPD HdlStmIf@@body to body
+    MOV HdlOp@@NEG_LOG to body
+    HdlOp: NEG_LOG
+        list: ops
+            HdlValueId: async_rst_b
+    DEL list@@elifs from body
+    list: elifs
+        tuple
+            HdlValueId: sync_reset
+            HdlStmAssign
+                HdlOp: REPL_CONCAT
+                    list: ops
+                        HdlValueInt: 127
+                        HdlValueInt: 1
+                HdlValueId: irq_bypass
+
+INS HdlStmAssign@@if_true to body
+HdlStmAssign: if_true
+    HdlOp: REPL_CONCAT
+        list: ops
+            HdlValueId: MAX_CHANNEL
+            HdlValueInt: 1
+    HdlValueId: irq_bypass
+
+UPD HdlStmIf@@body to body
+    INS list@@elifs to body
+    list: elifs
+        tuple
+            HdlValueId: sync_reset
+            HdlStmAssign
+                HdlOp: REPL_CONCAT
+                    list: ops
+                        HdlValueId: MAX_CHANNEL
+                        HdlValueInt: 1
+                HdlValueId: irq_bypass
+
+MOV HdlStmAssign@@if_false to body
+HdlStmAssign: if_false
+    HdlValueId: irq_bypass_d
+    HdlValueId: irq_bypass
+
+DEL HdlStmAssign@@if_true from body
+HdlStmAssign: if_true
+    HdlOp: REPL_CONCAT
+        list: ops
+            HdlValueInt: 127
+            HdlValueInt: 1
+    HdlValueId: irq_bypass
+
+DEL HdlStmIf@@body from 
+
+DEL HdlStmProcess@@ from objs
+
+
+CommitId: 05c0add9d9fb55907cff7a92068952852f462fbe
+Additions for XGCHID debug commands
+--- a/rtl/verilog/xgate_top.v
++++ b/rtl/verilog/xgate_top.v
+@@ -91,6 +91,7 @@ module xgate_top #(parameter ARST_LVL = 1'b0,      // asynchronous reset level
+   wire [15:0] xgisp30;       // XGATE Interrupt level 3-0 stack pointer
+ 
+   wire        write_xgmctl;  // Write Strobe for XGMCTL register
++  wire        write_xgchid;  // Write Strobe for XGCHID register
+   wire        write_xgisp74; // Write Strobe for XGISP74 register
+   wire        write_xgisp31; // Write Strobe for XGISP31 register
+   wire        write_xgvbr;   // Write Strobe for XGVBR_LO register
+
+ParseResult:
+INS HdlIdDef@@write_xgchid to objs
+HdlIdDef: write_xgchid
+    HdlDirection: INTERNAL
+
+
+CommitId: 05c0add9d9fb55907cff7a92068952852f462fbe
+Additions for XGCHID debug commands
+--- a/rtl/verilog/xgate_wbs_bus.v
++++ b/rtl/verilog/xgate_wbs_bus.v
+@@ -56,6 +56,7 @@ module xgate_wbs_bus #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+   input              [1:0] wbs_sel_i,     // Select byte in word bus transaction
+   // XGATE Control Signals
+   output reg               write_xgmctl, // Write Strobe for XGMCTL register
++  output reg               write_xgchid, // Write Strobe for XGCHID register
+   output reg               write_xgisp74,// Write Strobe for XGISP74 register
+   output reg               write_xgisp30,// Write Strobe for XGISP30 register
+   output reg               write_xgvbr,  // Write Strobe for XGVBR register
+
+ParseResult:
+INS HdlIdDef@@write_xgchid to ports
+HdlIdDef: write_xgchid
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: OUT
+
+
+CommitId: 05c0add9d9fb55907cff7a92068952852f462fbe
+Additions for XGCHID debug commands
+--- a/rtl/verilog/xgate_wbs_bus.v
++++ b/rtl/verilog/xgate_wbs_bus.v
+@@ -89,7 +90,8 @@ module xgate_wbs_bus #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+   reg  [DWIDTH-1:0]  rd_data_mux;     // Pseudo Register, WISHBONE Read Data Mux
+   reg  [DWIDTH-1:0]  rd_data_reg;     // Latch for WISHBONE Read Data
+   
+-  reg                write_reserv;    // Dummy Reg decode for Reserved address
++  reg                write_reserv1;   // Dummy Reg decode for Reserved address
++  reg                write_reserv2;   // Dummy Reg decode for Reserved address
+ 
+   // Wires
+   wire   module_sel;       // This module is selected for bus transaction
+
+ParseResult:
+UPD HdlIdDef@@write_reserv to write_reserv1
+
+INS HdlIdDef@@write_reserv2 to objs
+HdlIdDef: write_reserv2
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+
+CommitId: 05c0add9d9fb55907cff7a92068952852f462fbe
+Additions for XGCHID debug commands
+--- a/rtl/verilog/xgate_wbs_bus.v
++++ b/rtl/verilog/xgate_wbs_bus.v
+@@ -163,8 +165,10 @@ module xgate_wbs_bus #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+   // generate wishbone write register strobes
+   always @*
+     begin
+-      write_reserv = 1'b0;
+-      write_xgmctl = 1'b0;
++      write_reserv1 = 1'b0;
++      write_reserv2 = 1'b0;
++      write_xgmctl  = 1'b0;
++      write_xgchid  = 1'b0;
+       write_xgisp74 = 1'b0;
+       write_xgisp30 = 1'b0;
+       write_xgvbr  = 1'b0;
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueId@@write_reserv to write_reserv1
+
+
+CommitId: 05c0add9d9fb55907cff7a92068952852f462fbe
+Additions for XGCHID debug commands
+--- a/rtl/verilog/xgate_wbs_bus.v
++++ b/rtl/verilog/xgate_wbs_bus.v
+@@ -192,7 +196,7 @@ module xgate_wbs_bus #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+ 	case (wbs_adr_i) // synopsys parallel_case
+            // 16 bit Bus, 16 bit Granularity
+ 	   5'b0_0000 : write_xgmctl  = 1'b1;
+-//	   5'b0_0001 : write_xgchid  = 1'b1;
++	   5'b0_0001 : write_xgchid  = 1'b1;
+ 	   5'b0_0010 : write_xgisp74 = 1'b1;
+ 	   5'b0_0011 : write_xgisp30 = 1'b1;
+ 	   5'b0_0100 : write_xgvbr   = 1'b1;
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: write_reserv2
+                HdlValueInt: 0
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: write_xgchid
+                HdlValueInt: 0
+
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueId@@write_reserv to write_reserv1
+
+UPD HdlStmCase@@wbs_adr_i to wbs_adr_i
+    INS tuple@@ to cases
+    tuple
+        HdlValueInt: 00001
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: write_xgchid
+                HdlValueInt: 1
+
+UPD HdlStmCase@@wbs_adr_i to wbs_adr_i
+    UPD HdlOp@@ASSIGN to ASSIGN
+        UPD HdlValueId@@write_reserv to write_reserv1
+    UPD HdlOp@@ASSIGN to ASSIGN
+        UPD HdlValueId@@write_reserv to write_reserv2
+
+
+CommitId: 05c0add9d9fb55907cff7a92068952852f462fbe
+Additions for XGCHID debug commands
+--- a/rtl/verilog/xgate_wbs_bus.v
++++ b/rtl/verilog/xgate_wbs_bus.v
+@@ -206,10 +210,10 @@ module xgate_wbs_bus #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+ 	   5'b0_1100 : write_xgif_0  = 1'b1;
+ 	   5'b0_1101 : write_xgswt   = 1'b1;
+ 	   5'b0_1110 : write_xgsem   = 1'b1;
+-	   5'b0_1111 : write_reserv  = 1'b1;
++	   5'b0_1111 : write_reserv1 = 1'b1;
+ 	   5'b1_0000 : write_xgccr   = 1'b1;
+ 	   5'b1_0001 : write_xgpc    = 1'b1;
+-	   5'b1_0010 : write_reserv  = 1'b1;
++	   5'b1_0010 : write_reserv2 = 1'b1;
+ 	   5'b1_0011 : write_xgr1    = 1'b1;
+ 	   5'b1_0100 : write_xgr2    = 1'b1;
+ 	   5'b1_0101 : write_xgr3    = 1'b1;
+ParseResult:
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: write_reserv2
+                HdlValueInt: 0
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: write_xgchid
+                HdlValueInt: 0
+
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueId@@write_reserv to write_reserv1
+
+UPD HdlStmCase@@wbs_adr_i to wbs_adr_i
+    INS tuple@@ to cases
+    tuple
+        HdlValueInt: 00001
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: write_xgchid
+                HdlValueInt: 1
+
+UPD HdlStmCase@@wbs_adr_i to wbs_adr_i
+    UPD HdlOp@@ASSIGN to ASSIGN
+        UPD HdlValueId@@write_reserv to write_reserv1
+    UPD HdlOp@@ASSIGN to ASSIGN
+        UPD HdlValueId@@write_reserv to write_reserv2
+
+
+CommitId: 115d3bda29e897e72d3805cf23a3e60204acdb99
+Added debug module to assist in software debugging.
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -102,6 +102,7 @@ module tst_bench_top();
+   parameter CHECK_POINT     = 16'h8000;
+   parameter CHANNEL_ACK     = CHECK_POINT + 2;
+   parameter CHANNEL_ERR     = CHECK_POINT + 4;
++  parameter DEBUG_CNTRL     = CHECK_POINT + 6;
+   parameter TB_SEMPHORE     = CHECK_POINT + 10;
+   parameter CHANNEL_XGIRQ_0 = CHECK_POINT + 16;
+   parameter CHANNEL_XGIRQ_1 = CHECK_POINT + 18;
+
+ParseResult:
+INS HdlIdDef@@DEBUG_CNTRL to params
+HdlIdDef: DEBUG_CNTRL
+    HdlOp: ADD
+        list: ops
+            HdlValueId: CHECK_POINT
+            HdlValueInt: 6
+    HdlDirection: INTERNAL
+
+
+CommitId: 115d3bda29e897e72d3805cf23a3e60204acdb99
+Added debug module to assist in software debugging.
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -112,6 +113,15 @@ module tst_bench_top();
+   parameter CHANNEL_XGIRQ_6 = CHECK_POINT + 28;
+   parameter CHANNEL_XGIRQ_7 = CHECK_POINT + 30;
+ 
++  parameter BREAK_CAPT_0    = CHECK_POINT + 64;
++  parameter BREAK_CAPT_1    = CHECK_POINT + 66;
++  parameter BREAK_CAPT_2    = CHECK_POINT + 68;
++  parameter BREAK_CAPT_3    = CHECK_POINT + 70;
++  parameter BREAK_CAPT_4    = CHECK_POINT + 72;
++  parameter BREAK_CAPT_5    = CHECK_POINT + 74;
++  parameter BREAK_CAPT_6    = CHECK_POINT + 76;
++  parameter BREAK_CAPT_7    = CHECK_POINT + 78;
++
+   parameter SYS_RAM_BASE = 24'h00_0000;
+   
+   parameter RAM_WAIT_STATES = 1; // Number between 0 and 15
+
+ParseResult:
+INS HdlIdDef@@BREAK_CAPT_0 to params
+HdlIdDef: BREAK_CAPT_0
+    HdlOp: ADD
+        list: ops
+            HdlValueId: CHECK_POINT
+            HdlValueInt: 64
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@BREAK_CAPT_1 to params
+HdlIdDef: BREAK_CAPT_1
+    HdlOp: ADD
+        list: ops
+            HdlValueId: CHECK_POINT
+            HdlValueInt: 66
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@BREAK_CAPT_2 to params
+HdlIdDef: BREAK_CAPT_2
+    HdlOp: ADD
+        list: ops
+            HdlValueId: CHECK_POINT
+            HdlValueInt: 68
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@BREAK_CAPT_3 to params
+HdlIdDef: BREAK_CAPT_3
+    HdlOp: ADD
+        list: ops
+            HdlValueId: CHECK_POINT
+            HdlValueInt: 70
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@BREAK_CAPT_4 to params
+HdlIdDef: BREAK_CAPT_4
+    HdlOp: ADD
+        list: ops
+            HdlValueId: CHECK_POINT
+            HdlValueInt: 72
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@BREAK_CAPT_5 to params
+HdlIdDef: BREAK_CAPT_5
+    HdlOp: ADD
+        list: ops
+            HdlValueId: CHECK_POINT
+            HdlValueInt: 74
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@BREAK_CAPT_6 to params
+HdlIdDef: BREAK_CAPT_6
+    HdlOp: ADD
+        list: ops
+            HdlValueId: CHECK_POINT
+            HdlValueInt: 76
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@BREAK_CAPT_7 to params
+HdlIdDef: BREAK_CAPT_7
+    HdlOp: ADD
+        list: ops
+            HdlValueId: CHECK_POINT
+            HdlValueInt: 78
+    HdlDirection: INTERNAL
+
+
+CommitId: 115d3bda29e897e72d3805cf23a3e60204acdb99
+Added debug module to assist in software debugging.
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -148,6 +158,7 @@ module tst_bench_top();
+   wire [MAX_CHANNEL:1] xgif;	     // XGATE Interrupt outputs
+   wire	       [  7:0] xgswt;	     // XGATE Software Trigger outputs
+   wire		       xg_sw_irq;    // Xgate Software Error interrupt
++  wire	        [15:0] brkpt_cntl;   // 
+ 
+ 
+   wire [15:0] wbm_dat_o;	 // WISHBONE Master Mode data output from XGATE
+
+ParseResult:
+INS HdlIdDef@@brkpt_cntl to objs
+HdlIdDef: brkpt_cntl
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 15
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+
+CommitId: 115d3bda29e897e72d3805cf23a3e60204acdb99
+Added debug module to assist in software debugging.
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -1622,7 +1682,7 @@ module tb_slave #(parameter SINGLE_CYCLE = 1'b0,  // No bus wait state added
+       4'b0000: rd_data_mux = check_point_reg;
+       4'b0001: rd_data_mux = channel_ack_reg;
+       4'b0010: rd_data_mux = channel_err_reg;
+-      4'b0011: rd_data_mux = brkpt_cntl_reg;
++      4'b0011: rd_data_mux = brkpt_cntl;
+       4'b0100: rd_data_mux = brkpt_addr_reg;
+       4'b0101: rd_data_mux = tb_semaphr_reg;
+       4'b1000: rd_data_mux = {xgif[15: 1], 1'b0};
+
+ParseResult:
+UPD HdlStmCase@@wb_adr_i to wb_adr_i
+    UPD HdlOp@@ASSIGN to ASSIGN
+        UPD HdlValueId@@brkpt_cntl_reg to brkpt_cntl
+
+
+CommitId: 229c235e1c30b844b3d61b9fed0817159a1c71df
+Fix lint problems, change lowest interrupt vector from 0 to 1.
+--- a/rtl/verilog/xgate_top.v
++++ b/rtl/verilog/xgate_top.v
+@@ -162,6 +162,8 @@ module xgate_top #(parameter ARST_LVL = 1'b0,      // asynchronous reset level
+   wire [ 7:0] host_semap;       // Semaphore status for host
+   wire        write_mem_strb_l; // Strobe for writing low data byte
+   wire        write_mem_strb_h; // Strobe for writing high data bye
++  wire        sync_reset;
++  wire        async_rst_b;
+ 
+   // ---------------------------------------------------------------------------
+   // Wishbone Slave Bus interface
+
+ParseResult:
+INS HdlIdDef@@sync_reset to objs
+HdlIdDef: sync_reset
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@async_rst_b to objs
+HdlIdDef: async_rst_b
+    HdlDirection: INTERNAL
+
+
+CommitId: fe0c013fcb9ecf5948cccfa05b16bf3d99d921dd
+Single step debug working, added software error interrupt output, added WISHBONE master module, fixed control register bits
+--- a/rtl/verilog/xgate_regs.v
++++ b/rtl/verilog/xgate_regs.v
+@@ -62,6 +62,7 @@ module xgate_regs #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+   output reg                  clear_xgif_0,    // Strobe for decode to clear interrupt flag bank 0
+   output reg           [15:0] clear_xgif_data, // Data for decode to clear interrupt flag
+   output                      semaph_stat,     // Return Status of Semaphore bit
++  output reg                  brk_irq_ena,     // Enable BRK instruction to generate interrupt
+ 
+   input                       bus_clk,       // Control register bus clock
+   input                       async_rst_b,   // Async reset signal
+
+ParseResult:
+INS HdlIdDef@@brk_irq_ena to ports
+HdlIdDef: brk_irq_ena
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: OUT
+
+
+CommitId: c7457e093adaa47bbe69a8e107349c9b0a892557
+Fix R1 load at boot up, add debug features
+--- a/rtl/verilog/xgate_top.v
++++ b/rtl/verilog/xgate_top.v
+@@ -126,7 +126,8 @@ module xgate_top #(parameter ARST_LVL = 1'b0,      // asynchronous reset level
+ 
+   wire        xge;           // XGATE Module Enable
+   wire        xgfrz;         // Stop XGATE in Freeze Mode
+-  wire        xgdbg;         // XGATE Debug Mode
++  wire        xgdbg_set;     // Enter XGATE Debug Mode
++  wire        xgdbg_clear;   // Leave XGATE Debug Mode
+   wire        xgss;          // XGATE Single Step
+   wire        xgsweif_c;     // Clear XGATE Software Error Interrupt FLag
+   wire        xgie;          // XGATE Interrupt Enable
+
+ParseResult:
+INS HdlIdDef@@xgdbg_set to objs
+HdlIdDef: xgdbg_set
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@xgdbg_clear to objs
+HdlIdDef: xgdbg_clear
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@xgdbg from objs
+HdlIdDef: xgdbg
+    HdlDirection: INTERNAL
+
+
+CommitId: fe0c013fcb9ecf5948cccfa05b16bf3d99d921dd
+Single step debug working, added software error interrupt output, added WISHBONE master module, fixed control register bits
+--- a/rtl/verilog/xgate_top.v
++++ b/rtl/verilog/xgate_top.v
+@@ -68,6 +68,7 @@ module xgate_top #(parameter ARST_LVL = 1'b0,      // asynchronous reset level
+   output          [ 7:0] xgswt,         // XGATE Software Trigger Register
+   output                 write_mem_strb_l, // Strobe for writing low data byte
+   output                 write_mem_strb_h, // Strobe for writing high data bye
++  output                 xg_sw_irq,        // Xgate Software interrupt
+   output [MAX_CHANNEL:0] xgif,             // XGATE Interrupt Flag
+   input  [MAX_CHANNEL:0] chan_req_i,       // XGATE Interrupt request
+   input                  risc_clk,         // Clock for RISC core
+
+ParseResult:
+INS HdlIdDef@@xg_sw_irq to ports
+HdlIdDef: xg_sw_irq
+    HdlValueId: wire
+    HdlDirection: OUT
+
+
+CommitId: fe0c013fcb9ecf5948cccfa05b16bf3d99d921dd
+Single step debug working, added software error interrupt output, added WISHBONE master module, fixed control register bits
+--- a/rtl/verilog/xgate_top.v
++++ b/rtl/verilog/xgate_top.v
+@@ -132,11 +133,14 @@ module xgate_top #(parameter ARST_LVL = 1'b0,      // asynchronous reset level
+   wire [ 6:0] int_req;       // Encoded interrupt request
+   wire [ 6:0] xgchid;        // Channel actively being processed
+   wire [15:1] xgvbr;         // XGATE vector Base Address Register
++  wire        brk_irq_ena;   // Enable BRK instruction to generate interrupt
+   
+   wire [15:0] xgate_address;   //
+   wire [15:0] write_mem_data;  //
+   wire [15:0] read_mem_data;   //
+   wire        mem_req_ack;     //
++
++  wire        debug_active;    // RISC state machine in Debug mode 
+   
+   wire [ 7:0] host_semap;    // Semaphore status for host
+ //  wire [15:0] write_mem_data;
+
+ParseResult:
+INS HdlIdDef@@brk_irq_ena to objs
+HdlIdDef: brk_irq_ena
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@debug_active to objs
+HdlIdDef: debug_active
+    HdlDirection: INTERNAL
+
+
+CommitId: 229c235e1c30b844b3d61b9fed0817159a1c71df
+Fix lint problems, change lowest interrupt vector from 0 to 1.
+--- a/rtl/verilog/xgate_irq_encode.v
++++ b/rtl/verilog/xgate_irq_encode.v
+@@ -49,13 +49,13 @@ module xgate_irq_encode #(parameter MAX_CHANNEL = 127)    // Max XGATE Interrupt
+   input      [MAX_CHANNEL:1] xgif_status  // Interrupt outputs from RISC core
+ );
+ 
++  integer i;  // Loop Counter for array index
+   wire [MAX_CHANNEL:1] chan_ena_gate;  // Ouptut of channel enable gating
+ 
+   // Pass non-bypassed interrupt inputs to XGATE RISC
+   assign chan_ena_gate = ~chan_bypass & chan_req_i;
+ 
+   // Set int_reg to the index of the index of the lowest chan_req_i input that is active
+-  integer i = 0;
+   always @(chan_ena_gate)
+     begin
+       int_req = 0;
+ParseResult:
+INS HdlIdDef@@i to objs
+HdlIdDef: i
+    HdlValueId: integer
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@i from objs
+HdlIdDef: i
+    HdlValueId: integer
+    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+
+CommitId: 3ed4ed9a8d305e6a377cacf813c5f4cf1896613a
+Fix lint problems, change lowest interrupt vector from 0 to 1.\nDetect program counter underflow/overflow as a software error.
+--- a/rtl/verilog/xgate_risc.v
++++ b/rtl/verilog/xgate_risc.v
+@@ -108,7 +108,7 @@ module xgate_risc #(parameter MAX_CHANNEL = 127)    // Max XGATE Interrupt Chann
+   integer bfi, bfii;   // Loop counter for Bit Field Insert function
+ 
+   // State machine sequence
+-  parameter [3:0]      //synopsys enum state_info
++  localparam [3:0]      //synopsys enum state_info
+        IDLE    = 4'b0000,      // waiting for interrupt
+        CONT    = 4'b0001,      // Instruction processing state, first state
+        S_STALL = 4'b0010,      // Simple Stall while updating PC after change of flow
+
+ParseResult:
+MOV HdlIdDef@@IDLE to params
+HdlIdDef: IDLE
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 3
+                    HdlValueInt: 0
+    HdlValueInt: 0000
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@CONT to params
+HdlIdDef: CONT
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 3
+                    HdlValueInt: 0
+    HdlValueInt: 0001
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@S_STALL to params
+HdlIdDef: S_STALL
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 3
+                    HdlValueInt: 0
+    HdlValueInt: 0010
+    HdlDirection: INTERNAL
+
+
+CommitId: 3ed4ed9a8d305e6a377cacf813c5f4cf1896613a
+Fix lint problems, change lowest interrupt vector from 0 to 1.\nDetect program counter underflow/overflow as a software error.
+--- a/rtl/verilog/xgate_risc.v
++++ b/rtl/verilog/xgate_risc.v
+@@ -126,9 +126,9 @@ module xgate_risc #(parameter MAX_CHANNEL = 127)    // Max XGATE Interrupt Chann
+ 
+ 
+   // Semaphore states
+-  parameter [1:0] NO_LOCK = 2'b00,
+-                  RISC_LOCK = 2'b10,
+-                  HOST_LOCK = 2'b11;
++  localparam [1:0] NO_LOCK   = 2'b00,
++                   RISC_LOCK = 2'b10,
++                   HOST_LOCK = 2'b11;
+ 
+ 
+   reg  [ 3:0] cpu_state;         // State register for instruction processing
+
+ParseResult:
+MOV HdlIdDef@@NO_LOCK to params
+HdlIdDef: NO_LOCK
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlValueInt: 00
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@RISC_LOCK to params
+HdlIdDef: RISC_LOCK
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlValueInt: 10
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@HOST_LOCK to params
+HdlIdDef: HOST_LOCK
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlValueInt: 11
+    HdlDirection: INTERNAL
+
+
+CommitId: 3ed4ed9a8d305e6a377cacf813c5f4cf1896613a
+Fix lint problems, change lowest interrupt vector from 0 to 1.\nDetect program counter underflow/overflow as a software error.
+--- a/rtl/verilog/xgate_risc.v
++++ b/rtl/verilog/xgate_risc.v
+@@ -141,6 +141,10 @@ module xgate_risc #(parameter MAX_CHANNEL = 127)    // Max XGATE Interrupt Chann
+   reg  [15:0] next_pc;           // Pseudo Register
+   wire [15:0] jump_offset;       // Address offset to be added to pc on conditional branch instruction
+   wire [15:0] bra_offset;        // Address offset to be added to pc on branch always instruction
++  wire        pc_carry;          // Carry out bit from pc adder
++  wire        pc_overflow;       // Next pc is out-of-range
++  wire        pc_underflow;      // Next pc is out-of-range
++  wire        pc_error;          // Next pc calculation error
+   reg  [15:0] alu_result;        // Pseudo Register,
+   reg  [15:0] op_code;           // Register for instruction being executed
+   reg         ena_rd_low_byte;   // Pseudo Register,
+
+ParseResult:
+INS HdlIdDef@@pc_carry to objs
+HdlIdDef: pc_carry
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@pc_overflow to objs
+HdlIdDef: pc_overflow
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@pc_underflow to objs
+HdlIdDef: pc_underflow
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@pc_error to objs
+HdlIdDef: pc_error
+    HdlDirection: INTERNAL
+
+
+CommitId: 3ed4ed9a8d305e6a377cacf813c5f4cf1896613a
+Fix lint problems, change lowest interrupt vector from 0 to 1.\nDetect program counter underflow/overflow as a software error.
+--- a/rtl/verilog/xgate_risc.v
++++ b/rtl/verilog/xgate_risc.v
+@@ -211,14 +215,18 @@ module xgate_risc #(parameter MAX_CHANNEL = 127)    // Max XGATE Interrupt Chann
+   wire        chid_goto_idle; //
+ 
+   // Debug states for change CHID
+-  parameter [1:0] CHID_IDLE = 2'b00,
+-                  CHID_TEST = 2'b10,
+-                  CHID_WAIT = 2'b11;
++  localparam [1:0] CHID_IDLE = 2'b00,
++                   CHID_TEST = 2'b10,
++                   CHID_WAIT = 2'b11;
+ 
+ 
+-  assign jump_offset = {{6{op_code[8]}}, op_code[8:0], 1'b0};
+-  assign bra_offset  = {{5{op_code[9]}}, op_code[9:0], 1'b0};
+-  assign pc_sum      = program_counter + pc_incr_mux;
++  assign jump_offset  = {{6{op_code[8]}}, op_code[8:0], 1'b0};
++  assign bra_offset   = {{5{op_code[9]}}, op_code[9:0], 1'b0};
++  assign pc_overflow  = pc_carry & !pc_incr_mux[15];
++  assign pc_underflow = !pc_carry & pc_incr_mux[15];
++  assign pc_error     = pc_overflow || pc_underflow;
++
++  assign {pc_carry, pc_sum} = program_counter + pc_incr_mux;
+ 
+   assign xgate_address = data_access ? data_address : program_counter;
+ 
+
+ParseResult:
+MOV HdlIdDef@@CHID_IDLE to params
+HdlIdDef: CHID_IDLE
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlValueInt: 00
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@CHID_TEST to params
+HdlIdDef: CHID_TEST
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlValueInt: 10
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@CHID_WAIT to params
+HdlIdDef: CHID_WAIT
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlValueInt: 11
+    HdlDirection: INTERNAL
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: AND
+        list: ops
+            HdlValueId: pc_carry
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: pc_incr_mux
+                            HdlValueInt: 15
+    HdlValueId: pc_overflow
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: AND
+        list: ops
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlValueId: pc_carry
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: pc_incr_mux
+                    HdlValueInt: 15
+    HdlValueId: pc_underflow
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: OR_LOG
+        list: ops
+            HdlValueId: pc_overflow
+            HdlValueId: pc_underflow
+    HdlValueId: pc_error
+
+UPD HdlStmAssign@@ to 
+    MOV HdlValueId@@pc_sum to 
+    HdlValueId: pc_sum
+
+
+CommitId: 3ed4ed9a8d305e6a377cacf813c5f4cf1896613a
+Fix lint problems, change lowest interrupt vector from 0 to 1.\nDetect program counter underflow/overflow as a software error.
+--- a/rtl/verilog/xgate_risc.v
++++ b/rtl/verilog/xgate_risc.v
+@@ -240,7 +248,6 @@ module xgate_risc #(parameter MAX_CHANNEL = 127)    // Max XGATE Interrupt Chann
+ 
+   // Decode register select for RD and RS
+   always @*
+-    begin
+       case (op_code[10:8]) // synopsys parallel_case
+         3'b001 : rd_data = xgr1;
+         3'b010 : rd_data = xgr2;
+
+ParseResult:
+MOV HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['op_code',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '10'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '8'}]}]}  to body
+HdlStmCase: {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops':}]} 
+    HdlStmCaseType: CASE
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: op_code
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 10
+                    HdlValueInt: 8
+    list: cases
+        tuple
+            HdlValueInt: 001
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: rd_data
+                    HdlValueId: xgr1
+        tuple
+            HdlValueInt: 010
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: rd_data
+                    HdlValueId: xgr2
+        tuple
+            HdlValueInt: 011
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: rd_data
+                    HdlValueId: xgr3
+        tuple
+            HdlValueInt: 100
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: rd_data
+                    HdlValueId: xgr4
+        tuple
+            HdlValueInt: 101
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: rd_data
+                    HdlValueId: xgr5
+        tuple
+            HdlValueInt: 110
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: rd_data
+                    HdlValueId: xgr6
+        tuple
+            HdlValueInt: 111
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: rd_data
+                    HdlValueId: xgr7
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: rd_data
+            HdlValueInt: 0
+
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL list@@body from SEQ
+    DEL HdlStmBlock@@SEQ from 
+
+
+CommitId: 3ed4ed9a8d305e6a377cacf813c5f4cf1896613a
+Fix lint problems, change lowest interrupt vector from 0 to 1.\nDetect program counter underflow/overflow as a software error.
+--- a/rtl/verilog/xgate_risc.v
++++ b/rtl/verilog/xgate_risc.v
+@@ -251,7 +258,6 @@ module xgate_risc #(parameter MAX_CHANNEL = 127)    // Max XGATE Interrupt Chann
+         3'b111 : rd_data = xgr7;
+         default : rd_data = 16'h0;  // XGR0 is always Zero
+       endcase
+-    end
+ 
+   assign wrt_reg_sel = (cpu_state == BOOT_3) ? 3'b001 :
+                        (sel_rd_field ? op_code[10:8] : op_code[4:2]);
+
+ParseResult:
+MOV HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['op_code',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '10'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '8'}]}]}  to body
+HdlStmCase: {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops':}]} 
+    HdlStmCaseType: CASE
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: op_code
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 10
+                    HdlValueInt: 8
+    list: cases
+        tuple
+            HdlValueInt: 001
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: rd_data
+                    HdlValueId: xgr1
+        tuple
+            HdlValueInt: 010
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: rd_data
+                    HdlValueId: xgr2
+        tuple
+            HdlValueInt: 011
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: rd_data
+                    HdlValueId: xgr3
+        tuple
+            HdlValueInt: 100
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: rd_data
+                    HdlValueId: xgr4
+        tuple
+            HdlValueInt: 101
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: rd_data
+                    HdlValueId: xgr5
+        tuple
+            HdlValueInt: 110
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: rd_data
+                    HdlValueId: xgr6
+        tuple
+            HdlValueInt: 111
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: rd_data
+                    HdlValueId: xgr7
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: rd_data
+            HdlValueInt: 0
+
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL list@@body from SEQ
+    DEL HdlStmBlock@@SEQ from 
+
+
+CommitId: 3ed4ed9a8d305e6a377cacf813c5f4cf1896613a
+Fix lint problems, change lowest interrupt vector from 0 to 1.\nDetect program counter underflow/overflow as a software error.
+--- a/rtl/verilog/xgate_risc.v
++++ b/rtl/verilog/xgate_risc.v
+@@ -312,7 +318,7 @@ module xgate_risc #(parameter MAX_CHANNEL = 127)    // Max XGATE Interrupt Chann
+     if ( !async_rst_b )
+       software_error <= 1'b0;
+     else
+-      software_error <= addr_error || op_code_error ||
++      software_error <= addr_error || op_code_error || pc_error ||
+                         (brk_set_dbg && brk_irq_ena) || (software_error && !xgsweif_c);
+ 
+   assign xg_sw_irq = software_error && xgie;
+
+ParseResult:
+UPD HdlStmAssign@@if_false to if_false
+    UPD HdlOp@@OR_LOG to OR_LOG
+        UPD HdlOp@@OR_LOG to OR_LOG
+            MOV HdlOp@@OR_LOG to ops
+            HdlOp: OR_LOG
+                list: ops
+                    HdlValueId: addr_error
+                    HdlValueId: op_code_error
+
+
+CommitId: 3ed4ed9a8d305e6a377cacf813c5f4cf1896613a
+Fix lint problems, change lowest interrupt vector from 0 to 1.\nDetect program counter underflow/overflow as a software error.
+--- a/rtl/verilog/xgate_risc.v
++++ b/rtl/verilog/xgate_risc.v
+@@ -338,7 +344,7 @@ module xgate_risc #(parameter MAX_CHANNEL = 127)    // Max XGATE Interrupt Chann
+       end
+     else
+       begin
+-        debug_active  <= !xgdbg_clear && (cmd_dbg ||
++        debug_active  <= !xgdbg_clear && (cmd_dbg || pc_error ||
+                          brk_set_dbg || op_code_error || debug_active);
+         debug_edge    <= debug_active;
+       end
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@OR_LOG to OR_LOG
+            UPD HdlOp@@OR_LOG to OR_LOG
+                UPD HdlOp@@OR_LOG to OR_LOG
+                    MOV HdlValueId@@cmd_dbg to ops
+                    HdlValueId: cmd_dbg
+
+
+CommitId: 3ed4ed9a8d305e6a377cacf813c5f4cf1896613a
+Fix lint problems, change lowest interrupt vector from 0 to 1.\nDetect program counter underflow/overflow as a software error.
+--- a/rtl/verilog/xgate_risc.v
++++ b/rtl/verilog/xgate_risc.v
+@@ -361,7 +367,7 @@ module xgate_risc #(parameter MAX_CHANNEL = 127)    // Max XGATE Interrupt Chann
+     if ( !async_rst_b )
+       cpu_state  <= IDLE;
+     else
+-      cpu_state  <= (mem_req_ack || stm_auto_advance) ? next_cpu_state : cpu_state;
++      cpu_state  <= (mem_req_ack || stm_auto_advance || ~xge) ? next_cpu_state : cpu_state;
+ 
+   //  CPU Instruction Register
+   always @(posedge risc_clk or negedge async_rst_b)
+
+ParseResult:
+UPD HdlStmAssign@@if_false to if_false
+    UPD HdlOp@@TERNARY to OR_LOG
+    MOV HdlOp@@TERNARY to if_false
+    HdlOp: TERNARY
+        list: ops
+            HdlOp: OR_LOG
+                list: ops
+                    HdlValueId: mem_req_ack
+                    HdlValueId: stm_auto_advance
+            HdlValueId: next_cpu_state
+            HdlValueId: cpu_state
+    UPD HdlOp@@TERNARY to TERNARY
+        MOV HdlValueId@@next_cpu_state to ops
+        HdlValueId: next_cpu_state
+        UPD HdlValueId@@cpu_state to xge
+        MOV HdlValueId@@cpu_state to ops
+        HdlValueId: cpu_state
+
+
+CommitId: 3ed4ed9a8d305e6a377cacf813c5f4cf1896613a
+Fix lint problems, change lowest interrupt vector from 0 to 1.\nDetect program counter underflow/overflow as a software error.
+--- a/rtl/verilog/xgate_risc.v
++++ b/rtl/verilog/xgate_risc.v
+@@ -459,7 +465,7 @@ module xgate_risc #(parameter MAX_CHANNEL = 127)    // Max XGATE Interrupt Chann
+          j = j + 1;
+         end
+       if (clear_xgif_0)
+-        xgif_d[15: 1]  = ~clear_xgif_data & xgif_status[15: 1];
++        xgif_d[15: 1]  = ~clear_xgif_data[15:1] & xgif_status[15:1];
+       if (clear_xgif_1)
+         xgif_d[31:16]  = ~clear_xgif_data & xgif_status[31:16];
+       if (clear_xgif_2)
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@ASSIGN to ASSIGN
+        UPD HdlOp@@AND to AND
+            UPD HdlOp@@NEG to NEG
+                MOV list@@ops to NEG
+                list: ops
+                    HdlValueId: clear_xgif_data
+
+
+CommitId: 3ed4ed9a8d305e6a377cacf813c5f4cf1896613a
+Fix lint problems, change lowest interrupt vector from 0 to 1.\nDetect program counter underflow/overflow as a software error.
+--- a/rtl/verilog/xgate_risc.v
++++ b/rtl/verilog/xgate_risc.v
+@@ -2393,7 +2399,6 @@ module semaphore_bit #(parameter NO_LOCK   = 2'b00,
+       semap_state <= next_semap_state;
+ 
+   always @*
+-    begin
+       case(semap_state)
+         NO_LOCK:
+           begin
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD list@@body to objs
+        MOV list@@body to SEQ
+        list: body
+            HdlStmCase: semap_state
+                HdlStmCaseType: CASE
+                HdlValueId: semap_state
+                list: cases
+                    tuple
+                        HdlValueId: NO_LOCK
+                        HdlStmBlock: SEQ
+                            list: body
+                                HdlStmIf
+                                    HdlOp: AND_LOG
+                                        list: ops
+                                            HdlOp: AND_LOG
+                                                list: ops
+                                                    HdlValueId: host_wrt
+                                                    HdlValueId: host_bit_mask
+                                            HdlValueId: host_bit
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: HOST_LOCK
+                                    list: elifs
+                                        tuple
+                                            HdlOp: AND_LOG
+                                                list: ops
+                                                    HdlValueId: ssem
+                                                    HdlValueId: risc_bit_sel
+                                            HdlOp: ASSIGN
+                                                list: ops
+                                                    HdlValueId: next_semap_state
+                                                    HdlValueId: RISC_LOCK
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: NO_LOCK
+                    tuple
+                        HdlValueId: RISC_LOCK
+                        HdlStmBlock: SEQ
+                            list: body
+                                HdlStmIf
+                                    HdlOp: AND_LOG
+                                        list: ops
+                                            HdlValueId: csem
+                                            HdlValueId: risc_bit_sel
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: NO_LOCK
+                                    list: elifs
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: RISC_LOCK
+                    tuple
+                        HdlValueId: HOST_LOCK
+                        HdlStmBlock: SEQ
+                            list: body
+                                HdlStmIf
+                                    HdlOp: AND_LOG
+                                        list: ops
+                                            HdlOp: AND_LOG
+                                                list: ops
+                                                    HdlValueId: host_wrt
+                                                    HdlValueId: host_bit_mask
+                                            HdlOp: NEG_LOG
+                                                list: ops
+                                                    HdlValueId: host_bit
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: NO_LOCK
+                                    list: elifs
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: HOST_LOCK
+                HdlOp: ASSIGN
+                    list: ops
+                        HdlValueId: next_semap_state
+                        HdlValueId: NO_LOCK
+    DEL HdlStmBlock@@SEQ from 
+
+MOV HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: risc_clk
+        HdlOp: FALLING
+            list: ops
+                HdlValueId: async_rst_b
+    HdlStmIf: body
+        HdlOp: NEG_LOG
+            list: ops
+                HdlValueId: async_rst_b
+        HdlStmAssign: if_true
+            HdlValueId: NO_LOCK
+            HdlValueId: semap_state
+        list: elifs
+        HdlStmAssign: if_false
+            HdlValueId: next_semap_state
+            HdlValueId: semap_state
+
+MOV HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlAll
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmCase: semap_state
+                HdlStmCaseType: CASE
+                HdlValueId: semap_state
+                list: cases
+                    tuple
+                        HdlValueId: NO_LOCK
+                        HdlStmBlock: SEQ
+                            list: body
+                                HdlStmIf
+                                    HdlOp: AND_LOG
+                                        list: ops
+                                            HdlOp: AND_LOG
+                                                list: ops
+                                                    HdlValueId: host_wrt
+                                                    HdlValueId: host_bit_mask
+                                            HdlValueId: host_bit
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: HOST_LOCK
+                                    list: elifs
+                                        tuple
+                                            HdlOp: AND_LOG
+                                                list: ops
+                                                    HdlValueId: ssem
+                                                    HdlValueId: risc_bit_sel
+                                            HdlOp: ASSIGN
+                                                list: ops
+                                                    HdlValueId: next_semap_state
+                                                    HdlValueId: RISC_LOCK
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: NO_LOCK
+                    tuple
+                        HdlValueId: RISC_LOCK
+                        HdlStmBlock: SEQ
+                            list: body
+                                HdlStmIf
+                                    HdlOp: AND_LOG
+                                        list: ops
+                                            HdlValueId: csem
+                                            HdlValueId: risc_bit_sel
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: NO_LOCK
+                                    list: elifs
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: RISC_LOCK
+                    tuple
+                        HdlValueId: HOST_LOCK
+                        HdlStmBlock: SEQ
+                            list: body
+                                HdlStmIf
+                                    HdlOp: AND_LOG
+                                        list: ops
+                                            HdlOp: AND_LOG
+                                                list: ops
+                                                    HdlValueId: host_wrt
+                                                    HdlValueId: host_bit_mask
+                                            HdlOp: NEG_LOG
+                                                list: ops
+                                                    HdlValueId: host_bit
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: NO_LOCK
+                                    list: elifs
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: HOST_LOCK
+                HdlOp: ASSIGN
+                    list: ops
+                        HdlValueId: next_semap_state
+                        HdlValueId: NO_LOCK
+
+MOV HdlStmCase@@semap_state to body
+HdlStmCase: semap_state
+    HdlStmCaseType: CASE
+    HdlValueId: semap_state
+    list: cases
+        tuple
+            HdlValueId: NO_LOCK
+            HdlStmBlock: SEQ
+                list: body
+                    HdlStmIf
+                        HdlOp: AND_LOG
+                            list: ops
+                                HdlOp: AND_LOG
+                                    list: ops
+                                        HdlValueId: host_wrt
+                                        HdlValueId: host_bit_mask
+                                HdlValueId: host_bit
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: next_semap_state
+                                HdlValueId: HOST_LOCK
+                        list: elifs
+                            tuple
+                                HdlOp: AND_LOG
+                                    list: ops
+                                        HdlValueId: ssem
+                                        HdlValueId: risc_bit_sel
+                                HdlOp: ASSIGN
+                                    list: ops
+                                        HdlValueId: next_semap_state
+                                        HdlValueId: RISC_LOCK
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: next_semap_state
+                                HdlValueId: NO_LOCK
+        tuple
+            HdlValueId: RISC_LOCK
+            HdlStmBlock: SEQ
+                list: body
+                    HdlStmIf
+                        HdlOp: AND_LOG
+                            list: ops
+                                HdlValueId: csem
+                                HdlValueId: risc_bit_sel
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: next_semap_state
+                                HdlValueId: NO_LOCK
+                        list: elifs
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: next_semap_state
+                                HdlValueId: RISC_LOCK
+        tuple
+            HdlValueId: HOST_LOCK
+            HdlStmBlock: SEQ
+                list: body
+                    HdlStmIf
+                        HdlOp: AND_LOG
+                            list: ops
+                                HdlOp: AND_LOG
+                                    list: ops
+                                        HdlValueId: host_wrt
+                                        HdlValueId: host_bit_mask
+                                HdlOp: NEG_LOG
+                                    list: ops
+                                        HdlValueId: host_bit
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: next_semap_state
+                                HdlValueId: NO_LOCK
+                        list: elifs
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: next_semap_state
+                                HdlValueId: HOST_LOCK
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: next_semap_state
+            HdlValueId: NO_LOCK
+
+UPD HdlModuleDef@@semaphore_bit to semaphore_bit
+    DEL list@@objs from semaphore_bit
+
+
+CommitId: 3ed4ed9a8d305e6a377cacf813c5f4cf1896613a
+Fix lint problems, change lowest interrupt vector from 0 to 1.\nDetect program counter underflow/overflow as a software error.
+--- a/rtl/verilog/xgate_risc.v
++++ b/rtl/verilog/xgate_risc.v
+@@ -2421,8 +2426,6 @@ module semaphore_bit #(parameter NO_LOCK   = 2'b00,
+         default:
+           next_semap_state = NO_LOCK;
+       endcase
+-    end
+ 
+ endmodule  // semaphore_bit
+ 
+-
+ParseResult:
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD list@@body to objs
+        MOV list@@body to SEQ
+        list: body
+            HdlStmCase: semap_state
+                HdlStmCaseType: CASE
+                HdlValueId: semap_state
+                list: cases
+                    tuple
+                        HdlValueId: NO_LOCK
+                        HdlStmBlock: SEQ
+                            list: body
+                                HdlStmIf
+                                    HdlOp: AND_LOG
+                                        list: ops
+                                            HdlOp: AND_LOG
+                                                list: ops
+                                                    HdlValueId: host_wrt
+                                                    HdlValueId: host_bit_mask
+                                            HdlValueId: host_bit
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: HOST_LOCK
+                                    list: elifs
+                                        tuple
+                                            HdlOp: AND_LOG
+                                                list: ops
+                                                    HdlValueId: ssem
+                                                    HdlValueId: risc_bit_sel
+                                            HdlOp: ASSIGN
+                                                list: ops
+                                                    HdlValueId: next_semap_state
+                                                    HdlValueId: RISC_LOCK
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: NO_LOCK
+                    tuple
+                        HdlValueId: RISC_LOCK
+                        HdlStmBlock: SEQ
+                            list: body
+                                HdlStmIf
+                                    HdlOp: AND_LOG
+                                        list: ops
+                                            HdlValueId: csem
+                                            HdlValueId: risc_bit_sel
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: NO_LOCK
+                                    list: elifs
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: RISC_LOCK
+                    tuple
+                        HdlValueId: HOST_LOCK
+                        HdlStmBlock: SEQ
+                            list: body
+                                HdlStmIf
+                                    HdlOp: AND_LOG
+                                        list: ops
+                                            HdlOp: AND_LOG
+                                                list: ops
+                                                    HdlValueId: host_wrt
+                                                    HdlValueId: host_bit_mask
+                                            HdlOp: NEG_LOG
+                                                list: ops
+                                                    HdlValueId: host_bit
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: NO_LOCK
+                                    list: elifs
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: HOST_LOCK
+                HdlOp: ASSIGN
+                    list: ops
+                        HdlValueId: next_semap_state
+                        HdlValueId: NO_LOCK
+    DEL HdlStmBlock@@SEQ from 
+
+MOV HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlAll
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmCase: semap_state
+                HdlStmCaseType: CASE
+                HdlValueId: semap_state
+                list: cases
+                    tuple
+                        HdlValueId: NO_LOCK
+                        HdlStmBlock: SEQ
+                            list: body
+                                HdlStmIf
+                                    HdlOp: AND_LOG
+                                        list: ops
+                                            HdlOp: AND_LOG
+                                                list: ops
+                                                    HdlValueId: host_wrt
+                                                    HdlValueId: host_bit_mask
+                                            HdlValueId: host_bit
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: HOST_LOCK
+                                    list: elifs
+                                        tuple
+                                            HdlOp: AND_LOG
+                                                list: ops
+                                                    HdlValueId: ssem
+                                                    HdlValueId: risc_bit_sel
+                                            HdlOp: ASSIGN
+                                                list: ops
+                                                    HdlValueId: next_semap_state
+                                                    HdlValueId: RISC_LOCK
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: NO_LOCK
+                    tuple
+                        HdlValueId: RISC_LOCK
+                        HdlStmBlock: SEQ
+                            list: body
+                                HdlStmIf
+                                    HdlOp: AND_LOG
+                                        list: ops
+                                            HdlValueId: csem
+                                            HdlValueId: risc_bit_sel
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: NO_LOCK
+                                    list: elifs
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: RISC_LOCK
+                    tuple
+                        HdlValueId: HOST_LOCK
+                        HdlStmBlock: SEQ
+                            list: body
+                                HdlStmIf
+                                    HdlOp: AND_LOG
+                                        list: ops
+                                            HdlOp: AND_LOG
+                                                list: ops
+                                                    HdlValueId: host_wrt
+                                                    HdlValueId: host_bit_mask
+                                            HdlOp: NEG_LOG
+                                                list: ops
+                                                    HdlValueId: host_bit
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: NO_LOCK
+                                    list: elifs
+                                    HdlOp: ASSIGN
+                                        list: ops
+                                            HdlValueId: next_semap_state
+                                            HdlValueId: HOST_LOCK
+                HdlOp: ASSIGN
+                    list: ops
+                        HdlValueId: next_semap_state
+                        HdlValueId: NO_LOCK
+
+MOV HdlStmCase@@semap_state to body
+HdlStmCase: semap_state
+    HdlStmCaseType: CASE
+    HdlValueId: semap_state
+    list: cases
+        tuple
+            HdlValueId: NO_LOCK
+            HdlStmBlock: SEQ
+                list: body
+                    HdlStmIf
+                        HdlOp: AND_LOG
+                            list: ops
+                                HdlOp: AND_LOG
+                                    list: ops
+                                        HdlValueId: host_wrt
+                                        HdlValueId: host_bit_mask
+                                HdlValueId: host_bit
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: next_semap_state
+                                HdlValueId: HOST_LOCK
+                        list: elifs
+                            tuple
+                                HdlOp: AND_LOG
+                                    list: ops
+                                        HdlValueId: ssem
+                                        HdlValueId: risc_bit_sel
+                                HdlOp: ASSIGN
+                                    list: ops
+                                        HdlValueId: next_semap_state
+                                        HdlValueId: RISC_LOCK
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: next_semap_state
+                                HdlValueId: NO_LOCK
+        tuple
+            HdlValueId: RISC_LOCK
+            HdlStmBlock: SEQ
+                list: body
+                    HdlStmIf
+                        HdlOp: AND_LOG
+                            list: ops
+                                HdlValueId: csem
+                                HdlValueId: risc_bit_sel
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: next_semap_state
+                                HdlValueId: NO_LOCK
+                        list: elifs
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: next_semap_state
+                                HdlValueId: RISC_LOCK
+        tuple
+            HdlValueId: HOST_LOCK
+            HdlStmBlock: SEQ
+                list: body
+                    HdlStmIf
+                        HdlOp: AND_LOG
+                            list: ops
+                                HdlOp: AND_LOG
+                                    list: ops
+                                        HdlValueId: host_wrt
+                                        HdlValueId: host_bit_mask
+                                HdlOp: NEG_LOG
+                                    list: ops
+                                        HdlValueId: host_bit
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: next_semap_state
+                                HdlValueId: NO_LOCK
+                        list: elifs
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: next_semap_state
+                                HdlValueId: HOST_LOCK
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: next_semap_state
+            HdlValueId: NO_LOCK
+
+UPD HdlModuleDef@@semaphore_bit to semaphore_bit
+    DEL list@@objs from semaphore_bit
+
+
+CommitId: ec67494c77749b45662ae45f136f22d30aad846d
+Extensive changes to fix errors in how wait state are handled by the master bus interface and the RISC control logic. Fix to slave mode WISHBONE ack signal.
+--- a/rtl/verilog/xgate_wbs_bus.v
++++ b/rtl/verilog/xgate_wbs_bus.v
+@@ -45,6 +45,7 @@ module xgate_wbs_bus #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+   // Wishbone Signals
+   output      [DWIDTH-1:0] wbs_dat_o,     // databus output
+   output                   wbs_ack_o,     // bus cycle acknowledge output
++  output                   wbs_err_o,     // bus error, lost module select durning wait state
+   input                    wbs_clk_i,     // master clock input
+   input                    wbs_rst_i,     // synchronous active high reset
+   input                    arst_i,        // asynchronous reset
+
+ParseResult:
+INS HdlIdDef@@wbs_err_o to ports
+HdlIdDef: wbs_err_o
+    HdlValueId: wire
+    HdlDirection: OUT
+
+
+CommitId: ec67494c77749b45662ae45f136f22d30aad846d
+Extensive changes to fix errors in how wait state are handled by the master bus interface and the RISC control logic. Fix to slave mode WISHBONE ack signal.
+--- a/rtl/verilog/xgate_wbs_bus.v
++++ b/rtl/verilog/xgate_wbs_bus.v
+@@ -110,8 +111,9 @@ module xgate_wbs_bus #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+   assign module_sel  = wbs_cyc_i && wbs_stb_i;
+   assign wbs_wacc    = module_sel && wbs_we_i && (wbs_ack_o || SINGLE_CYCLE);
+   assign wbs_racc    = module_sel && !wbs_we_i;
+-  assign wbs_ack_o   = SINGLE_CYCLE ? module_sel : bus_wait_state;
++  assign wbs_ack_o   = SINGLE_CYCLE ? module_sel : (bus_wait_state && module_sel);
+   assign wbs_dat_o   = SINGLE_CYCLE ? rd_data_mux : rd_data_reg;
++  assign wbs_err_o   = !SINGLE_CYCLE && !module_sel && bus_wait_state;
+ 
+   // generate acknowledge output signal, By using register all accesses takes two cycles.
+   //  Accesses in back to back clock cycles are not possable.
+ParseResult:
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: AND_LOG
+        list: ops
+            HdlOp: AND_LOG
+                list: ops
+                    HdlOp: NEG_LOG
+                        list: ops
+                            HdlValueId: SINGLE_CYCLE
+                    HdlOp: NEG_LOG
+                        list: ops
+                            HdlValueId: module_sel
+            HdlValueId: bus_wait_state
+    HdlValueId: wbs_err_o
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        INS HdlOp@@AND_LOG to ops
+        UPD HdlOp@@AND_LOG to AND_LOG
+            INS list@@ops to AND_LOG
+            INS HdlValueId@@module_sel to ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        MOV HdlValueId@@bus_wait_state to ops
+        HdlValueId: bus_wait_state
+
+
+CommitId: 229c235e1c30b844b3d61b9fed0817159a1c71df
+Fix lint problems, change lowest interrupt vector from 0 to 1.
+--- a/rtl/verilog/xgate_wbs_bus.v
++++ b/rtl/verilog/xgate_wbs_bus.v
+@@ -51,7 +51,6 @@ module xgate_wbs_bus #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+   input                    wbs_rst_i,     // synchronous active high reset
+   input                    arst_i,        // asynchronous reset
+   input             [ 6:1] wbs_adr_i,     // lower address bits
+-  input       [DWIDTH-1:0] wbs_dat_i,     // databus input
+   input                    wbs_we_i,      // write enable input
+   input                    wbs_stb_i,     // stobe/core select signal
+   input                    wbs_cyc_i,     // valid bus cycle input
+ParseResult:
+DEL HdlIdDef@@wbs_dat_i from ports
+HdlIdDef: wbs_dat_i
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueId: DWIDTH
+                            HdlValueInt: 1
+                    HdlValueInt: 0
+    HdlDirection: IN
+
+
+CommitId: ec67494c77749b45662ae45f136f22d30aad846d
+Extensive changes to fix errors in how wait state are handled by the master bus interface and the RISC control logic. Fix to slave mode WISHBONE ack signal.
+--- a/rtl/verilog/xgate_wbm_bus.v
++++ b/rtl/verilog/xgate_wbm_bus.v
+@@ -57,7 +57,11 @@ module xgate_wbm_bus #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+   // XGATE Control Signals
+   output      [DWIDTH-1:0] read_mem_data,    // Data from system memory
+   output                   mem_req_ack,      // Memory bus transaction complete
++  input                    risc_clk,         //
++  input                    async_rst_b,      //
+   input                    xge,              // XGATE Enabled
++  input                    single_step,      // Pulse to trigger a single instruction execution in debug mode
++  output                   ss_mem_ack,       // WISHBONE Bus has granted single step memory access
+   input             [15:0] xgate_address,    // Address to system memory
+   input                    mem_access,       // 
+   input                    write_mem_strb_l, // Strobe for writing low data byte
+
+ParseResult:
+INS HdlIdDef@@risc_clk to ports
+HdlIdDef: risc_clk
+    HdlValueId: wire
+    HdlDirection: IN
+
+INS HdlIdDef@@async_rst_b to ports
+HdlIdDef: async_rst_b
+    HdlValueId: wire
+    HdlDirection: IN
+
+INS HdlIdDef@@single_step to ports
+HdlIdDef: single_step
+    HdlValueId: wire
+    HdlDirection: IN
+
+INS HdlIdDef@@ss_mem_ack to ports
+HdlIdDef: ss_mem_ack
+    HdlValueId: wire
+    HdlDirection: OUT
+
+
+CommitId: ec67494c77749b45662ae45f136f22d30aad846d
+Extensive changes to fix errors in how wait state are handled by the master bus interface and the RISC control logic. Fix to slave mode WISHBONE ack signal.
+--- a/rtl/verilog/xgate_wbm_bus.v
++++ b/rtl/verilog/xgate_wbm_bus.v
+@@ -68,11 +72,22 @@ module xgate_wbm_bus #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+ 
+   // Wires and Registers
+   wire   module_sel;       // This module is selected for bus transaction
++  reg    ss_mem_req;       // Bus request for single step memory access
+ 
+   //
+   // Module body
+   //
+   
++  // Latch Single Step Request and ask for memory access
++  always @(posedge risc_clk or negedge async_rst_b)
++    if ( !async_rst_b )
++      ss_mem_req <= 1'b0;
++    else
++      ss_mem_req <= (single_step || ss_mem_req) && !wbm_ack_i && xge;
++      
++  assign ss_mem_ack = ss_mem_req && wbm_ack_i;
++
++			
+   assign wbm_dat_o = write_mem_data;
+   assign read_mem_data = wbm_dat_i;
+   assign wbm_adr_o = xgate_address;
+
+ParseResult:
+INS HdlIdDef@@ss_mem_req to objs
+HdlIdDef: ss_mem_req
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: risc_clk
+        HdlOp: FALLING
+            list: ops
+                HdlValueId: async_rst_b
+    HdlStmIf: body
+        HdlOp: NEG_LOG
+            list: ops
+                HdlValueId: async_rst_b
+        HdlStmAssign: if_true
+            HdlValueInt: 0
+            HdlValueId: ss_mem_req
+        list: elifs
+        HdlStmAssign: if_false
+            HdlOp: AND_LOG
+                list: ops
+                    HdlOp: AND_LOG
+                        list: ops
+                            HdlOp: OR_LOG
+                                list: ops
+                                    HdlValueId: single_step
+                                    HdlValueId: ss_mem_req
+                            HdlOp: NEG_LOG
+                                list: ops
+                                    HdlValueId: wbm_ack_i
+                    HdlValueId: xge
+            HdlValueId: ss_mem_req
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: AND_LOG
+        list: ops
+            HdlValueId: ss_mem_req
+            HdlValueId: wbm_ack_i
+    HdlValueId: ss_mem_ack
+
+
+CommitId: ec67494c77749b45662ae45f136f22d30aad846d
+Extensive changes to fix errors in how wait state are handled by the master bus interface and the RISC control logic. Fix to slave mode WISHBONE ack signal.
+--- a/rtl/verilog/xgate_wbm_bus.v
++++ b/rtl/verilog/xgate_wbm_bus.v
+@@ -83,8 +98,8 @@ module xgate_wbm_bus #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+   
+   assign wbm_sel_o = {write_mem_strb_h, write_mem_strb_l};
+   
+-  assign wbm_cyc_o = xge && mem_access;
++  assign wbm_cyc_o = xge && (mem_access || ss_mem_req);
+   
+-  assign wbm_stb_o = xge && mem_access;
++  assign wbm_stb_o = xge && (mem_access || ss_mem_req);
+ 
+ endmodule  // xgate_wbm_bus
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        MOV HdlValueId@@mem_access to ops
+        HdlValueId: mem_access
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        MOV HdlValueId@@mem_access to ops
+        HdlValueId: mem_access
+
+
+CommitId: 229c235e1c30b844b3d61b9fed0817159a1c71df
+Fix lint problems, change lowest interrupt vector from 0 to 1.
+--- a/rtl/verilog/xgate_wbm_bus.v
++++ b/rtl/verilog/xgate_wbm_bus.v
+@@ -51,9 +51,6 @@ module xgate_wbm_bus #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
+   output            [15:0] wbm_adr_o,     // Address bits
+   input       [DWIDTH-1:0] wbm_dat_i,     // databus input
+   input                    wbm_ack_i,     // bus cycle acknowledge input
+-  input                    wbs_clk_i,     // master clock input
+-  input                    wbs_rst_i,     // synchronous active high reset
+-  input                    arst_i,        // asynchronous reset
+   // XGATE Control Signals
+   output      [DWIDTH-1:0] read_mem_data,    // Data from system memory
+   output                   mem_req_ack,      // Memory bus transaction complete
+ParseResult:
+DEL HdlIdDef@@wbs_clk_i from ports
+HdlIdDef: wbs_clk_i
+    HdlValueId: wire
+    HdlDirection: IN
+
+DEL HdlIdDef@@wbs_rst_i from ports
+HdlIdDef: wbs_rst_i
+    HdlValueId: wire
+    HdlDirection: IN
+
+DEL HdlIdDef@@arst_i from ports
+HdlIdDef: arst_i
+    HdlValueId: wire
+    HdlDirection: IN
+
+
+CommitId: 2629cfb5d1cf9bb07a45908c517299d371bbb827
+Added timeout, total error count, and XGCHN test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -45,8 +45,8 @@ module tst_bench_top();
+ 
+   parameter MAX_CHANNEL = 127;    // Max XGATE Interrupt Channel Number
+   parameter STOP_ON_ERROR = 1'b0;
+-  parameter MAX_VECTOR = 1800;
+-  
++  parameter MAX_VECTOR = 2100;
++
+   //
+   // wires && regs
+   //
+
+ParseResult:
+UPD HdlIdDef@@MAX_VECTOR to MAX_VECTOR
+    UPD HdlValueInt@@1800 to 2100
+
+
+CommitId: 2629cfb5d1cf9bb07a45908c517299d371bbb827
+Added timeout, total error count, and XGCHN test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -76,23 +76,19 @@ module tst_bench_top();
+   wire count_flag_1;
+ 
+   reg [15:0] q, qq;
+-  
+-  reg  [  7:0] ram_8 [65535:0];
++
++  reg  [  7:0] ram_8 [65535:0];      // Testbench memory for holding XGATE test code
+   wire         write_mem_strb_l;
+   wire         write_mem_strb_h;
+-  reg  [127:0] channel_req;
+-  wire [  7:0] xgswt;        // XGATE Software Triggers
+-  wire [MAX_CHANNEL:0] xgif; // Max XGATE Interrupt Channel Number
+-  wire         xg_sw_irq;    // Xgate Software interrupt
+-
+-
+-  wire [15:0] xgate_address;
+-  wire [15:0] write_mem_data;
+-  wire [15:0] read_mem_data;
+-  
+-  wire [15:0] wbm_dat_o;
+-  wire [15:0] wbm_dat_i;
+-  wire [15:0] wbm_adr_o;
++  reg  [MAX_CHANNEL:0] channel_req;  // XGATE Interrupt inputs
++  wire [MAX_CHANNEL:0] xgif;         // XGATE Interrupt outputs
++  wire         [  7:0] xgswt;        // XGATE Software Trigger outputs
++  wire                 xg_sw_irq;    // Xgate Software Error interrupt
++
++
++  wire [15:0] wbm_dat_o;         // WISHBONE Master Mode data output from XGATE
++  wire [15:0] wbm_dat_i;         // WISHBONE Master Mode data input to XGATE
++  wire [15:0] wbm_adr_o;         // WISHBONE Master Mode address output from XGATE
+   wire [ 1:0] wbm_sel_o;
+ 
+ 
+
+ParseResult:
+MOV HdlIdDef@@xgswt to objs
+HdlIdDef: xgswt
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 7
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@channel_req to objs
+HdlIdDef: channel_req
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueId: MAX_CHANNEL
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@channel_req from objs
+HdlIdDef: channel_req
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 127
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@xgate_address from objs
+HdlIdDef: xgate_address
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 15
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@write_mem_data from objs
+HdlIdDef: write_mem_data
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 15
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@read_mem_data from objs
+HdlIdDef: read_mem_data
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 15
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+
+CommitId: 2629cfb5d1cf9bb07a45908c517299d371bbb827
+Added timeout, total error count, and XGCHN test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -115,7 +111,7 @@ module tst_bench_top();
+   parameter XGATE_RES1     = 5'h0f;
+   parameter XGATE_XGCCR    = 5'h10;
+   parameter XGATE_XGPC     = 5'h11;
+-  parameter XGATE_RES1     = 5'h12;
++  parameter XGATE_RES2     = 5'h12;
+   parameter XGATE_XGR1     = 5'h13;
+   parameter XGATE_XGR2     = 5'h14;
+   parameter XGATE_XGR3     = 5'h15;
+
+ParseResult:
+UPD HdlIdDef@@XGATE_RES1 to XGATE_RES2
+
+
+CommitId: 2629cfb5d1cf9bb07a45908c517299d371bbb827
+Added timeout, total error count, and XGCHN test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -141,10 +137,7 @@ module tst_bench_top();
+   parameter XGMCTL_XGBRKIE  = 15'h0004;
+   parameter XGMCTL_XGSWEIF  = 15'h0002;
+   parameter XGMCTL_XGIE     = 15'h0001;
+-  
+-  parameter COP_CNTRL = 5'b0_0000;
+ 
+-  parameter COP_CNTRL_COP_EVENT  = 16'h0100;  // COP Enable interrupt request
+ 
+   parameter CHECK_POINT = 16'h8000;
+   parameter CHANNEL_ACK = CHECK_POINT + 2;
+
+ParseResult:
+DEL HdlIdDef@@COP_CNTRL from params
+HdlIdDef: COP_CNTRL
+    HdlValueInt: 00000
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@COP_CNTRL_COP_EVENT from params
+HdlIdDef: COP_CNTRL_COP_EVENT
+    HdlValueInt: 0100
+    HdlDirection: INTERNAL
+
+
+CommitId: 2629cfb5d1cf9bb07a45908c517299d371bbb827
+Added timeout, total error count, and XGCHN test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -208,11 +201,17 @@ module tst_bench_top();
+     begin
+       vector <= vector + 1;
+       if (vector > MAX_VECTOR)
+-	begin
+-	  error_count = error_count + 1;
+-	  $display("\n ------ !!!!! Simulation Timeout at vector=%d\n -------", vector);
+-	  wrap_up;
+-	end
++        begin
++          error_count <= error_count + 1;
++          $display("\n ------ !!!!! Simulation Timeout at vector=%d\n -------", vector);
++          wrap_up;
++        end
++    end
++
++  // Add up errors tha come from WISHBONE read compares
++  always @u0.cmp_error_detect
++    begin
++      error_count <= error_count + 1;
+     end
+ 
+ 
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlValueId: u0
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlOp: ADD
+                    list: ops
+                        HdlValueId: error_count
+                        HdlValueInt: 1
+                HdlValueId: error_count
+
+
+CommitId: 2629cfb5d1cf9bb07a45908c517299d371bbb827
+Added timeout, total error count, and XGCHN test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -221,7 +220,7 @@ module tst_bench_top();
+     if (((vector % 5) == 0) && (xgate.risc.load_next_inst || xgate.risc.data_access))
+ //    if ((vector % 5) == 0)
+       wbm_ack_i <= 1'b0;
+-    else 
++    else
+       wbm_ack_i <= 1'b1;
+ 
+ 
+
+ParseResult:
+UPD HdlStmAssign@@if_true to if_true
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlValueId@@write_mem_data to wbm_dat_o
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlValueId@@xgate_address to wbm_adr_o
+
+UPD HdlStmAssign@@if_true to if_true
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlValueId@@write_mem_data to wbm_dat_o
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlValueId@@xgate_address to wbm_adr_o
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlValueId@@write_mem_data to wbm_dat_o
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlValueId@@xgate_address to wbm_adr_o
+
+
+CommitId: 2629cfb5d1cf9bb07a45908c517299d371bbb827
+Added timeout, total error count, and XGCHN test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -344,22 +345,22 @@ module tst_bench_top();
+           .wbs_ack_o( ack_1 ),
+ 
+           // Wishbone master Signals
+-          .wbm_dat_o( write_mem_data ),
++          .wbm_dat_o( wbm_dat_o ),
+           .wbm_we_o( wbm_we_o ),
+           .wbm_stb_o( wbm_stb_o ),
+           .wbm_cyc_o( wbm_cyc_o ),
+           .wbm_sel_o( wbm_sel_o ),
+-          .wbm_adr_o( xgate_address ),
+-          .wbm_dat_i( read_mem_data ),
++          .wbm_adr_o( wbm_adr_o ),
++          .wbm_dat_i( wbm_dat_i ),
+           .wbm_ack_i( wbm_ack_i ),
+ 
+-          .xgif( xgif ),             // XGATE Interrupt Flag
+-          .xg_sw_irq( xg_sw_irq ),
+-          .risc_clk( mstr_test_clk ),
++          .xgif( xgif ),             // XGATE Interrupt Flag output
++          .xg_sw_irq( xg_sw_irq ),   // XGATE Software Error Interrupt Flag output
+           .xgswt( xgswt ),
+-	  .chan_req_i( {channel_req[127:40], xgswt, channel_req[31:0]} ),
+-	  .write_mem_strb_l( write_mem_strb_l ),
+-	  .write_mem_strb_h( write_mem_strb_h ),
++          .risc_clk( mstr_test_clk ),
++          .chan_req_i( {channel_req[MAX_CHANNEL:40], xgswt, channel_req[31:0]} ),
++          .write_mem_strb_l( write_mem_strb_l ),
++          .write_mem_strb_h( write_mem_strb_h ),
+           .scantestmode( scantestmode )
+   );
+ 
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $readmemh
+                str
+                HdlValueId: ram_8
+
+
+CommitId: 2629cfb5d1cf9bb07a45908c517299d371bbb827
+Added timeout, total error count, and XGCHN test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -372,12 +373,11 @@ module tst_bench_top();
+ // Test Program
+ initial
+   begin
+-      $readmemh("../../../bench/verilog/inst_test.v", ram_8);
+       $display("\nstatus at time: %t Testbench started", $time);
+ 
+       // reset system
+       rstn = 1'b1; // negate reset
+-      channel_req = 1; // 
++      channel_req = 1; //
+       repeat(1) @(posedge mstr_test_clk);
+       sync_reset = 1'b1;  // Make the sync reset 1 clock cycle long
+       #2;          // move the async reset away from the clock edge
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlValueId@@test_debug_bit to body
+        INS HdlValueId@@test_chid_debug to body
+
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $readmemh
+                str
+                HdlValueId: ram_8
+
+
+CommitId: 2629cfb5d1cf9bb07a45908c517299d371bbb827
+Added timeout, total error count, and XGCHN test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -445,12 +543,12 @@ task test_debug_mode;
+     test_num = test_num + 1;
+     $display("\nTEST #%d Starts at vector=%d, test_debug_mode", test_num, vector);
+     $readmemh("../../../bench/verilog/debug_test.v", ram_8);
+-    
++
+     data_xgmctl = XGMCTL_XGBRKIEM | XGMCTL_XGBRKIE;
+     u0.wb_write(0, XGATE_XGMCTL, data_xgmctl);   // Enable interrupt on BRK instruction
+ 
+     activate_thread_sw(1);
+-    
++
+     wait_debug_set;   // Debug Status bit is set by BRK instruction
+ 
+     u0.wb_cmp(0, XGATE_XGPC,     16'h203a);      // See Program code (BRK).
+
+ParseResult:
+UPD HdlFunctionDef@@test_chid_debug to test_chid_debug
+    INS HdlValueId@@void to test_chid_debug
+    INS list@@params to test_chid_debug
+    INS list@@body to test_chid_debug
+    INS HdlStmBlock@@SEQ to body
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: test_num
+                HdlOp: ADD
+                    list: ops
+                        HdlValueId: test_num
+                        HdlValueInt: 1
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: test_num
+                HdlValueId: vector
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: data_xgmctl
+                HdlOp: OR
+                    list: ops
+                        HdlValueId: XGMCTL_XGBRKIEM
+                        HdlValueId: XGMCTL_XGBRKIE
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: activate_thread_sw
+                HdlValueInt: 3
+        INS HdlValueId@@wait_debug_set to body
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGPC
+                HdlValueInt: 20c6
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGR3
+                HdlValueInt: 0001
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGCHID
+                HdlValueInt: 0003
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: channel_req
+                        HdlValueInt: 5
+                HdlValueInt: 1
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGCHID
+                HdlValueInt: 0003
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGCHID
+                HdlValueInt: 000f
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGCHID
+                HdlValueInt: 000f
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGCHID
+                HdlValueInt: 0000
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGCHID
+                HdlValueInt: 0004
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: data_xgmctl
+                HdlValueId: XGMCTL_XGDBGM
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlValueId@@wait_debug_set to body
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGCHID
+                HdlValueInt: 0004
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlValueId@@wait_debug_set to body
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGCHID
+                HdlValueInt: 0005
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: activate_channel
+                HdlValueInt: 6
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlValueId@@wait_debug_set to body
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGCHID
+                HdlValueInt: 0006
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGPC
+                HdlValueInt: 211c
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: data_xgmctl
+                HdlOp: OR
+                    list: ops
+                        HdlValueId: XGMCTL_XGSSM
+                        HdlValueId: XGMCTL_XGSS
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGPC
+                HdlValueInt: 211e
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGPC
+                HdlValueInt: 2122
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: data_xgmctl
+                HdlValueId: XGMCTL_XGDBGM
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+
+UPD HdlFunctionDef@@test_debug_mode to test_debug_mode
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGPC
+                HdlValueInt: 204c
+        MOV HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: data_xgmctl
+                HdlOp: OR
+                    list: ops
+                        HdlValueId: XGMCTL_XGDBGM
+                        HdlValueId: XGMCTL_XGDBG
+
+
+CommitId: 2629cfb5d1cf9bb07a45908c517299d371bbb827
+Added timeout, total error count, and XGCHN test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -479,7 +577,7 @@ task test_debug_mode;
+     repeat(5) @(posedge mstr_test_clk);          // Execute BRA instruction
+     u0.wb_cmp(0, XGATE_XGPC,     16'h2064);      // PC = Branch destination.
+                                                  // Load ADDL instruction
+-    
++
+     u0.wb_write(0, XGATE_XGMCTL, data_xgmctl);   // Do a Single Step (Load LDW R7 instruction)
+     repeat(5) @(posedge mstr_test_clk);          // Execute ADDL instruction
+     u0.wb_cmp(0, XGATE_XGPC,     16'h2066);      // PC + 2.
+
+ParseResult:
+UPD HdlFunctionDef@@test_debug_bit to test_debug_bit
+    INS HdlValueId@@void to test_debug_bit
+    INS list@@params to test_debug_bit
+    INS list@@body to test_debug_bit
+    INS HdlStmBlock@@SEQ to body
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_read
+                HdlValueInt: 1
+                HdlValueId: XGATE_XGR3
+                HdlValueId: q
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: data_xgmctl
+                HdlOp: OR
+                    list: ops
+                        HdlValueId: XGMCTL_XGSSM
+                        HdlValueId: XGMCTL_XGSS
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: qq
+                HdlValueId: q
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 1
+                HdlValueId: XGATE_XGPC
+                HdlValueInt: 2094
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: data_xgmctl
+                HdlOp: OR
+                    list: ops
+                        HdlValueId: XGMCTL_XGSSM
+                        HdlValueId: XGMCTL_XGSS
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGR4
+                HdlValueInt: 0002
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGR4
+                HdlValueInt: 0003
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: data_xgmctl
+                HdlValueId: XGMCTL_XGDBGM
+
+UPD HdlFunctionDef@@test_debug_mode to test_debug_mode
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGPC
+                HdlValueInt: 204c
+        MOV HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: data_xgmctl
+                HdlOp: OR
+                    list: ops
+                        HdlValueId: XGMCTL_XGDBGM
+                        HdlValueId: XGMCTL_XGDBG
+
+
+CommitId: 2629cfb5d1cf9bb07a45908c517299d371bbb827
+Added timeout, total error count, and XGCHN test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -506,31 +604,31 @@ task test_debug_mode;
+ 
+     repeat(5) @(posedge mstr_test_clk);
+ 
+-    data_xgmctl = XGMCTL_XGDBGM | XGMCTL_XGDBG;
+-    u0.wb_write(0, XGATE_XGMCTL, data_xgmctl);   // Set Debug Mode Control Bit
+     data_xgmctl = XGMCTL_XGDBGM;
+     u0.wb_write(0, XGATE_XGMCTL, data_xgmctl);   // Clear Debug Mode Control Bit
+                                                  // Should be back in Run Mode
+     wait_irq_set(1);
+     u0.wb_write(1, XGATE_XGIF_0, 16'h0002);
+-    
++
+     data_xgmctl = XGMCTL_XGSWEIFM | XGMCTL_XGSWEIF | XGMCTL_XGBRKIEM;
+     u0.wb_write(0, XGATE_XGMCTL, data_xgmctl);   // Clear Software Interrupt and BRK Interrupt Enable Bit
+     repeat(15) @(posedge mstr_test_clk);
+-    
++
+   end
+ endtask
+ 
+ // Test instruction set
+ task test_inst_set;
+   begin
++    $readmemh("../../../bench/verilog/inst_test.v", ram_8);
+     test_num = test_num + 1;
+     $display("\nTEST #%d Starts at vector=%d, inst_test", test_num, vector);
++    repeat(1) @(posedge mstr_test_clk);
+ 
+     activate_thread_sw(1);
+     wait_irq_set(1);
+     u0.wb_write(1, XGATE_XGIF_0, 16'h0002);
+-    
++
+     activate_thread_sw(2);
+     wait_irq_set(2);
+     u0.wb_write(1, XGATE_XGIF_0, 16'h0004);
+
+ParseResult:
+UPD HdlFunctionDef@@test_debug_bit to test_debug_bit
+    INS HdlValueId@@void to test_debug_bit
+    INS list@@params to test_debug_bit
+    INS list@@body to test_debug_bit
+    INS HdlStmBlock@@SEQ to body
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_read
+                HdlValueInt: 1
+                HdlValueId: XGATE_XGR3
+                HdlValueId: q
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: data_xgmctl
+                HdlOp: OR
+                    list: ops
+                        HdlValueId: XGMCTL_XGSSM
+                        HdlValueId: XGMCTL_XGSS
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: qq
+                HdlValueId: q
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 1
+                HdlValueId: XGATE_XGPC
+                HdlValueInt: 2094
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: data_xgmctl
+                HdlOp: OR
+                    list: ops
+                        HdlValueId: XGMCTL_XGSSM
+                        HdlValueId: XGMCTL_XGSS
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGR4
+                HdlValueInt: 0002
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGR4
+                HdlValueInt: 0003
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: data_xgmctl
+                HdlValueId: XGMCTL_XGDBGM
+
+UPD HdlFunctionDef@@test_debug_mode to test_debug_mode
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGPC
+                HdlValueInt: 204c
+        MOV HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: data_xgmctl
+                HdlOp: OR
+                    list: ops
+                        HdlValueId: XGMCTL_XGDBGM
+                        HdlValueId: XGMCTL_XGDBG
+
+INS HdlStmRepeat@@ to body
+HdlStmRepeat
+    HdlValueInt: 1
+    HdlStmProcess: body
+        list: sensitivity
+            HdlOp: RISING
+                list: ops
+                    HdlValueId: mstr_test_clk
+        HdlStmNop: body
+
+
+CommitId: 2629cfb5d1cf9bb07a45908c517299d371bbb827
+Added timeout, total error count, and XGCHN test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -747,29 +845,31 @@ task dump_ram;
+   integer i, j;
+   begin
+       $display("Dumping RAM - Starting Address #%h", start_address);
+-      
++
+       dump_address = start_address;
+       while (dump_address <= start_address + 16'h0080)
+-	begin
+-	  $write("Address = %h", dump_address);
++        begin
++          $write("Address = %h", dump_address);
+           for (i = 0; i < 16; i = i + 1)
+             begin
+-	      $write(" %h", ram_8[dump_address]);
+-	      dump_address = dump_address + 1;
+-	    end
+-	$write("\n");
+-	end
++              $write(" %h", ram_8[dump_address]);
++              dump_address = dump_address + 1;
++            end
++        $write("\n");
++        end
+ 
+   end
+ endtask
+ 
+ task wrap_up;
+   begin
++    test_num = test_num + 1;
++    repeat(10) @(posedge mstr_test_clk);
+     $display("\nSimulation Finished!! - vector =%d", vector);
+     if (error_count == 0)
+       $display("Simulation Passed");
+     else
+-      $display("Simulation Failed");
++      $display("Simulation Failed  --- Errors =%d", error_count);
+ 
+     $finish;
+   end
+ParseResult:
+INS HdlStmRepeat@@ to body
+HdlStmRepeat
+    HdlValueInt: 10
+    HdlStmProcess: body
+        list: sensitivity
+            HdlOp: RISING
+                list: ops
+                    HdlValueId: mstr_test_clk
+        HdlStmNop: body
+
+
+CommitId: e9349bc608bde9e7d9c69eea8ade70a191fc0b72
+Fix connected net name
+--- a/rtl/verilog/xgate_top.v
++++ b/rtl/verilog/xgate_top.v
+@@ -93,7 +93,7 @@ module xgate_top #(parameter ARST_LVL = 1'b0,      // asynchronous reset level
+   wire        write_xgmctl;  // Write Strobe for XGMCTL register
+   wire        write_xgchid;  // Write Strobe for XGCHID register
+   wire        write_xgisp74; // Write Strobe for XGISP74 register
+-  wire        write_xgisp31; // Write Strobe for XGISP31 register
++  wire        write_xgisp30; // Write Strobe for XGISP30 register
+   wire        write_xgvbr;   // Write Strobe for XGVBR_LO register
+   wire        write_xgif_7;  // Write Strobe for Interrupt Flag Register 7
+   wire        write_xgif_6;  // Write Strobe for Interrupt Flag Register 6
+ParseResult:
+INS HdlIdDef@@write_xgisp30 to objs
+HdlIdDef: write_xgisp30
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@write_xgisp31 from objs
+HdlIdDef: write_xgisp31
+    HdlDirection: INTERNAL
+
+
+CommitId: ec67494c77749b45662ae45f136f22d30aad846d
+Extensive changes to fix errors in how wait state are handled by the master bus interface and the RISC control logic. Fix to slave mode WISHBONE ack signal.
+--- a/rtl/verilog/xgate_top.v
++++ b/rtl/verilog/xgate_top.v
+@@ -46,6 +46,7 @@ module xgate_top #(parameter ARST_LVL = 1'b0,      // asynchronous reset level
+   // Wishbone Slave Signals
+   output    [DWIDTH-1:0] wbs_dat_o,     // databus output
+   output                 wbs_ack_o,     // bus cycle acknowledge output
++  output                 wbs_err_o,     // bus error, lost module select durning wait state
+   input                  wbs_clk_i,     // master clock input
+   input                  wbs_rst_i,     // synchronous active high reset
+   input                  arst_i,        // asynchronous reset
+
+ParseResult:
+INS HdlIdDef@@wbs_err_o to ports
+HdlIdDef: wbs_err_o
+    HdlValueId: wire
+    HdlDirection: OUT
+
+
+CommitId: ec67494c77749b45662ae45f136f22d30aad846d
+Extensive changes to fix errors in how wait state are handled by the master bus interface and the RISC control logic. Fix to slave mode WISHBONE ack signal.
+--- a/rtl/verilog/xgate_top.v
++++ b/rtl/verilog/xgate_top.v
+@@ -143,6 +144,9 @@ module xgate_top #(parameter ARST_LVL = 1'b0,      // asynchronous reset level
+   wire        mem_req_ack;     //
+ 
+   wire        debug_active;    // RISC state machine in Debug mode 
++  wire        debug_ack;       // Clear debug register
++  wire        single_step;     // Pulse to trigger a single instruction execution in debug mode
++  wire        ss_mem_ack;      // WISHBONE Bus has granted single step memory access
+   
+   wire [ 7:0] host_semap;    // Semaphore status for host
+ //  wire [15:0] write_mem_data;
+
+ParseResult:
+INS HdlIdDef@@debug_ack to objs
+HdlIdDef: debug_ack
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@single_step to objs
+HdlIdDef: single_step
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@ss_mem_ack to objs
+HdlIdDef: ss_mem_ack
+    HdlDirection: INTERNAL
+
+

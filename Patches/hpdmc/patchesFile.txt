@@ -1,0 +1,400 @@
+CommitId: 37d2195b4f62ac644d3c31f0cf5af4b4dc07bfd7
+Bugfix
+--- a/rtl/hpdmc_scheduler.v
++++ b/rtl/hpdmc_scheduler.v
+@@ -454,7 +454,10 @@ always @(*) begin
+ 				
+ 				track_open[bank_address] = 1'b1;
+ 				reload_activate_counter = 1'b1;
+-				next_state = READ;
++				if(address_we)
++					next_state = WRITE;
++				else
++					next_state = READ;
+ 			end
+ 		end
+ 		READ: begin
+ParseResult:
+INS HdlStmIf@@ to body
+
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@address_we to 
+    INS HdlOp@@ASSIGN to 
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: next_state
+            HdlValueId: WRITE
+    INS list@@elifs to 
+
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: next_state
+                HdlValueId: READ
+
+
+CommitId: 37d2195b4f62ac644d3c31f0cf5af4b4dc07bfd7
+Bugfix
+--- a/rtl/hpdmc_ddrio.v
++++ b/rtl/hpdmc_ddrio.v
+@@ -95,19 +95,6 @@ always @(posedge rst, negedge clk2x) begin
+ 				wfifo_consume <= wfifo_consume + 1;
+ 			wfifo_outmask <= wfifomask0[wfifo_consume];
+ 			wfifo_out <= wfifo0[wfifo_consume];
+-			if(wfifo_enable) begin
+-				$display("Read from LOW Write FIFO(%d) Mask %h", wfifo_consume, wfifomask0[wfifo_consume]);
+-				$display("Masks are %x %x %x %x %x %x %x %x",
+-					wfifomask1[0],
+-					wfifomask0[0],
+-					wfifomask1[1],
+-					wfifomask0[1],
+-					wfifomask1[2],
+-					wfifomask0[2],
+-					wfifomask1[3],
+-					wfifomask0[3]
+-				);
+- 			end
+ 		end else begin
+ 			wfifo_outmask <= wfifomask1[wfifo_consume];
+ 			wfifo_out <= wfifo1[wfifo_consume];
+ParseResult:
+DEL HdlStmIf@@ from body
+HdlStmIf
+    HdlValueId: wfifo_enable
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: $display
+                    str
+                    HdlValueId: wfifo_consume
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: wfifomask0
+                            HdlValueId: wfifo_consume
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: $display
+                    str
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: wfifomask1
+                            HdlValueInt: 0
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: wfifomask0
+                            HdlValueInt: 0
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: wfifomask1
+                            HdlValueInt: 1
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: wfifomask0
+                            HdlValueInt: 1
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: wfifomask1
+                            HdlValueInt: 2
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: wfifomask0
+                            HdlValueInt: 2
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: wfifomask1
+                            HdlValueInt: 3
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: wfifomask0
+                            HdlValueInt: 3
+    list: elifs
+
+
+CommitId: 5c3415e8875c905be632b2e8c314463a6f87e83c
+Fixed DQM problem with last write
+--- a/rtl/hpdmc_scheduler.v
++++ b/rtl/hpdmc_scheduler.v
+@@ -582,7 +582,6 @@ always @(*) begin
+ 	case(wstate)
+ 		WIDLE: begin
+ 			buffer_r_nextburst = 1'b1;
+-			buffer_w_nextburst = 1'b1;
+ 			if(wb_cyc_i & wb_stb_i) begin
+ 				if(wb_we_i) begin
+ 					next_wstate = WPROCESS_WRITE;
+
+ParseResult:
+UPD HdlStmCase@@wstate to wstate
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: buffer_w_nextburst
+                HdlValueInt: 1
+
+
+CommitId: 5c3415e8875c905be632b2e8c314463a6f87e83c
+Fixed DQM problem with last write
+--- a/rtl/hpdmc_scheduler.v
++++ b/rtl/hpdmc_scheduler.v
+@@ -623,7 +622,8 @@ always @(*) begin
+ 					next_wstate = WBURST_WRITE;
+ 				else
+ 					next_wstate = WIDLE;
+-			end
++			end else
++				buffer_w_nextburst = 1'b1;
+ 		end
+ 		WBURST_WRITE: begin
+ 			wb_ack_o = 1'b1;
+ParseResult:
+UPD HdlStmCase@@wstate to wstate
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: buffer_w_nextburst
+                HdlValueInt: 1
+
+
+CommitId: e850e5ef7accf41062f23931186f088992008dda
+Write debugging in progress
+--- a/rtl/hpdmc_scheduler.v
++++ b/rtl/hpdmc_scheduler.v
+@@ -127,8 +127,10 @@ always @(posedge sdram_rst, posedge sys_clk) begin
+ 			fetched_address_valid <= address_valid & ~address_we;
+ 			write_valid <= address_valid & address_we;
+ 			fetched_address <= address;
+-		end else if(fq_clearfetch)
++		end else if(fq_clearfetch) begin
+ 			fetched_address_valid <= 1'b0;
++			write_valid <= 1'b0;
++		end
+ 		if(fq_next) begin
+ 			next_address_valid <= 1'b0;
+ 			next_address_we <= 1'b0;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+    INS HdlStmBlock@@SEQ to 
+
+UPD HdlStmIf@@ to 
+    MOV tuple@@ to elifs
+    tuple
+        HdlValueId: fq_clearfetch
+        HdlStmAssign
+            HdlValueInt: 0
+            HdlValueId: fetched_address_valid
+    UPD list@@elifs to body
+    MOV list@@elifs to 
+    list: elifs
+        tuple
+            HdlValueId: fq_clearfetch
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: fetched_address_valid
+
+MOV HdlStmAssign@@ to 
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: fetched_address_valid
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: write_valid
+
+
+CommitId: e850e5ef7accf41062f23931186f088992008dda
+Write debugging in progress
+--- a/rtl/hpdmc_scheduler.v
++++ b/rtl/hpdmc_scheduler.v
+@@ -579,12 +581,12 @@ always @(*) begin
+ 	
+ 	case(wstate)
+ 		WIDLE: begin
+-			buffer_w_nextburst = 1'b1;
+ 			buffer_r_nextburst = 1'b1;
++			buffer_w_nextburst = 1'b1;
+ 			if(wb_cyc_i & wb_stb_i) begin
+-				if(wb_we_i)
++				if(wb_we_i) begin
+ 					next_wstate = WPROCESS_WRITE;
+-				else
++				end else
+ 					next_wstate = WPROCESS_READ;
+ 			end
+ 		end
+
+ParseResult:
+UPD HdlStmCase@@wstate to wstate
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: buffer_w_nextburst
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: fq_clearfetch
+                HdlValueInt: 1
+
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@ASSIGN to 
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: next_wstate
+            HdlValueId: WPROCESS_WRITE
+
+
+CommitId: e850e5ef7accf41062f23931186f088992008dda
+Write debugging in progress
+--- a/rtl/hpdmc_scheduler.v
++++ b/rtl/hpdmc_scheduler.v
+@@ -612,8 +614,8 @@ always @(*) begin
+ 		end
+ 		
+ 		WPROCESS_WRITE: begin
+-			fq_clearfetch = 1'b1;
+ 			if(write_valid) begin
++				fq_clearfetch = 1'b1;
+ 				wb_ack_o = 1'b1;
+ 				buffer_w_next = 1'b1;
+ 				reload_maxburst_counter = 1'b1;
+ParseResult:
+UPD HdlStmCase@@wstate to wstate
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: buffer_w_nextburst
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: fq_clearfetch
+                HdlValueInt: 1
+
+
+CommitId: 5c3415e8875c905be632b2e8c314463a6f87e83c
+Fixed DQM problem with last write
+--- a/rtl/hpdmc_ddrio.v
++++ b/rtl/hpdmc_ddrio.v
+@@ -95,8 +95,19 @@ always @(posedge rst, negedge clk2x) begin
+ 				wfifo_consume <= wfifo_consume + 1;
+ 			wfifo_outmask <= wfifomask0[wfifo_consume];
+ 			wfifo_out <= wfifo0[wfifo_consume];
+-			if(wfifo_enable)
++			if(wfifo_enable) begin
+ 				$display("Read from LOW Write FIFO(%d) Mask %h", wfifo_consume, wfifomask0[wfifo_consume]);
++				$display("Masks are %x %x %x %x %x %x %x %x",
++					wfifomask1[0],
++					wfifomask0[0],
++					wfifomask1[1],
++					wfifomask0[1],
++					wfifomask1[2],
++					wfifomask0[2],
++					wfifomask1[3],
++					wfifomask0[3]
++				);
++ 			end
+ 		end else begin
+ 			wfifo_outmask <= wfifomask1[wfifo_consume];
+ 			wfifo_out <= wfifo1[wfifo_consume];
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: wfifomask1
+                        HdlValueInt: 0
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: wfifomask0
+                        HdlValueInt: 0
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: wfifomask1
+                        HdlValueInt: 1
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: wfifomask0
+                        HdlValueInt: 1
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: wfifomask1
+                        HdlValueInt: 2
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: wfifomask0
+                        HdlValueInt: 2
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: wfifomask1
+                        HdlValueInt: 3
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: wfifomask0
+                        HdlValueInt: 3
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@CALL to 
+    HdlOp: CALL
+        list: ops
+            HdlValueId: $display
+            str
+            HdlValueId: wfifo_consume
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: wfifomask0
+                    HdlValueId: wfifo_consume
+
+
+CommitId: e850e5ef7accf41062f23931186f088992008dda
+Write debugging in progress
+--- a/rtl/hpdmc_ddrio.v
++++ b/rtl/hpdmc_ddrio.v
+@@ -99,6 +95,8 @@ always @(posedge rst, negedge clk2x) begin
+ 				wfifo_consume <= wfifo_consume + 1;
+ 			wfifo_outmask <= wfifomask0[wfifo_consume];
+ 			wfifo_out <= wfifo0[wfifo_consume];
++			if(wfifo_enable)
++				$display("Read from LOW Write FIFO(%d) Mask %h", wfifo_consume, wfifomask0[wfifo_consume]);
+ 		end else begin
+ 			wfifo_outmask <= wfifomask1[wfifo_consume];
+ 			wfifo_out <= wfifo1[wfifo_consume];
+ParseResult:
+INS HdlStmIf@@ to body
+HdlStmIf
+    HdlValueId: wfifo_enable
+    HdlOp: CALL
+        list: ops
+            HdlValueId: $display
+            str
+            HdlValueId: wfifo_consume
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: wfifomask0
+                    HdlValueId: wfifo_consume
+    list: elifs
+
+

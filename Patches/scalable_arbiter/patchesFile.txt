@@ -1,0 +1,206 @@
+CommitId: e175a6cdab2fa447ed1c32d718812df50fdae8a8
+fix counter width and flipped rising/falling edge detection
+--- a/rtl/verilog/pulser.v
++++ b/rtl/verilog/pulser.v
+@@ -29,7 +29,8 @@ module pulser #(
+ 
+ `include "functions.v"
+ 
+-parameter counter_width = clog2(count);
++// counter width is the size of the loaded value
++parameter counter_width = flog2(count - 1) + 1;
+ parameter [counter_width-1:0] counter_load = ~(count - 1);
+ 
+ reg [counter_width:0] counter;
+ParseResult:
+UPD HdlIdDef@@counter_width to counter_width
+    INS HdlOp@@ADD to counter_width
+    UPD HdlOp@@ADD to ADD
+        INS list@@ops to ADD
+        INS HdlValueInt@@1 to ops
+        UPD HdlOp@@CALL to CALL
+            INS HdlOp@@SUB to ops
+            UPD HdlOp@@SUB to SUB
+                INS list@@ops to SUB
+                INS HdlValueInt@@1 to ops
+
+UPD HdlIdDef@@counter_width to counter_width
+    MOV HdlOp@@CALL to counter_width
+    HdlOp: CALL
+        list: ops
+            HdlValueId: clog2
+            HdlValueId: count
+    UPD HdlOp@@CALL to CALL
+        UPD HdlValueId@@clog2 to flog2
+        MOV HdlValueId@@count to ops
+        HdlValueId: count
+
+
+CommitId: e175a6cdab2fa447ed1c32d718812df50fdae8a8
+fix counter width and flipped rising/falling edge detection
+--- a/rtl/verilog/stretcher.v
++++ b/rtl/verilog/stretcher.v
+@@ -36,11 +36,12 @@ module stretcher #(
+ wire rising;
+ wire falling;
+ 
+-assign rising = out & ~in;
+-assign falling = ~out & in;
++assign rising = ~out & in;
++assign falling = out & ~in;
+ 
+-// counter
+-parameter counter_width = max(clog2(high_count), clog2(low_count));
++/// counter width is the maximum size of the loaded value
++parameter counter_width =
++	max(flog2(high_count - 1) + 1, flog2(low_count - 1) + 1);
+ 
+ reg [counter_width:0] counter;
+ reg [counter_width-1:0] counter_load;
+ParseResult:
+MOV HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: AND
+        list: ops
+            HdlValueId: out
+            HdlOp: NEG
+                list: ops
+                    HdlValueId: in
+    HdlValueId: rising
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@falling to rising
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@rising to falling
+
+UPD HdlIdDef@@counter_width to counter_width
+    UPD HdlOp@@CALL to CALL
+        INS HdlOp@@ADD to ops
+        INS HdlOp@@ADD to ops
+        UPD HdlOp@@ADD to ADD
+            INS list@@ops to ADD
+            INS HdlValueInt@@1 to ops
+            UPD HdlOp@@CALL to CALL
+                INS HdlOp@@SUB to ops
+                UPD HdlOp@@SUB to SUB
+                    INS list@@ops to SUB
+                    INS HdlValueInt@@1 to ops
+        UPD HdlOp@@ADD to ADD
+            INS list@@ops to ADD
+            INS HdlValueInt@@1 to ops
+            UPD HdlOp@@CALL to CALL
+                INS HdlOp@@SUB to ops
+                UPD HdlOp@@SUB to SUB
+                    INS list@@ops to SUB
+                    INS HdlValueInt@@1 to ops
+
+UPD HdlIdDef@@counter_width to counter_width
+    UPD HdlOp@@CALL to CALL
+        MOV HdlOp@@CALL to ops
+        HdlOp: CALL
+            list: ops
+                HdlValueId: clog2
+                HdlValueId: high_count
+        MOV HdlOp@@CALL to ops
+        HdlOp: CALL
+            list: ops
+                HdlValueId: clog2
+                HdlValueId: low_count
+        UPD HdlOp@@CALL to CALL
+            UPD HdlValueId@@clog2 to flog2
+            MOV HdlValueId@@high_count to ops
+            HdlValueId: high_count
+        UPD HdlOp@@CALL to CALL
+            UPD HdlValueId@@clog2 to flog2
+            MOV HdlValueId@@low_count to ops
+            HdlValueId: low_count
+
+
+CommitId: e175a6cdab2fa447ed1c32d718812df50fdae8a8
+fix counter width and flipped rising/falling edge detection
+--- a/rtl/verilog/debouncer.v
++++ b/rtl/verilog/debouncer.v
+@@ -44,11 +44,12 @@ end
+ wire rising;
+ wire falling;
+ 
+-assign rising = in_reg[1] & ~in_reg[0];
+-assign falling = ~in_reg[1] & in_reg[0];
++assign rising = ~in_reg[1] & in_reg[0];
++assign falling = in_reg[1] & ~in_reg[0];
+ 
+-// counter
+-parameter counter_width = max(clog2(high_count), clog2(low_count));
++// counter width is the maximum size of the loaded value
++parameter counter_width =
++	max(flog2(high_count - 1) + 1, flog2(low_count - 1) + 1);
+ 
+ reg [counter_width:0] counter;
+ reg [counter_width-1:0] counter_load;
+ParseResult:
+MOV HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: AND
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: in_reg
+                    HdlValueInt: 1
+            HdlOp: NEG
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: in_reg
+                            HdlValueInt: 0
+    HdlValueId: rising
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@falling to rising
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@rising to falling
+
+UPD HdlIdDef@@counter_width to counter_width
+    UPD HdlOp@@CALL to CALL
+        INS HdlOp@@ADD to ops
+        INS HdlOp@@ADD to ops
+        UPD HdlOp@@ADD to ADD
+            INS list@@ops to ADD
+            INS HdlValueInt@@1 to ops
+            UPD HdlOp@@CALL to CALL
+                INS HdlOp@@SUB to ops
+                UPD HdlOp@@SUB to SUB
+                    INS list@@ops to SUB
+                    INS HdlValueInt@@1 to ops
+        UPD HdlOp@@ADD to ADD
+            INS list@@ops to ADD
+            INS HdlValueInt@@1 to ops
+            UPD HdlOp@@CALL to CALL
+                INS HdlOp@@SUB to ops
+                UPD HdlOp@@SUB to SUB
+                    INS list@@ops to SUB
+                    INS HdlValueInt@@1 to ops
+
+UPD HdlIdDef@@counter_width to counter_width
+    UPD HdlOp@@CALL to CALL
+        MOV HdlOp@@CALL to ops
+        HdlOp: CALL
+            list: ops
+                HdlValueId: clog2
+                HdlValueId: high_count
+        MOV HdlOp@@CALL to ops
+        HdlOp: CALL
+            list: ops
+                HdlValueId: clog2
+                HdlValueId: low_count
+        UPD HdlOp@@CALL to CALL
+            UPD HdlValueId@@clog2 to flog2
+            MOV HdlValueId@@high_count to ops
+            HdlValueId: high_count
+        UPD HdlOp@@CALL to CALL
+            UPD HdlValueId@@clog2 to flog2
+            MOV HdlValueId@@low_count to ops
+            HdlValueId: low_count
+
+

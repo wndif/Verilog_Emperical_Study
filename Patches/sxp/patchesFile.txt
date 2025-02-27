@@ -1,0 +1,381 @@
+CommitId: fb86d3e444707cf9b5caf03c19d02e8ba6993db6
+- Removed #1 delay (was originally put in for debug)
+--- a/regf/src/regf_status.v
++++ b/regf/src/regf_status.v
+@@ -121,7 +124,7 @@ always @(posedge clk or negedge reset_b)
+         reg_stat <= 'b 0;
+       else
+         if (!halt)		// Should be only for halt signals (not stall_1_2) 
+-          reg_stat <= #1 (reg_stat & w_field) | d_field;
++          reg_stat <= (reg_stat & w_field) | d_field;
+   end
+ 
+ always @(addrc or addra or wec or a_en or reg_stat)
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+
+CommitId: fb86d3e444707cf9b5caf03c19d02e8ba6993db6
+- Removed #1 delay (was originally put in for debug)
+--- a/regf/src/regf_status.v
++++ b/regf/src/regf_status.v
+@@ -147,7 +150,7 @@ always @(addrc or addrb or wec or b_en or reg_stat)
+ // an example in Baskar's book that shows it. (I also found in the same book a statement
+ // that said that assign statements could only have constant bit selects.
+ 
+-assign stall_regf = status_a | status_b;
++assign stall_regf = status_a | status_b & !flush_pipeline;
+ 
+ endmodule
+ 
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@OR to OR
+        MOV HdlValueId@@status_b to ops
+        HdlValueId: status_b
+
+
+CommitId: 06e397a27c9fe583b01ce8c3bde7ab67b1375a54
+fixed case statement, sensitivity list
+--- a/src/sxp.v
++++ b/src/sxp.v
+@@ -674,15 +677,15 @@ always @(wb_cfg_4 or ya_4 or cvnz_a_4 or yb_4 or cvnz_b_4 or spqa_4 or ext_cvnz_
+       4'b 1001 : wb_data = { {31{1'b 0}} , cvnz_b_4[1]}; 	// Store N
+       4'b 1010 : wb_data = { {31{1'b 0}} , cvnz_b_4[2]}; 	// Store V
+       4'b 1011 : wb_data = { {31{1'b 0}} , cvnz_b_4[3]}; 	// Store C
+-      4'b 0100 : wb_data = { {31{1'b 0}} , ext_cvnz_4[0]}; 	// Store Z
+-      4'b 0101 : wb_data = { {31{1'b 0}} , ext_cvnz_4[1]}; 	// Store N
+-      4'b 0110 : wb_data = { {31{1'b 0}} , ext_cvnz_4[2]}; 	// Store V
+-      4'b 0111 : wb_data = { {31{1'b 0}} , ext_cvnz_4[3]}; 	// Store C
++      4'b 1100 : wb_data = { {31{1'b 0}} , ext_cvnz_4[0]}; 	// Store Z
++      4'b 1101 : wb_data = { {31{1'b 0}} , ext_cvnz_4[1]}; 	// Store N
++      4'b 1110 : wb_data = { {31{1'b 0}} , ext_cvnz_4[2]}; 	// Store V
++      4'b 1111 : wb_data = { {31{1'b 0}} , ext_cvnz_4[3]}; 	// Store C
+     endcase
+   end
+ 
+ // Destination handling
+-always @(dest_cfg_4 or inst_vld_4 or cond_jump_4 or yb_4 or jz_4 or jal_4)
++always @(dest_cfg_4 or inst_vld_4 or cond_jump_4 or yb_4 or jz_4 or jal_4 or wb_data or pcn_4)
+   begin
+     if (inst_vld_4)
+       case (dest_cfg_4)
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS HdlValueId@@wb_data to sensitivity
+    INS HdlValueId@@pcn_4 to sensitivity
+
+
+CommitId: f7e72a9ac32a8e6a846537a4415a2b9db703469f
+fixed neg edge event trigger
+--- a/dpmem/src/dpmem.v
++++ b/dpmem/src/dpmem.v
+@@ -98,7 +98,7 @@ always @(posedge clk or negedge reset_b)
+   end
+ 
+ // Writing data to memory
+-always @(posedge clk or reset_b)
++always @(posedge clk or negedge reset_b)
+   begin
+     if (!reset_b)
+       for (i=0;i<MEM_SIZE;i=i+1)
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS HdlOp@@FALLING to sensitivity
+    UPD HdlOp@@FALLING to FALLING
+        INS list@@ops to FALLING
+
+UPD HdlStmProcess@@ to 
+    MOV HdlValueId@@reset_b to sensitivity
+    HdlValueId: reset_b
+
+
+CommitId: f7bf13259b7fabb535d8ca478d2cd9664afbf47f
+changed prefix from ~| to ! (same thing)
+--- a/int_cont/src/int_cont.v
++++ b/int_cont/src/int_cont.v
+@@ -45,7 +45,7 @@ reg [1:0] nop_cnt;
+ reg [15:0] r_int_num;
+ 
+ // Sets int_rdy low if we are servicing an interupt (no additional interupts will be serviced at this time)
+-assign int_rdy = ~|state;
++assign int_rdy = !state;
+ 
+ // Sets the idle signal when state is in idle mode
+ assign idle = (state == 2'b 01) ? 1'b 1 : 1'b 0;
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@NOR_UNARY to NEG_LOG
+
+
+CommitId: 7a6e01c0c9bf4b4c10a5909b5aa55b6f499674e7
+array range fix
+--- a/dpmem/src/dpmem.v
++++ b/dpmem/src/dpmem.v
+@@ -39,7 +39,7 @@ input [31:0] db;
+ output [31:0] qa;
+ output [31:0] qb;
+ 
+-reg [31:0] mem [1:MEM_SIZE];
++reg [31:0] mem [0:MEM_SIZE-1];
+ 
+ wire [31:0] data_a;
+ wire [31:0] data_b;
+
+ParseResult:
+UPD HdlIdDef@@mem to mem
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueInt@@1 to 0
+            MOV HdlValueId@@MEM_SIZE to ops
+            HdlValueId: MEM_SIZE
+
+UPD HdlIdDef@@mem to mem
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@DOWNTO to DOWNTO
+            INS HdlOp@@SUB to ops
+            UPD HdlOp@@SUB to SUB
+                INS list@@ops to SUB
+                INS HdlValueInt@@1 to ops
+
+
+CommitId: 7a6e01c0c9bf4b4c10a5909b5aa55b6f499674e7
+array range fix
+--- a/dpmem/src/dpmem.v
++++ b/dpmem/src/dpmem.v
+@@ -51,7 +51,7 @@ integer i;
+ 
+ wire [31:0] mem_limit;
+ 
+-assign mem_limit = MEM_SIZE;
++assign mem_limit = MEM_SIZE-1;
+ 
+ assign qa = (oea) ? data_a : {32{1'b z}}; 
+ assign qb = (oeb) ? data_b : {32{1'b z}}; 
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@SUB to 
+    UPD HdlOp@@SUB to SUB
+        INS list@@ops to SUB
+        INS HdlValueInt@@1 to ops
+
+UPD HdlStmAssign@@ to 
+    MOV HdlValueId@@MEM_SIZE to 
+    HdlValueId: MEM_SIZE
+
+
+CommitId: 7a6e01c0c9bf4b4c10a5909b5aa55b6f499674e7
+array range fix
+--- a/dpmem/src/dpmem.v
++++ b/dpmem/src/dpmem.v
+@@ -62,14 +62,14 @@ assign data_b = (web) ? {32{1'b x}} : mem_data_b;
+ // Checking address a
+ always @(addra)
+   begin
+-    if ((addra > MEM_SIZE) && wea)
++    if ((addra > (MEM_SIZE-1)) && wea)
+       $display ("address a = %d, out of range of memory limit (%d)",addra,mem_limit);
+   end
+ 
+ // Checking address b
+ always @(addrb)
+   begin
+-    if ((addrb > MEM_SIZE) && web)
++    if ((addrb > (MEM_SIZE-1)) && web)
+       $display ("address b = %d, out of range of memory limit (%d)",addrb,mem_limit);
+   end
+ 
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        INS HdlOp@@GT to ops
+        HdlOp: GT
+            list: ops
+                HdlValueId: addra
+                HdlOp: SUB
+                    list: ops
+                        HdlValueId: MEM_SIZE
+                        HdlValueInt: 1
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        INS HdlOp@@GT to ops
+        HdlOp: GT
+            list: ops
+                HdlValueId: addrb
+                HdlOp: SUB
+                    list: ops
+                        HdlValueId: MEM_SIZE
+                        HdlValueInt: 1
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@GT to LT
+        MOV HdlOp@@GT to ops
+        HdlOp: GT
+            list: ops
+                HdlValueId: addra
+                HdlValueId: MEM_SIZE
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        UPD HdlOp@@GT to LT
+        MOV HdlOp@@GT to ops
+        HdlOp: GT
+            list: ops
+                HdlValueId: addrb
+                HdlValueId: MEM_SIZE
+
+
+CommitId: 7a6e01c0c9bf4b4c10a5909b5aa55b6f499674e7
+array range fix
+--- a/dpmem/src/dpmem.v
++++ b/dpmem/src/dpmem.v
+@@ -82,7 +82,7 @@ always @(posedge clk or negedge reset_b)
+       if ((addra==addrb)&&(web==1'b1))		// You cannot write b and read a from the same address
+         mem_data_a <= #3 {32{1'bx}};
+       else
+-        mem_data_a <= #3 mem[addra+1];
++        mem_data_a <= #3 mem[addra];
+   end
+ 
+ // Reading data from memory port b
+
+ParseResult:
+UPD HdlStmAssign@@if_false to if_false
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@ADD to ADD
+            MOV HdlValueId@@addra to ops
+            HdlValueId: addra
+            DEL HdlValueInt@@1 from ops
+            DEL list@@ops from ADD
+        DEL HdlOp@@ADD from ops
+
+
+CommitId: 7a6e01c0c9bf4b4c10a5909b5aa55b6f499674e7
+array range fix
+--- a/dpmem/src/dpmem.v
++++ b/dpmem/src/dpmem.v
+@@ -94,39 +94,42 @@ always @(posedge clk or negedge reset_b)
+       if ((addra==addrb)&&(wea==1'b1))		// You cannot write a and read b from the same address
+         mem_data_b <= #3 {32{1'bx}};
+       else
+-        mem_data_b <= #3 mem[addrb+1];
++        mem_data_b <= #3 mem[addrb];
+   end
+ 
+ // Writing data to memory
+ always @(posedge clk or reset_b)
+   begin
+     if (!reset_b)
+-      for (i=1;i<MEM_SIZE;i=i+1)
++      for (i=0;i<MEM_SIZE;i=i+1)
+         mem[i] <= {32{1'bx}};
+     else
+       begin
+         if (wea === 1'b 1)
+-          if ((addra+1)<=MEM_SIZE)
+-            mem[addra+1] <= da;
++          if (addra<MEM_SIZE)
++            mem[addra] <= da;
+         if (web === 1'b 1)
+-          if ((addrb+1)<=MEM_SIZE)
+-            mem[addrb+1] <= db;
++          if (addrb<MEM_SIZE)
++            mem[addrb] <= db;
+       end
+   end
+ 
+ task mem_display;
+ integer rnum;
+   begin
+-    for (rnum=1;rnum<=MEM_SIZE;rnum=rnum+1)
+-      $display("Location %d = %h",rnum-1,mem[rnum]);
++    for (rnum=0;rnum<MEM_SIZE;rnum=rnum+1)
++      $display("Location %d = %h",rnum,mem[rnum]);
+   end
+ endtask    
+ endmodule
+ 
+ /*
+- *  $Id: dpmem.v,v 1.1 2001-10-26 21:49:59 samg Exp $ 
++ *  $Id: dpmem.v,v 1.2 2001-10-28 03:18:17 samg Exp $ 
+  *  Module : dpmem
+  *  Author : Sam Gladstone 
+  *  Function : Simple behavioral module for dual port memories
+  *  $Log: not supported by cvs2svn $
++ *  Revision 1.1  2001/10/26 21:49:59  samg
++ *  behavioral dual port memory
++ *
+  */
+ParseResult:
+UPD HdlStmFor@@ to 
+    UPD HdlOp@@LE to LT
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@SUB to SUB
+            MOV HdlValueId@@rnum to ops
+            HdlValueId: rnum
+            DEL HdlValueInt@@1 from ops
+            DEL list@@ops from SUB
+        DEL HdlOp@@SUB from ops
+
+UPD HdlStmAssign@@if_false to if_false
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@ADD to ADD
+            MOV HdlValueId@@addrb to ops
+            HdlValueId: addrb
+            DEL HdlValueInt@@1 from ops
+            DEL list@@ops from ADD
+        DEL HdlOp@@ADD from ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueInt@@1 to 0
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueInt@@1 to 0
+
+UPD HdlStmAssign@@if_true to if_true
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@ADD to ADD
+            MOV HdlValueId@@addra to ops
+            HdlValueId: addra
+            DEL HdlValueInt@@1 from ops
+            DEL list@@ops from ADD
+        DEL HdlOp@@ADD from ops
+
+UPD HdlStmAssign@@if_true to if_true
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@ADD to ADD
+            MOV HdlValueId@@addrb to ops
+            HdlValueId: addrb
+            DEL HdlValueInt@@1 from ops
+            DEL list@@ops from ADD
+        DEL HdlOp@@ADD from ops
+
+UPD HdlStmIf@@if_true to if_true
+    DEL HdlOp@@LE from if_true
+    HdlOp: LE
+        list: ops
+            HdlOp: ADD
+                list: ops
+                    HdlValueId: addra
+                    HdlValueInt: 1
+            HdlValueId: MEM_SIZE
+
+UPD HdlStmIf@@if_true to if_true
+    DEL HdlOp@@LE from if_true
+    HdlOp: LE
+        list: ops
+            HdlOp: ADD
+                list: ops
+                    HdlValueId: addrb
+                    HdlValueInt: 1
+            HdlValueId: MEM_SIZE
+
+

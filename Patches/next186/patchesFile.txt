@@ -1,0 +1,3340 @@
+CommitId: af8905513dc97bee661d1799e804ec8da92fe2d4
+fixed OV/CY flags for IMUL
+--- a/Next186_ALU.v
++++ b/Next186_ALU.v
+@@ -215,7 +216,7 @@ module Next186_ALU(
+ 			end
+ 			5'b10000, 5'b10001 : begin	// MUL, IMUL
+ 				ALUOUT = STAGE[1] ? MUL[31:16] : MUL[15:0];
+-				FOUT[0] = WORD ? !zero : |MUL[15:8];
++				FOUT[0] = WORD ? !zero | (ALUOP[0] & MUL[15]): |MUL[15:8] | (ALUOP[0] & MUL[7]); //07Jul2013 - fixed OV/CY flags for IMUL
+ 				FOUT[11] = FOUT[0];
+ 			end
+ 			5'b11001: begin		// flag op
+
+ParseResult:
+UPD HdlStmCase@@ALUOP to ALUOP
+    INS HdlStmCaseType@@CASE to ALUOP
+    INS HdlValueId@@ALUOP to ALUOP
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS list@@ops to ASSIGN
+            UPD HdlOp@@TERNARY to TERNARY
+                INS HdlOp@@OR to ops
+                UPD HdlOp@@OR to OR
+                    INS list@@ops to OR
+                    INS HdlOp@@AND to ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: ALUOP
+                                    HdlValueInt: 0
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: MUL
+                                    HdlValueInt: 15
+                UPD HdlOp@@OR to OR
+                    INS HdlOp@@AND to ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: ALUOP
+                                    HdlValueInt: 0
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: MUL
+                                    HdlValueInt: 7
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS list@@ops to ASSIGN
+            UPD HdlOp@@TERNARY to TERNARY
+                INS HdlOp@@OR to ops
+                UPD HdlOp@@OR to OR
+                    INS list@@ops to OR
+                    INS HdlOp@@AND to ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: ALUOP
+                                    HdlValueInt: 0
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: MUL
+                                    HdlValueInt: 15
+                UPD HdlOp@@OR to OR
+                    INS HdlOp@@AND to ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: ALUOP
+                                    HdlValueInt: 0
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: MUL
+                                    HdlValueInt: 7
+
+UPD HdlStmCase@@ALUOP to ALUOP
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            MOV HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: FOUT
+                    HdlValueInt: 0
+            UPD HdlOp@@TERNARY to TERNARY
+                MOV HdlValueId@@WORD to ops
+                HdlValueId: WORD
+                MOV HdlOp@@NEG_LOG to ops
+                HdlOp: NEG_LOG
+                    list: ops
+                        HdlValueId: zero
+            UPD HdlOp@@TERNARY to OR
+        UPD HdlOp@@ASSIGN to TERNARY
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: FOUT
+                        HdlValueInt: 0
+                HdlOp: TERNARY
+                    list: ops
+                        HdlValueId: WORD
+                        HdlOp: NEG_LOG
+                            list: ops
+                                HdlValueId: zero
+                        HdlOp: OR_UNARY
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: MUL
+                                        HdlOp: DOWNTO
+                                            list: ops
+                                                HdlValueInt: 15
+                                                HdlValueInt: 8
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to TERNARY
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: FOUT
+                        HdlValueInt: 0
+                HdlOp: TERNARY
+                    list: ops
+                        HdlValueId: WORD
+                        HdlOp: NEG_LOG
+                            list: ops
+                                HdlValueId: zero
+                        HdlOp: OR_UNARY
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: MUL
+                                        HdlOp: DOWNTO
+                                            list: ops
+                                                HdlValueInt: 15
+                                                HdlValueInt: 8
+        UPD HdlOp@@ASSIGN to ASSIGN
+            MOV HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: FOUT
+                    HdlValueInt: 0
+            UPD HdlOp@@TERNARY to OR
+            UPD HdlOp@@TERNARY to TERNARY
+                MOV HdlValueId@@WORD to ops
+                HdlValueId: WORD
+                MOV HdlOp@@NEG_LOG to ops
+                HdlOp: NEG_LOG
+                    list: ops
+                        HdlValueId: zero
+    DEL HdlStmCaseType@@CASE from ALUOP
+    DEL HdlValueId@@ALUOP from ALUOP
+
+
+CommitId: acbf6bf494a1dc71c987adc9dac4a7ba917e4626
+fix IDIV when Q=0
+--- a/Next186_CPU.v
++++ b/Next186_CPU.v
+@@ -107,7 +108,6 @@ module Next186_CPU(
+ 	wire [1:0]CXZ;
+ 	wire COUT; // adder carry out
+ 	wire DIVEXC; // exit carry for unsigned DIV 
+-	wire SOUT; // adder sign out
+ 	
+ // Registers
+ 	reg [7:0]FETCH[5:0];
+
+ParseResult:
+DEL HdlIdDef@@SOUT from objs
+HdlIdDef: SOUT
+    HdlDirection: INTERNAL
+
+
+CommitId: acbf6bf494a1dc71c987adc9dac4a7ba917e4626
+fix IDIV when Q=0
+--- a/Next186_CPU.v
++++ b/Next186_CPU.v
+@@ -343,7 +342,7 @@ module Next186_CPU(
+ 	end
+ 
+ 	 always @(FETCH[0], FETCH[1], FETCH[2], FETCH[3], FETCH[4], FETCH[5], MOD, REG, RM, CPUStatus, USEBP, NOBP, RASEL, ISIZEI, TLF, EAC, COUT, DIVEND, DIVC, QSGN, CMPS, SCAS,
+-				 WBIT, ISIZES, ISELS, WRBIT, ISIZEW, STAGE, NULLSHIFT, ALUCONT, FLAGS, CXZ, RCXZ, NRORCXLE1, TZF, JMPC, LOOPC, ICODE1, DIVQSGN, DIVSGN, DIVRSGN, SOUT, IDIV) begin
++				 WBIT, ISIZES, ISELS, WRBIT, ISIZEW, STAGE, NULLSHIFT, ALUCONT, FLAGS, CXZ, RCXZ, NRORCXLE1, TZF, JMPC, LOOPC, ICODE1, DIVQSGN, DIVSGN, DIVRSGN, FIN, IDIV, AX) begin
+ 		WORD = FETCH[0][0];
+ 		BASEL = FETCH[0][1] | &MOD;
+ 		RASEL = FETCH[0][1] ? REG : RM; // destination
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS list@@sensitivity to 
+    INS HdlValueId@@MOD to sensitivity
+    INS HdlValueId@@REG to sensitivity
+    INS HdlValueId@@RM to sensitivity
+    INS HdlValueId@@CPUStatus to sensitivity
+    INS HdlValueId@@USEBP to sensitivity
+    INS HdlValueId@@NOBP to sensitivity
+    INS HdlValueId@@RASEL to sensitivity
+    INS HdlValueId@@ISIZEI to sensitivity
+    INS HdlValueId@@TLF to sensitivity
+    INS HdlValueId@@EAC to sensitivity
+    INS HdlValueId@@COUT to sensitivity
+    INS HdlValueId@@DIVEND to sensitivity
+    INS HdlValueId@@DIVC to sensitivity
+    INS HdlValueId@@QSGN to sensitivity
+    INS HdlValueId@@CMPS to sensitivity
+    INS HdlValueId@@SCAS to sensitivity
+    INS HdlValueId@@WBIT to sensitivity
+    INS HdlValueId@@ISIZES to sensitivity
+    INS HdlValueId@@ISELS to sensitivity
+    INS HdlValueId@@WRBIT to sensitivity
+    INS HdlValueId@@ISIZEW to sensitivity
+    INS HdlValueId@@STAGE to sensitivity
+    INS HdlValueId@@NULLSHIFT to sensitivity
+    INS HdlValueId@@ALUCONT to sensitivity
+    INS HdlValueId@@FLAGS to sensitivity
+    INS HdlValueId@@CXZ to sensitivity
+    INS HdlValueId@@RCXZ to sensitivity
+    INS HdlValueId@@NRORCXLE1 to sensitivity
+    INS HdlValueId@@TZF to sensitivity
+    INS HdlValueId@@JMPC to sensitivity
+    INS HdlValueId@@LOOPC to sensitivity
+    INS HdlValueId@@ICODE1 to sensitivity
+    INS HdlValueId@@DIVQSGN to sensitivity
+    INS HdlValueId@@DIVSGN to sensitivity
+    INS HdlValueId@@DIVRSGN to sensitivity
+    INS HdlValueId@@FIN to sensitivity
+    INS HdlValueId@@IDIV to sensitivity
+    INS HdlValueId@@AX to sensitivity
+
+UPD HdlStmProcess@@ to 
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 0
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 1
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 2
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 3
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 4
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 5
+    DEL HdlValueId@@MOD from sensitivity
+    DEL HdlValueId@@REG from sensitivity
+    DEL HdlValueId@@RM from sensitivity
+    DEL HdlValueId@@CPUStatus from sensitivity
+    DEL HdlValueId@@USEBP from sensitivity
+    DEL HdlValueId@@NOBP from sensitivity
+    DEL HdlValueId@@RASEL from sensitivity
+    DEL HdlValueId@@ISIZEI from sensitivity
+    DEL HdlValueId@@TLF from sensitivity
+    DEL HdlValueId@@EAC from sensitivity
+    DEL HdlValueId@@COUT from sensitivity
+    DEL HdlValueId@@DIVEND from sensitivity
+    DEL HdlValueId@@DIVC from sensitivity
+    DEL HdlValueId@@QSGN from sensitivity
+    DEL HdlValueId@@CMPS from sensitivity
+    DEL HdlValueId@@SCAS from sensitivity
+    DEL HdlValueId@@WBIT from sensitivity
+    DEL HdlValueId@@ISIZES from sensitivity
+    DEL HdlValueId@@ISELS from sensitivity
+    DEL HdlValueId@@WRBIT from sensitivity
+    DEL HdlValueId@@ISIZEW from sensitivity
+    DEL HdlValueId@@STAGE from sensitivity
+    DEL HdlValueId@@NULLSHIFT from sensitivity
+    DEL HdlValueId@@ALUCONT from sensitivity
+    DEL HdlValueId@@FLAGS from sensitivity
+    DEL HdlValueId@@CXZ from sensitivity
+    DEL HdlValueId@@RCXZ from sensitivity
+    DEL HdlValueId@@NRORCXLE1 from sensitivity
+    DEL HdlValueId@@TZF from sensitivity
+    DEL HdlValueId@@JMPC from sensitivity
+    DEL HdlValueId@@LOOPC from sensitivity
+    DEL HdlValueId@@ICODE1 from sensitivity
+    DEL HdlValueId@@DIVQSGN from sensitivity
+    DEL HdlValueId@@DIVSGN from sensitivity
+    DEL HdlValueId@@DIVRSGN from sensitivity
+    DEL HdlValueId@@SOUT from sensitivity
+    DEL HdlValueId@@IDIV from sensitivity
+    DEL list@@sensitivity from 
+
+
+CommitId: acbf6bf494a1dc71c987adc9dac4a7ba917e4626
+fix IDIV when Q=0
+--- a/Next186_CPU.v
++++ b/Next186_CPU.v
+@@ -935,7 +934,8 @@ module Next186_CPU(
+ 								RASEL = 3'b000; // AX/AL
+ 								WE[1:0] = {WORD, 1'b1};		// RASEL_HI, RASEL_LO
+ 								ALUOP = 5'b01000;	// inc
+-								IRQ = SOUT ^ DIVSGN;	// overflow for negative quotient
++//								IRQ = SOUT ^ DIVSGN;	// overflow for negative quotient - fixed 12Apr2013 - IDIV bug when Q=0
++								IRQ = ~(FIN[7] | (FETCH[0][0] ? AX[15] : AX[7])); // overflow for negative quotient
+ 							end
+ 						endcase
+ 					end
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS list@@sensitivity to 
+    INS HdlValueId@@MOD to sensitivity
+    INS HdlValueId@@REG to sensitivity
+    INS HdlValueId@@RM to sensitivity
+    INS HdlValueId@@CPUStatus to sensitivity
+    INS HdlValueId@@USEBP to sensitivity
+    INS HdlValueId@@NOBP to sensitivity
+    INS HdlValueId@@RASEL to sensitivity
+    INS HdlValueId@@ISIZEI to sensitivity
+    INS HdlValueId@@TLF to sensitivity
+    INS HdlValueId@@EAC to sensitivity
+    INS HdlValueId@@COUT to sensitivity
+    INS HdlValueId@@DIVEND to sensitivity
+    INS HdlValueId@@DIVC to sensitivity
+    INS HdlValueId@@QSGN to sensitivity
+    INS HdlValueId@@CMPS to sensitivity
+    INS HdlValueId@@SCAS to sensitivity
+    INS HdlValueId@@WBIT to sensitivity
+    INS HdlValueId@@ISIZES to sensitivity
+    INS HdlValueId@@ISELS to sensitivity
+    INS HdlValueId@@WRBIT to sensitivity
+    INS HdlValueId@@ISIZEW to sensitivity
+    INS HdlValueId@@STAGE to sensitivity
+    INS HdlValueId@@NULLSHIFT to sensitivity
+    INS HdlValueId@@ALUCONT to sensitivity
+    INS HdlValueId@@FLAGS to sensitivity
+    INS HdlValueId@@CXZ to sensitivity
+    INS HdlValueId@@RCXZ to sensitivity
+    INS HdlValueId@@NRORCXLE1 to sensitivity
+    INS HdlValueId@@TZF to sensitivity
+    INS HdlValueId@@JMPC to sensitivity
+    INS HdlValueId@@LOOPC to sensitivity
+    INS HdlValueId@@ICODE1 to sensitivity
+    INS HdlValueId@@DIVQSGN to sensitivity
+    INS HdlValueId@@DIVSGN to sensitivity
+    INS HdlValueId@@DIVRSGN to sensitivity
+    INS HdlValueId@@FIN to sensitivity
+    INS HdlValueId@@IDIV to sensitivity
+    INS HdlValueId@@AX to sensitivity
+
+UPD HdlStmProcess@@ to 
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 0
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 1
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 2
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 3
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 4
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 5
+    DEL HdlValueId@@MOD from sensitivity
+    DEL HdlValueId@@REG from sensitivity
+    DEL HdlValueId@@RM from sensitivity
+    DEL HdlValueId@@CPUStatus from sensitivity
+    DEL HdlValueId@@USEBP from sensitivity
+    DEL HdlValueId@@NOBP from sensitivity
+    DEL HdlValueId@@RASEL from sensitivity
+    DEL HdlValueId@@ISIZEI from sensitivity
+    DEL HdlValueId@@TLF from sensitivity
+    DEL HdlValueId@@EAC from sensitivity
+    DEL HdlValueId@@COUT from sensitivity
+    DEL HdlValueId@@DIVEND from sensitivity
+    DEL HdlValueId@@DIVC from sensitivity
+    DEL HdlValueId@@QSGN from sensitivity
+    DEL HdlValueId@@CMPS from sensitivity
+    DEL HdlValueId@@SCAS from sensitivity
+    DEL HdlValueId@@WBIT from sensitivity
+    DEL HdlValueId@@ISIZES from sensitivity
+    DEL HdlValueId@@ISELS from sensitivity
+    DEL HdlValueId@@WRBIT from sensitivity
+    DEL HdlValueId@@ISIZEW from sensitivity
+    DEL HdlValueId@@STAGE from sensitivity
+    DEL HdlValueId@@NULLSHIFT from sensitivity
+    DEL HdlValueId@@ALUCONT from sensitivity
+    DEL HdlValueId@@FLAGS from sensitivity
+    DEL HdlValueId@@CXZ from sensitivity
+    DEL HdlValueId@@RCXZ from sensitivity
+    DEL HdlValueId@@NRORCXLE1 from sensitivity
+    DEL HdlValueId@@TZF from sensitivity
+    DEL HdlValueId@@JMPC from sensitivity
+    DEL HdlValueId@@LOOPC from sensitivity
+    DEL HdlValueId@@ICODE1 from sensitivity
+    DEL HdlValueId@@DIVQSGN from sensitivity
+    DEL HdlValueId@@DIVSGN from sensitivity
+    DEL HdlValueId@@DIVRSGN from sensitivity
+    DEL HdlValueId@@SOUT from sensitivity
+    DEL HdlValueId@@IDIV from sensitivity
+    DEL list@@sensitivity from 
+
+UPD HdlStmCase@@ICODE1 to ICODE1
+    INS HdlStmCaseType@@CASE to ICODE1
+    INS HdlValueId@@ICODE1 to ICODE1
+    INS HdlValueInt@@27 to 
+
+UPD HdlStmCase@@REG to REG
+    INS HdlStmCaseType@@CASE to REG
+    INS HdlValueId@@REG to REG
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': ['DIVEND',          {'__class__': 'HdlOp',           'fn': 'INDEX',           'ops': ['STAGE',                   {'__class__': 'HdlOp',                    'fn': 'DOWNTO',                    'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                            {'__class__': 'HdlValueInt',                             'base': 10,                             'val': '0'}]}]}]}  to {'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': ['DIVEND',          {'__class__': 'HdlOp',           'fn': 'INDEX',           'ops': ['STAGE',                   {'__class__': 'HdlOp',                    'fn': 'DOWNTO',                    'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                            {'__class__': 'HdlValueInt',                             'base': 10,                             'val': '0'}]}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS HdlOp@@NEG to ops
+            UPD HdlOp@@NEG to NEG
+                INS list@@ops to NEG
+                UPD HdlOp@@OR to OR
+                    INS list@@ops to OR
+                    INS HdlOp@@INDEX to ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: FIN
+                            HdlValueInt: 7
+                    INS HdlOp@@TERNARY to ops
+                    UPD HdlOp@@TERNARY to TERNARY
+                        INS HdlOp@@INDEX to ops
+                        INS HdlOp@@INDEX to ops
+                        INS HdlOp@@INDEX to ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: AX
+                                HdlValueInt: 7
+                        UPD HdlOp@@INDEX to INDEX
+                            INS list@@ops to INDEX
+                            INS HdlOp@@INDEX to ops
+                            INS HdlValueInt@@0 to ops
+                            UPD HdlOp@@INDEX to INDEX
+                                INS list@@ops to INDEX
+                                INS HdlValueInt@@0 to ops
+                        UPD HdlOp@@INDEX to INDEX
+                            INS list@@ops to INDEX
+                            INS HdlValueInt@@15 to ops
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': ['DIVEND',          {'__class__': 'HdlOp',           'fn': 'INDEX',           'ops': ['STAGE',                   {'__class__': 'HdlOp',                    'fn': 'DOWNTO',                    'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                            {'__class__': 'HdlValueInt',                             'base': 10,                             'val': '0'}]}]}]}  to {'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': ['DIVEND',          {'__class__': 'HdlOp',           'fn': 'INDEX',           'ops': ['STAGE',                   {'__class__': 'HdlOp',                    'fn': 'DOWNTO',                    'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                            {'__class__': 'HdlValueInt',                             'base': 10,                             'val': '0'}]}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS HdlOp@@NEG to ops
+            UPD HdlOp@@NEG to NEG
+                INS list@@ops to NEG
+                UPD HdlOp@@OR to OR
+                    INS list@@ops to OR
+                    INS HdlOp@@INDEX to ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: FIN
+                            HdlValueInt: 7
+                    INS HdlOp@@TERNARY to ops
+                    UPD HdlOp@@TERNARY to TERNARY
+                        INS HdlOp@@INDEX to ops
+                        INS HdlOp@@INDEX to ops
+                        INS HdlOp@@INDEX to ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: AX
+                                HdlValueInt: 7
+                        UPD HdlOp@@INDEX to INDEX
+                            INS list@@ops to INDEX
+                            INS HdlOp@@INDEX to ops
+                            INS HdlValueInt@@0 to ops
+                            UPD HdlOp@@INDEX to INDEX
+                                INS list@@ops to INDEX
+                                INS HdlValueInt@@0 to ops
+                        UPD HdlOp@@INDEX to INDEX
+                            INS list@@ops to INDEX
+                            INS HdlValueInt@@15 to ops
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': ['DIVEND',          {'__class__': 'HdlOp',           'fn': 'INDEX',           'ops': ['STAGE',                   {'__class__': 'HdlOp',                    'fn': 'DOWNTO',                    'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                            {'__class__': 'HdlValueInt',                             'base': 10,                             'val': '0'}]}]}]}  to {'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': ['DIVEND',          {'__class__': 'HdlOp',           'fn': 'INDEX',           'ops': ['STAGE',                   {'__class__': 'HdlOp',                    'fn': 'DOWNTO',                    'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                            {'__class__': 'HdlValueInt',                             'base': 10,                             'val': '0'}]}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@XOR to OR
+            MOV HdlOp@@XOR to ops
+            HdlOp: XOR
+                list: ops
+                    HdlValueId: SOUT
+                    HdlValueId: DIVSGN
+            UPD HdlOp@@XOR to XOR
+                MOV list@@ops to XOR
+                list: ops
+                    HdlValueId: SOUT
+                    HdlValueId: DIVSGN
+                UPD HdlValueId@@DIVSGN to AX
+                MOV HdlValueId@@DIVSGN to ops
+                HdlValueId: DIVSGN
+                UPD HdlValueId@@SOUT to FETCH
+                MOV HdlValueId@@SOUT to ops
+                HdlValueId: SOUT
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': ['DIVEND',          {'__class__': 'HdlOp',           'fn': 'INDEX',           'ops': ['STAGE',                   {'__class__': 'HdlOp',                    'fn': 'DOWNTO',                    'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                            {'__class__': 'HdlValueInt',                             'base': 10,                             'val': '0'}]}]}]}  to {'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': ['DIVEND',          {'__class__': 'HdlOp',           'fn': 'INDEX',           'ops': ['STAGE',                   {'__class__': 'HdlOp',                    'fn': 'DOWNTO',                    'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                            {'__class__': 'HdlValueInt',                             'base': 10,                             'val': '0'}]}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@XOR to OR
+            MOV HdlOp@@XOR to ops
+            HdlOp: XOR
+                list: ops
+                    HdlValueId: SOUT
+                    HdlValueId: DIVSGN
+            UPD HdlOp@@XOR to XOR
+                MOV list@@ops to XOR
+                list: ops
+                    HdlValueId: SOUT
+                    HdlValueId: DIVSGN
+                UPD HdlValueId@@DIVSGN to AX
+                MOV HdlValueId@@DIVSGN to ops
+                HdlValueId: DIVSGN
+                UPD HdlValueId@@SOUT to FETCH
+                MOV HdlValueId@@SOUT to ops
+                HdlValueId: SOUT
+
+UPD HdlStmCase@@ICODE1 to ICODE1
+    DEL HdlStmCaseType@@CASE from ICODE1
+    DEL HdlValueId@@ICODE1 from ICODE1
+    DEL HdlValueInt@@27 from 
+
+UPD HdlStmCase@@REG to REG
+    DEL HdlStmCaseType@@CASE from REG
+    DEL HdlValueId@@REG from REG
+
+
+CommitId: 11e52b668d5dd86c4cd5c2fbd962538e93aa3455
+fix PUSHA SP pushed stack value, which should be the one before PUSHA
+--- a/Next186_CPU.v
++++ b/Next186_CPU.v
+@@ -603,8 +604,10 @@ module Next186_CPU(
+ 				DISEL = 2'b10;			// ADDR
+ 				WR = 1'b1;
+ 				ISIZE = 1;
+-				IFETCH = &STAGE[2:0];
+-				WE[1:0] = 2'b11;		// RASEL_HI, RASEL_LO
++				IFETCH = STAGE[2:0] == 3'b111;
++				WE[1:0] = 2'b11;					// RASEL_HI, RASEL_LO
++				BASEL = STAGE[1:0] == 2'b00;	// 16May2013 - fix PUSHA SP pushed stack value, which should be the one before PUSHA
++				BBSEL[0] = STAGE[2:0] != 3'b100;	// SP stage
+ 			end
+ // --------------------------------  pop R/M --------------------------------
+ 			11: 			
+
+ParseResult:
+UPD HdlStmCase@@ICODE1 to ICODE1
+    INS HdlStmCaseType@@CASE to ICODE1
+    INS HdlValueId@@ICODE1 to ICODE1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: IFETCH
+                HdlOp: EQ
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: STAGE
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 2
+                                        HdlValueInt: 0
+                        HdlValueInt: 111
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: BASEL
+                HdlOp: EQ
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: STAGE
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 1
+                                        HdlValueInt: 0
+                        HdlValueInt: 00
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS HdlOp@@INDEX to ops
+            UPD HdlOp@@INDEX to INDEX
+                INS list@@ops to INDEX
+                INS HdlValueInt@@0 to ops
+            UPD HdlOp@@NE to NE
+                INS HdlValueInt@@100 to ops
+
+UPD HdlStmCase@@ICODE1 to ICODE1
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: IFETCH
+                HdlOp: AND_UNARY
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: STAGE
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 2
+                                        HdlValueInt: 0
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@AND_UNARY to NE
+            UPD HdlValueId@@IFETCH to BBSEL
+            MOV HdlValueId@@IFETCH to ops
+            HdlValueId: IFETCH
+    DEL HdlStmCaseType@@CASE from ICODE1
+    DEL HdlValueId@@ICODE1 from ICODE1
+
+
+CommitId: 8baee42b70cfd19a8cadb84da64c73c203d4f83d
+fix RET n alignment bug
+--- a/Next186_CPU.v
++++ b/Next186_CPU.v
+@@ -180,7 +182,7 @@ module Next186_CPU(
+ 	wire SAMPLEINT = ~(WE[2] & RASEL[1:0] == 2'b10) & ~status[2] & ~status[4] & ~status[5]; // not load SS, no prefix
+ 	wire NMIACK = SNMI & ~FNMI;	// NMI acknowledged
+ 	wire INTRACK = FLAGS[9] & (~WE[4] | FIN[9]) & SINTR;			// INTR acknowledged (IF and not CLI in progress)
+-	wire IACK = IRQ | (SAMPLEINT & (NMIACK | INTRACK)) | (~WE[2] & ~HALT & FLAGS[8]); // interrupt acknowledged
++	wire IACK = IRQ | (SAMPLEINT & (NMIACK | INTRACK | (~HALT & FLAGS[8]))); // interrupt acknowledged (fixed 04Apr2013)
+ 	reg CMPS;	// early EQ test for CMPS
+ 	reg SCAS;   // early EQ test for SCAS
+ 
+
+ParseResult:
+UPD HdlIdDef@@IACK to IACK
+    INS HdlOp@@OR to IACK
+    UPD HdlOp@@OR to OR
+        INS list@@ops to OR
+        INS HdlOp@@AND to ops
+        UPD HdlOp@@AND to AND
+            INS list@@ops to AND
+
+UPD HdlIdDef@@IACK to IACK
+    UPD HdlOp@@OR to OR
+        UPD HdlOp@@OR to OR
+            MOV HdlValueId@@IRQ to ops
+            HdlValueId: IRQ
+            UPD HdlOp@@AND to AND
+                MOV HdlValueId@@SAMPLEINT to ops
+                HdlValueId: SAMPLEINT
+                MOV HdlOp@@OR to ops
+                HdlOp: OR
+                    list: ops
+                        HdlValueId: NMIACK
+                        HdlValueId: INTRACK
+                DEL list@@ops from AND
+            DEL HdlOp@@AND from ops
+            DEL list@@ops from OR
+        UPD HdlOp@@AND to AND
+            UPD HdlOp@@AND to AND
+                MOV HdlOp@@NEG to ops
+                HdlOp: NEG
+                    list: ops
+                        HdlValueId: HALT
+                DEL HdlOp@@NEG from ops
+                HdlOp: NEG
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: WE
+                                HdlValueInt: 2
+                DEL list@@ops from AND
+            DEL HdlOp@@AND from ops
+        DEL HdlOp@@OR from ops
+    MOV HdlOp@@OR to IACK
+    HdlOp: OR
+        list: ops
+            HdlOp: OR
+                list: ops
+                    HdlValueId: IRQ
+                    HdlOp: AND
+                        list: ops
+                            HdlValueId: SAMPLEINT
+                            HdlOp: OR
+                                list: ops
+                                    HdlValueId: NMIACK
+                                    HdlValueId: INTRACK
+            HdlOp: AND
+                list: ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: NEG
+                                list: ops
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: WE
+                                            HdlValueInt: 2
+                            HdlOp: NEG
+                                list: ops
+                                    HdlValueId: HALT
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: FLAGS
+                            HdlValueInt: 8
+
+
+CommitId: 8baee42b70cfd19a8cadb84da64c73c203d4f83d
+fix RET n alignment bug
+--- a/Next186_CPU.v
++++ b/Next186_CPU.v
+@@ -341,7 +343,7 @@ module Next186_CPU(
+ 	end
+ 
+ 	 always @(FETCH[0], FETCH[1], FETCH[2], FETCH[3], FETCH[4], FETCH[5], MOD, REG, RM, CPUStatus, USEBP, NOBP, RASEL, ISIZEI, TLF, EAC, COUT, DIVEND, DIVC, QSGN, CMPS, SCAS,
+-				 WBIT, ISIZES, ISELS, WRBIT, ISIZEW, STAGE, NULLSHIFT, ALUCONT, FLAGS, CXZ, RCXZ, NRORCXLE1, TZF, JMPC, LOOPC, ICODE1, DIVQSGN, DIVSGN, DIVRSGN, SOUT) begin
++				 WBIT, ISIZES, ISELS, WRBIT, ISIZEW, STAGE, NULLSHIFT, ALUCONT, FLAGS, CXZ, RCXZ, NRORCXLE1, TZF, JMPC, LOOPC, ICODE1, DIVQSGN, DIVSGN, DIVRSGN, SOUT, IDIV) begin
+ 		WORD = FETCH[0][0];
+ 		BASEL = FETCH[0][1] | &MOD;
+ 		RASEL = FETCH[0][1] ? REG : RM; // destination
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS list@@sensitivity to 
+    INS HdlValueId@@MOD to sensitivity
+    INS HdlValueId@@REG to sensitivity
+    INS HdlValueId@@RM to sensitivity
+    INS HdlValueId@@CPUStatus to sensitivity
+    INS HdlValueId@@USEBP to sensitivity
+    INS HdlValueId@@NOBP to sensitivity
+    INS HdlValueId@@RASEL to sensitivity
+    INS HdlValueId@@ISIZEI to sensitivity
+    INS HdlValueId@@TLF to sensitivity
+    INS HdlValueId@@EAC to sensitivity
+    INS HdlValueId@@COUT to sensitivity
+    INS HdlValueId@@DIVEND to sensitivity
+    INS HdlValueId@@DIVC to sensitivity
+    INS HdlValueId@@QSGN to sensitivity
+    INS HdlValueId@@CMPS to sensitivity
+    INS HdlValueId@@SCAS to sensitivity
+    INS HdlValueId@@WBIT to sensitivity
+    INS HdlValueId@@ISIZES to sensitivity
+    INS HdlValueId@@ISELS to sensitivity
+    INS HdlValueId@@WRBIT to sensitivity
+    INS HdlValueId@@ISIZEW to sensitivity
+    INS HdlValueId@@STAGE to sensitivity
+    INS HdlValueId@@NULLSHIFT to sensitivity
+    INS HdlValueId@@ALUCONT to sensitivity
+    INS HdlValueId@@FLAGS to sensitivity
+    INS HdlValueId@@CXZ to sensitivity
+    INS HdlValueId@@RCXZ to sensitivity
+    INS HdlValueId@@NRORCXLE1 to sensitivity
+    INS HdlValueId@@TZF to sensitivity
+    INS HdlValueId@@JMPC to sensitivity
+    INS HdlValueId@@LOOPC to sensitivity
+    INS HdlValueId@@ICODE1 to sensitivity
+    INS HdlValueId@@DIVQSGN to sensitivity
+    INS HdlValueId@@DIVSGN to sensitivity
+    INS HdlValueId@@DIVRSGN to sensitivity
+    INS HdlValueId@@SOUT to sensitivity
+    INS HdlValueId@@IDIV to sensitivity
+
+UPD HdlStmProcess@@ to 
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 0
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 1
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 2
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 3
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 4
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 5
+    DEL HdlValueId@@MOD from sensitivity
+    DEL HdlValueId@@REG from sensitivity
+    DEL HdlValueId@@RM from sensitivity
+    DEL HdlValueId@@CPUStatus from sensitivity
+    DEL HdlValueId@@USEBP from sensitivity
+    DEL HdlValueId@@NOBP from sensitivity
+    DEL HdlValueId@@RASEL from sensitivity
+    DEL HdlValueId@@ISIZEI from sensitivity
+    DEL HdlValueId@@TLF from sensitivity
+    DEL HdlValueId@@EAC from sensitivity
+    DEL HdlValueId@@COUT from sensitivity
+    DEL HdlValueId@@DIVEND from sensitivity
+    DEL HdlValueId@@DIVC from sensitivity
+    DEL HdlValueId@@QSGN from sensitivity
+    DEL HdlValueId@@CMPS from sensitivity
+    DEL HdlValueId@@SCAS from sensitivity
+    DEL HdlValueId@@WBIT from sensitivity
+    DEL HdlValueId@@ISIZES from sensitivity
+    DEL HdlValueId@@ISELS from sensitivity
+    DEL HdlValueId@@WRBIT from sensitivity
+    DEL HdlValueId@@ISIZEW from sensitivity
+    DEL HdlValueId@@STAGE from sensitivity
+    DEL HdlValueId@@NULLSHIFT from sensitivity
+    DEL HdlValueId@@ALUCONT from sensitivity
+    DEL HdlValueId@@FLAGS from sensitivity
+    DEL HdlValueId@@CXZ from sensitivity
+    DEL HdlValueId@@RCXZ from sensitivity
+    DEL HdlValueId@@NRORCXLE1 from sensitivity
+    DEL HdlValueId@@TZF from sensitivity
+    DEL HdlValueId@@JMPC from sensitivity
+    DEL HdlValueId@@LOOPC from sensitivity
+    DEL HdlValueId@@ICODE1 from sensitivity
+    DEL HdlValueId@@DIVQSGN from sensitivity
+    DEL HdlValueId@@DIVSGN from sensitivity
+    DEL HdlValueId@@DIVRSGN from sensitivity
+    DEL HdlValueId@@SOUT from sensitivity
+    DEL list@@sensitivity from 
+
+
+CommitId: 8baee42b70cfd19a8cadb84da64c73c203d4f83d
+fix RET n alignment bug
+--- a/Next186_CPU.v
++++ b/Next186_CPU.v
+@@ -1287,6 +1289,7 @@ module Next186_CPU(
+ 			end
+ // --------------------------------  ret near --------------------------------
+ 			41: begin
++				WORD = 1'b1;		// fix RET n alignment bug - 03Apr2013
+ 				ISIZE = FETCH[0][0] ? 1 : 3;
+ 				IFETCH = STAGE[0];
+ 				ALUOP = 31;			// PASS B
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS list@@sensitivity to 
+    INS HdlValueId@@MOD to sensitivity
+    INS HdlValueId@@REG to sensitivity
+    INS HdlValueId@@RM to sensitivity
+    INS HdlValueId@@CPUStatus to sensitivity
+    INS HdlValueId@@USEBP to sensitivity
+    INS HdlValueId@@NOBP to sensitivity
+    INS HdlValueId@@RASEL to sensitivity
+    INS HdlValueId@@ISIZEI to sensitivity
+    INS HdlValueId@@TLF to sensitivity
+    INS HdlValueId@@EAC to sensitivity
+    INS HdlValueId@@COUT to sensitivity
+    INS HdlValueId@@DIVEND to sensitivity
+    INS HdlValueId@@DIVC to sensitivity
+    INS HdlValueId@@QSGN to sensitivity
+    INS HdlValueId@@CMPS to sensitivity
+    INS HdlValueId@@SCAS to sensitivity
+    INS HdlValueId@@WBIT to sensitivity
+    INS HdlValueId@@ISIZES to sensitivity
+    INS HdlValueId@@ISELS to sensitivity
+    INS HdlValueId@@WRBIT to sensitivity
+    INS HdlValueId@@ISIZEW to sensitivity
+    INS HdlValueId@@STAGE to sensitivity
+    INS HdlValueId@@NULLSHIFT to sensitivity
+    INS HdlValueId@@ALUCONT to sensitivity
+    INS HdlValueId@@FLAGS to sensitivity
+    INS HdlValueId@@CXZ to sensitivity
+    INS HdlValueId@@RCXZ to sensitivity
+    INS HdlValueId@@NRORCXLE1 to sensitivity
+    INS HdlValueId@@TZF to sensitivity
+    INS HdlValueId@@JMPC to sensitivity
+    INS HdlValueId@@LOOPC to sensitivity
+    INS HdlValueId@@ICODE1 to sensitivity
+    INS HdlValueId@@DIVQSGN to sensitivity
+    INS HdlValueId@@DIVSGN to sensitivity
+    INS HdlValueId@@DIVRSGN to sensitivity
+    INS HdlValueId@@SOUT to sensitivity
+    INS HdlValueId@@IDIV to sensitivity
+
+UPD HdlStmProcess@@ to 
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 0
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 1
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 2
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 3
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 4
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 5
+    DEL HdlValueId@@MOD from sensitivity
+    DEL HdlValueId@@REG from sensitivity
+    DEL HdlValueId@@RM from sensitivity
+    DEL HdlValueId@@CPUStatus from sensitivity
+    DEL HdlValueId@@USEBP from sensitivity
+    DEL HdlValueId@@NOBP from sensitivity
+    DEL HdlValueId@@RASEL from sensitivity
+    DEL HdlValueId@@ISIZEI from sensitivity
+    DEL HdlValueId@@TLF from sensitivity
+    DEL HdlValueId@@EAC from sensitivity
+    DEL HdlValueId@@COUT from sensitivity
+    DEL HdlValueId@@DIVEND from sensitivity
+    DEL HdlValueId@@DIVC from sensitivity
+    DEL HdlValueId@@QSGN from sensitivity
+    DEL HdlValueId@@CMPS from sensitivity
+    DEL HdlValueId@@SCAS from sensitivity
+    DEL HdlValueId@@WBIT from sensitivity
+    DEL HdlValueId@@ISIZES from sensitivity
+    DEL HdlValueId@@ISELS from sensitivity
+    DEL HdlValueId@@WRBIT from sensitivity
+    DEL HdlValueId@@ISIZEW from sensitivity
+    DEL HdlValueId@@STAGE from sensitivity
+    DEL HdlValueId@@NULLSHIFT from sensitivity
+    DEL HdlValueId@@ALUCONT from sensitivity
+    DEL HdlValueId@@FLAGS from sensitivity
+    DEL HdlValueId@@CXZ from sensitivity
+    DEL HdlValueId@@RCXZ from sensitivity
+    DEL HdlValueId@@NRORCXLE1 from sensitivity
+    DEL HdlValueId@@TZF from sensitivity
+    DEL HdlValueId@@JMPC from sensitivity
+    DEL HdlValueId@@LOOPC from sensitivity
+    DEL HdlValueId@@ICODE1 from sensitivity
+    DEL HdlValueId@@DIVQSGN from sensitivity
+    DEL HdlValueId@@DIVSGN from sensitivity
+    DEL HdlValueId@@DIVRSGN from sensitivity
+    DEL HdlValueId@@SOUT from sensitivity
+    DEL list@@sensitivity from 
+
+UPD HdlStmCase@@ICODE1 to ICODE1
+    INS HdlStmCaseType@@CASE to ICODE1
+    INS HdlValueId@@ICODE1 to ICODE1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: WORD
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: WORD
+                HdlValueInt: 1
+
+UPD HdlStmCase@@ICODE1 to ICODE1
+    DEL HdlStmCaseType@@CASE from ICODE1
+    DEL HdlValueId@@ICODE1 from ICODE1
+
+
+CommitId: 8baee42b70cfd19a8cadb84da64c73c203d4f83d
+fix RET n alignment bug
+--- a/Next186_CPU.v
++++ b/Next186_CPU.v
+@@ -1306,6 +1309,7 @@ module Next186_CPU(
+ 			end
+ // --------------------------------  ret far --------------------------------
+ 			42: begin
++				WORD = 1'b1;		// fix RET n alignment bug - 03Apr2013
+ 				ALUOP = 31;			// PASS B
+ 				RSSEL = 2'b10;			// SS
+ 				IFETCH = STAGE[1];
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS list@@sensitivity to 
+    INS HdlValueId@@MOD to sensitivity
+    INS HdlValueId@@REG to sensitivity
+    INS HdlValueId@@RM to sensitivity
+    INS HdlValueId@@CPUStatus to sensitivity
+    INS HdlValueId@@USEBP to sensitivity
+    INS HdlValueId@@NOBP to sensitivity
+    INS HdlValueId@@RASEL to sensitivity
+    INS HdlValueId@@ISIZEI to sensitivity
+    INS HdlValueId@@TLF to sensitivity
+    INS HdlValueId@@EAC to sensitivity
+    INS HdlValueId@@COUT to sensitivity
+    INS HdlValueId@@DIVEND to sensitivity
+    INS HdlValueId@@DIVC to sensitivity
+    INS HdlValueId@@QSGN to sensitivity
+    INS HdlValueId@@CMPS to sensitivity
+    INS HdlValueId@@SCAS to sensitivity
+    INS HdlValueId@@WBIT to sensitivity
+    INS HdlValueId@@ISIZES to sensitivity
+    INS HdlValueId@@ISELS to sensitivity
+    INS HdlValueId@@WRBIT to sensitivity
+    INS HdlValueId@@ISIZEW to sensitivity
+    INS HdlValueId@@STAGE to sensitivity
+    INS HdlValueId@@NULLSHIFT to sensitivity
+    INS HdlValueId@@ALUCONT to sensitivity
+    INS HdlValueId@@FLAGS to sensitivity
+    INS HdlValueId@@CXZ to sensitivity
+    INS HdlValueId@@RCXZ to sensitivity
+    INS HdlValueId@@NRORCXLE1 to sensitivity
+    INS HdlValueId@@TZF to sensitivity
+    INS HdlValueId@@JMPC to sensitivity
+    INS HdlValueId@@LOOPC to sensitivity
+    INS HdlValueId@@ICODE1 to sensitivity
+    INS HdlValueId@@DIVQSGN to sensitivity
+    INS HdlValueId@@DIVSGN to sensitivity
+    INS HdlValueId@@DIVRSGN to sensitivity
+    INS HdlValueId@@SOUT to sensitivity
+    INS HdlValueId@@IDIV to sensitivity
+
+UPD HdlStmProcess@@ to 
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 0
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 1
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 2
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 3
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 4
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 5
+    DEL HdlValueId@@MOD from sensitivity
+    DEL HdlValueId@@REG from sensitivity
+    DEL HdlValueId@@RM from sensitivity
+    DEL HdlValueId@@CPUStatus from sensitivity
+    DEL HdlValueId@@USEBP from sensitivity
+    DEL HdlValueId@@NOBP from sensitivity
+    DEL HdlValueId@@RASEL from sensitivity
+    DEL HdlValueId@@ISIZEI from sensitivity
+    DEL HdlValueId@@TLF from sensitivity
+    DEL HdlValueId@@EAC from sensitivity
+    DEL HdlValueId@@COUT from sensitivity
+    DEL HdlValueId@@DIVEND from sensitivity
+    DEL HdlValueId@@DIVC from sensitivity
+    DEL HdlValueId@@QSGN from sensitivity
+    DEL HdlValueId@@CMPS from sensitivity
+    DEL HdlValueId@@SCAS from sensitivity
+    DEL HdlValueId@@WBIT from sensitivity
+    DEL HdlValueId@@ISIZES from sensitivity
+    DEL HdlValueId@@ISELS from sensitivity
+    DEL HdlValueId@@WRBIT from sensitivity
+    DEL HdlValueId@@ISIZEW from sensitivity
+    DEL HdlValueId@@STAGE from sensitivity
+    DEL HdlValueId@@NULLSHIFT from sensitivity
+    DEL HdlValueId@@ALUCONT from sensitivity
+    DEL HdlValueId@@FLAGS from sensitivity
+    DEL HdlValueId@@CXZ from sensitivity
+    DEL HdlValueId@@RCXZ from sensitivity
+    DEL HdlValueId@@NRORCXLE1 from sensitivity
+    DEL HdlValueId@@TZF from sensitivity
+    DEL HdlValueId@@JMPC from sensitivity
+    DEL HdlValueId@@LOOPC from sensitivity
+    DEL HdlValueId@@ICODE1 from sensitivity
+    DEL HdlValueId@@DIVQSGN from sensitivity
+    DEL HdlValueId@@DIVSGN from sensitivity
+    DEL HdlValueId@@DIVRSGN from sensitivity
+    DEL HdlValueId@@SOUT from sensitivity
+    DEL list@@sensitivity from 
+
+UPD HdlStmCase@@ICODE1 to ICODE1
+    INS HdlStmCaseType@@CASE to ICODE1
+    INS HdlValueId@@ICODE1 to ICODE1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: WORD
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: WORD
+                HdlValueInt: 1
+
+UPD HdlStmCase@@ICODE1 to ICODE1
+    DEL HdlStmCaseType@@CASE from ICODE1
+    DEL HdlValueId@@ICODE1 from ICODE1
+
+
+CommitId: d7736d76528ad13359fdf7360dbd0a40ad07c1be
+Fixed CMPS/SCAS bug when interrupted on the <equal> item
+--- a/Next186_CPU.v
++++ b/Next186_CPU.v
+@@ -178,6 +179,8 @@ module Next186_CPU(
+ 	wire NMIACK = SNMI & ~FNMI;	// NMI acknowledged
+ 	wire INTRACK = FLAGS[9] & (~WE[4] | FIN[9]) & SINTR;			// INTR acknowledged (IF and not CLI in progress)
+ 	wire IACK = IRQ | (SAMPLEINT & (NMIACK | INTRACK)) | (~WE[2] & ~HALT & FLAGS[8]); // interrupt acknowledged
++	reg CMPS;	// early EQ test for CMPS
++	reg SCAS;   // early EQ test for SCAS
+ 
+ 	Next186_Regs REGS (
+     .RASEL(RASEL),
+
+ParseResult:
+INS HdlIdDef@@CMPS to objs
+HdlIdDef: CMPS
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@SCAS to objs
+HdlIdDef: SCAS
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+
+CommitId: d7736d76528ad13359fdf7360dbd0a40ad07c1be
+Fixed CMPS/SCAS bug when interrupted on the <equal> item
+--- a/Next186_CPU.v
++++ b/Next186_CPU.v
+@@ -290,12 +293,11 @@ module Next186_CPU(
+ 					FETCH[0] <= INSTR[7:0];
+ 					STAGE <= 0;
+ 					CPUStatus[5:0] <= status[5:0];
+-					TZF <= status[3];
+ 					ICODE1 <= ICODE(INSTR[7:0]);
+ 				end else begin		// no interrupt, no fetch
+ 					STAGE <= STAGE + {DIVSTAGE, ALUSTAGE} + 1; 
+ 					if(&DOSEL) {FETCH[3], FETCH[2]} <= |DISEL ? DIN : RB;
+-					TZF <= FIN[6];		// zero flag for REP
++					TZF <= FIN[6];		// zero flag for BOUND
+ 					TLF <= FIN[7] != FIN[11];	// less flag for BOUND
+ 				end
+ 			end
+
+ParseResult:
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: status
+            HdlValueInt: 3
+    HdlValueId: TZF
+
+
+CommitId: d7736d76528ad13359fdf7360dbd0a40ad07c1be
+Fixed CMPS/SCAS bug when interrupted on the <equal> item
+--- a/Next186_CPU.v
++++ b/Next186_CPU.v
+@@ -309,6 +311,8 @@ module Next186_CPU(
+ 			end
+ 			if(~|STAGE[1:0]) DIVQSGN <= QSGN;
+ 			RDIVEXC <= DIVOP & DIVEXC & ~IDIV; // bit 8/16 for unsigned DIV
++			CMPS <= (~FETCH[0][0] | (FETCH[3] == DIN[15:8])) & (FETCH[2] == DIN[7:0]);	// early EQ test for CMPS
++			SCAS <= (~FETCH[0][0] | (AX[15:8] == DIN[15:8])) & (AX[7:0] == DIN[7:0]);  // early EQ test for SCAS
+ 		end
+ 
+ 	always @(ISEL, FETCH[0], FETCH[1], FETCH[2], FETCH[3], FETCH[4], FETCH[5])
+
+ParseResult:
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlOp: AND
+        list: ops
+            HdlOp: OR
+                list: ops
+                    HdlOp: NEG
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: FETCH
+                                            HdlValueInt: 0
+                                    HdlValueInt: 0
+                    HdlOp: EQ
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: FETCH
+                                    HdlValueInt: 3
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: DIN
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 15
+                                            HdlValueInt: 8
+            HdlOp: EQ
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: FETCH
+                            HdlValueInt: 2
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: DIN
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 7
+                                    HdlValueInt: 0
+    HdlValueId: CMPS
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlOp: AND
+        list: ops
+            HdlOp: OR
+                list: ops
+                    HdlOp: NEG
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: FETCH
+                                            HdlValueInt: 0
+                                    HdlValueInt: 0
+                    HdlOp: EQ
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: AX
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 15
+                                            HdlValueInt: 8
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: DIN
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 15
+                                            HdlValueInt: 8
+            HdlOp: EQ
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: AX
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 7
+                                    HdlValueInt: 0
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: DIN
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 7
+                                    HdlValueInt: 0
+    HdlValueId: SCAS
+
+
+CommitId: d7736d76528ad13359fdf7360dbd0a40ad07c1be
+Fixed CMPS/SCAS bug when interrupted on the <equal> item
+--- a/Next186_CPU.v
++++ b/Next186_CPU.v
+@@ -334,7 +338,7 @@ module Next186_CPU(
+ 		endcase
+ 	end
+ 
+-	 always @(FETCH[0], FETCH[1], FETCH[2], FETCH[3], FETCH[4], FETCH[5], MOD, REG, RM, CPUStatus, USEBP, NOBP, RASEL, ISIZEI, TLF, EAC, COUT, DIVEND, DIVC, QSGN, 
++	 always @(FETCH[0], FETCH[1], FETCH[2], FETCH[3], FETCH[4], FETCH[5], MOD, REG, RM, CPUStatus, USEBP, NOBP, RASEL, ISIZEI, TLF, EAC, COUT, DIVEND, DIVC, QSGN, CMPS, SCAS,
+ 				 WBIT, ISIZES, ISELS, WRBIT, ISIZEW, STAGE, NULLSHIFT, ALUCONT, FLAGS, CXZ, RCXZ, NRORCXLE1, TZF, JMPC, LOOPC, ICODE1, DIVQSGN, DIVSGN, DIVRSGN, SOUT) begin
+ 		WORD = FETCH[0][0];
+ 		BASEL = FETCH[0][1] | &MOD;
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS list@@sensitivity to 
+    INS HdlValueId@@MOD to sensitivity
+    INS HdlValueId@@REG to sensitivity
+    INS HdlValueId@@RM to sensitivity
+    INS HdlValueId@@CPUStatus to sensitivity
+    INS HdlValueId@@USEBP to sensitivity
+    INS HdlValueId@@NOBP to sensitivity
+    INS HdlValueId@@RASEL to sensitivity
+    INS HdlValueId@@ISIZEI to sensitivity
+    INS HdlValueId@@TLF to sensitivity
+    INS HdlValueId@@EAC to sensitivity
+    INS HdlValueId@@COUT to sensitivity
+    INS HdlValueId@@DIVEND to sensitivity
+    INS HdlValueId@@DIVC to sensitivity
+    INS HdlValueId@@QSGN to sensitivity
+    INS HdlValueId@@CMPS to sensitivity
+    INS HdlValueId@@SCAS to sensitivity
+    INS HdlValueId@@WBIT to sensitivity
+    INS HdlValueId@@ISIZES to sensitivity
+    INS HdlValueId@@ISELS to sensitivity
+    INS HdlValueId@@WRBIT to sensitivity
+    INS HdlValueId@@ISIZEW to sensitivity
+    INS HdlValueId@@STAGE to sensitivity
+    INS HdlValueId@@NULLSHIFT to sensitivity
+    INS HdlValueId@@ALUCONT to sensitivity
+    INS HdlValueId@@FLAGS to sensitivity
+    INS HdlValueId@@CXZ to sensitivity
+    INS HdlValueId@@RCXZ to sensitivity
+    INS HdlValueId@@NRORCXLE1 to sensitivity
+    INS HdlValueId@@TZF to sensitivity
+    INS HdlValueId@@JMPC to sensitivity
+    INS HdlValueId@@LOOPC to sensitivity
+    INS HdlValueId@@ICODE1 to sensitivity
+    INS HdlValueId@@DIVQSGN to sensitivity
+    INS HdlValueId@@DIVSGN to sensitivity
+    INS HdlValueId@@DIVRSGN to sensitivity
+    INS HdlValueId@@SOUT to sensitivity
+
+UPD HdlStmProcess@@ to 
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 0
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 1
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 2
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 3
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 4
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 5
+    DEL HdlValueId@@MOD from sensitivity
+    DEL HdlValueId@@REG from sensitivity
+    DEL HdlValueId@@RM from sensitivity
+    DEL HdlValueId@@CPUStatus from sensitivity
+    DEL HdlValueId@@USEBP from sensitivity
+    DEL HdlValueId@@NOBP from sensitivity
+    DEL HdlValueId@@RASEL from sensitivity
+    DEL HdlValueId@@ISIZEI from sensitivity
+    DEL HdlValueId@@TLF from sensitivity
+    DEL HdlValueId@@EAC from sensitivity
+    DEL HdlValueId@@COUT from sensitivity
+    DEL HdlValueId@@DIVEND from sensitivity
+    DEL HdlValueId@@DIVC from sensitivity
+    DEL HdlValueId@@QSGN from sensitivity
+    DEL HdlValueId@@WBIT from sensitivity
+    DEL HdlValueId@@ISIZES from sensitivity
+    DEL HdlValueId@@ISELS from sensitivity
+    DEL HdlValueId@@WRBIT from sensitivity
+    DEL HdlValueId@@ISIZEW from sensitivity
+    DEL HdlValueId@@STAGE from sensitivity
+    DEL HdlValueId@@NULLSHIFT from sensitivity
+    DEL HdlValueId@@ALUCONT from sensitivity
+    DEL HdlValueId@@FLAGS from sensitivity
+    DEL HdlValueId@@CXZ from sensitivity
+    DEL HdlValueId@@RCXZ from sensitivity
+    DEL HdlValueId@@NRORCXLE1 from sensitivity
+    DEL HdlValueId@@TZF from sensitivity
+    DEL HdlValueId@@JMPC from sensitivity
+    DEL HdlValueId@@LOOPC from sensitivity
+    DEL HdlValueId@@ICODE1 from sensitivity
+    DEL HdlValueId@@DIVQSGN from sensitivity
+    DEL HdlValueId@@DIVSGN from sensitivity
+    DEL HdlValueId@@DIVRSGN from sensitivity
+    DEL HdlValueId@@SOUT from sensitivity
+    DEL list@@sensitivity from 
+
+
+CommitId: d7736d76528ad13359fdf7360dbd0a40ad07c1be
+Fixed CMPS/SCAS bug when interrupted on the <equal> item
+--- a/Next186_CPU.v
++++ b/Next186_CPU.v
+@@ -1063,15 +1067,15 @@ module Next186_CPU(
+ 				AEXT = 1'b0;
+ 				NOBP = 1'b1;	// for RSSEL
+ 				case(STAGE[1:0])
+-					2'b00: begin		// stage1, read ES:[DI] in FETCH[2:1], inc/dec DI
++					2'b00: begin		// stage1, read ES:[DI] in FETCH[3:2], inc/dec DI
+ 						RASEL = 3'b111; 	// SI
+ 						RSSEL = 2'b00;		// ES
+ 						ALUOP = {4'b0100, FLAGS[10]};	
+ 						EAC = 4'b0101;		// DI+DISP
+ 						DISEL = 2'b11;		// ALU 16bit
+ 						DOSEL = 2'b11;		// read data to FETCH
+-						IFETCH = CPUStatus[4] && (~|CXZ || (CPUStatus[3] ^ TZF));	// REP & CX==0
+-						MREQ = ~IFETCH;
++						IFETCH = RCXZ;//(~|CXZ || (CPUStatus[3] ^ TZF));	// REP & CX==0
++						MREQ = ~RCXZ;
+ 						WE[1:0] = IFETCH ? 2'b00 : 2'b11;		// RASEL_HI, RASEL_LO
+ 					end
+ 					2'b01: begin		// stage2, read DS:[SI] in TMP16, inc/dec SI
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS list@@sensitivity to 
+    INS HdlValueId@@MOD to sensitivity
+    INS HdlValueId@@REG to sensitivity
+    INS HdlValueId@@RM to sensitivity
+    INS HdlValueId@@CPUStatus to sensitivity
+    INS HdlValueId@@USEBP to sensitivity
+    INS HdlValueId@@NOBP to sensitivity
+    INS HdlValueId@@RASEL to sensitivity
+    INS HdlValueId@@ISIZEI to sensitivity
+    INS HdlValueId@@TLF to sensitivity
+    INS HdlValueId@@EAC to sensitivity
+    INS HdlValueId@@COUT to sensitivity
+    INS HdlValueId@@DIVEND to sensitivity
+    INS HdlValueId@@DIVC to sensitivity
+    INS HdlValueId@@QSGN to sensitivity
+    INS HdlValueId@@CMPS to sensitivity
+    INS HdlValueId@@SCAS to sensitivity
+    INS HdlValueId@@WBIT to sensitivity
+    INS HdlValueId@@ISIZES to sensitivity
+    INS HdlValueId@@ISELS to sensitivity
+    INS HdlValueId@@WRBIT to sensitivity
+    INS HdlValueId@@ISIZEW to sensitivity
+    INS HdlValueId@@STAGE to sensitivity
+    INS HdlValueId@@NULLSHIFT to sensitivity
+    INS HdlValueId@@ALUCONT to sensitivity
+    INS HdlValueId@@FLAGS to sensitivity
+    INS HdlValueId@@CXZ to sensitivity
+    INS HdlValueId@@RCXZ to sensitivity
+    INS HdlValueId@@NRORCXLE1 to sensitivity
+    INS HdlValueId@@TZF to sensitivity
+    INS HdlValueId@@JMPC to sensitivity
+    INS HdlValueId@@LOOPC to sensitivity
+    INS HdlValueId@@ICODE1 to sensitivity
+    INS HdlValueId@@DIVQSGN to sensitivity
+    INS HdlValueId@@DIVSGN to sensitivity
+    INS HdlValueId@@DIVRSGN to sensitivity
+    INS HdlValueId@@SOUT to sensitivity
+
+UPD HdlStmProcess@@ to 
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 0
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 1
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 2
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 3
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 4
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 5
+    DEL HdlValueId@@MOD from sensitivity
+    DEL HdlValueId@@REG from sensitivity
+    DEL HdlValueId@@RM from sensitivity
+    DEL HdlValueId@@CPUStatus from sensitivity
+    DEL HdlValueId@@USEBP from sensitivity
+    DEL HdlValueId@@NOBP from sensitivity
+    DEL HdlValueId@@RASEL from sensitivity
+    DEL HdlValueId@@ISIZEI from sensitivity
+    DEL HdlValueId@@TLF from sensitivity
+    DEL HdlValueId@@EAC from sensitivity
+    DEL HdlValueId@@COUT from sensitivity
+    DEL HdlValueId@@DIVEND from sensitivity
+    DEL HdlValueId@@DIVC from sensitivity
+    DEL HdlValueId@@QSGN from sensitivity
+    DEL HdlValueId@@WBIT from sensitivity
+    DEL HdlValueId@@ISIZES from sensitivity
+    DEL HdlValueId@@ISELS from sensitivity
+    DEL HdlValueId@@WRBIT from sensitivity
+    DEL HdlValueId@@ISIZEW from sensitivity
+    DEL HdlValueId@@STAGE from sensitivity
+    DEL HdlValueId@@NULLSHIFT from sensitivity
+    DEL HdlValueId@@ALUCONT from sensitivity
+    DEL HdlValueId@@FLAGS from sensitivity
+    DEL HdlValueId@@CXZ from sensitivity
+    DEL HdlValueId@@RCXZ from sensitivity
+    DEL HdlValueId@@NRORCXLE1 from sensitivity
+    DEL HdlValueId@@TZF from sensitivity
+    DEL HdlValueId@@JMPC from sensitivity
+    DEL HdlValueId@@LOOPC from sensitivity
+    DEL HdlValueId@@ICODE1 from sensitivity
+    DEL HdlValueId@@DIVQSGN from sensitivity
+    DEL HdlValueId@@DIVSGN from sensitivity
+    DEL HdlValueId@@DIVRSGN from sensitivity
+    DEL HdlValueId@@SOUT from sensitivity
+    DEL list@@sensitivity from 
+
+UPD HdlStmCase@@ICODE1 to ICODE1
+    INS HdlStmCaseType@@CASE to ICODE1
+    INS HdlValueId@@ICODE1 to ICODE1
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@AND_LOG to ASSIGN
+            MOV HdlOp@@AND_LOG to ops
+            HdlOp: AND_LOG
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: CPUStatus
+                            HdlValueInt: 4
+                    HdlOp: OR_LOG
+                        list: ops
+                            HdlOp: NOR_UNARY
+                                list: ops
+                                    HdlValueId: CXZ
+                            HdlOp: XOR
+                                list: ops
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: CPUStatus
+                                            HdlValueInt: 3
+                                    HdlValueId: TZF
+            UPD HdlOp@@AND_LOG to AND_LOG
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueId@@CPUStatus to IFETCH
+                    MOV HdlValueId@@CPUStatus to ops
+                    HdlValueId: CPUStatus
+                    DEL HdlValueInt@@4 from ops
+                    DEL list@@ops from INDEX
+                UPD HdlOp@@OR_LOG to OR
+                UPD HdlOp@@OR_LOG to OR_LOG
+                    UPD HdlOp@@NOR_UNARY to NOR_UNARY
+                        UPD HdlValueId@@CXZ to NRORCXLE1
+                        MOV HdlValueId@@CXZ to ops
+                        HdlValueId: CXZ
+                        DEL list@@ops from NOR_UNARY
+                    UPD HdlOp@@XOR to XOR
+                        UPD HdlValueId@@TZF to CMPS
+                    DEL HdlOp@@NOR_UNARY from ops
+                DEL HdlOp@@INDEX from ops
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@NEG to NEG
+                UPD HdlValueId@@IFETCH to RCXZ
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: IFETCH
+                HdlOp: NEG
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: CPUStatus
+                                HdlValueInt: 4
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS HdlValueId@@RCXZ to ops
+
+UPD HdlStmCase@@ICODE1 to ICODE1
+    DEL HdlStmCaseType@@CASE from ICODE1
+    DEL HdlValueId@@ICODE1 from ICODE1
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: NOBP
+                HdlValueInt: 1
+
+
+CommitId: d7736d76528ad13359fdf7360dbd0a40ad07c1be
+Fixed CMPS/SCAS bug when interrupted on the <equal> item
+--- a/Next186_CPU.v
++++ b/Next186_CPU.v
+@@ -1082,14 +1086,14 @@ module Next186_CPU(
+ 						IFETCH = 1'b0;
+ 						WE[3:0] = 4'b1011;		// RASEL_HI, RASEL_LO
+ 					end
+-					2'b10: begin		// stage3, compare TMP16 wit imm, set flags, dec CX
++					2'b10: begin		// stage3, compare TMP16 with imm, set flags, dec CX
+ 						BASEL = 1'b0;			// TMP16
+ 						BBSEL = 2'b10;			// imm
+ 						ISEL = 2'b01;
+ 						WE[4] = 1'b1;			// flags
+ 						ALUOP = 5'b00111;		// cmp
+ 						MREQ = 1'b0;
+-						IFETCH = ~CPUStatus[4];
++						IFETCH = NRORCXLE1 | (CPUStatus[3] ^ CMPS);
+ 						DECCX = CPUStatus[4];
+ 						ALUSTAGE = 1'b1;
+ 						REPINT = 1'b1;
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS list@@sensitivity to 
+    INS HdlValueId@@MOD to sensitivity
+    INS HdlValueId@@REG to sensitivity
+    INS HdlValueId@@RM to sensitivity
+    INS HdlValueId@@CPUStatus to sensitivity
+    INS HdlValueId@@USEBP to sensitivity
+    INS HdlValueId@@NOBP to sensitivity
+    INS HdlValueId@@RASEL to sensitivity
+    INS HdlValueId@@ISIZEI to sensitivity
+    INS HdlValueId@@TLF to sensitivity
+    INS HdlValueId@@EAC to sensitivity
+    INS HdlValueId@@COUT to sensitivity
+    INS HdlValueId@@DIVEND to sensitivity
+    INS HdlValueId@@DIVC to sensitivity
+    INS HdlValueId@@QSGN to sensitivity
+    INS HdlValueId@@CMPS to sensitivity
+    INS HdlValueId@@SCAS to sensitivity
+    INS HdlValueId@@WBIT to sensitivity
+    INS HdlValueId@@ISIZES to sensitivity
+    INS HdlValueId@@ISELS to sensitivity
+    INS HdlValueId@@WRBIT to sensitivity
+    INS HdlValueId@@ISIZEW to sensitivity
+    INS HdlValueId@@STAGE to sensitivity
+    INS HdlValueId@@NULLSHIFT to sensitivity
+    INS HdlValueId@@ALUCONT to sensitivity
+    INS HdlValueId@@FLAGS to sensitivity
+    INS HdlValueId@@CXZ to sensitivity
+    INS HdlValueId@@RCXZ to sensitivity
+    INS HdlValueId@@NRORCXLE1 to sensitivity
+    INS HdlValueId@@TZF to sensitivity
+    INS HdlValueId@@JMPC to sensitivity
+    INS HdlValueId@@LOOPC to sensitivity
+    INS HdlValueId@@ICODE1 to sensitivity
+    INS HdlValueId@@DIVQSGN to sensitivity
+    INS HdlValueId@@DIVSGN to sensitivity
+    INS HdlValueId@@DIVRSGN to sensitivity
+    INS HdlValueId@@SOUT to sensitivity
+
+UPD HdlStmProcess@@ to 
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 0
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 1
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 2
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 3
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 4
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 5
+    DEL HdlValueId@@MOD from sensitivity
+    DEL HdlValueId@@REG from sensitivity
+    DEL HdlValueId@@RM from sensitivity
+    DEL HdlValueId@@CPUStatus from sensitivity
+    DEL HdlValueId@@USEBP from sensitivity
+    DEL HdlValueId@@NOBP from sensitivity
+    DEL HdlValueId@@RASEL from sensitivity
+    DEL HdlValueId@@ISIZEI from sensitivity
+    DEL HdlValueId@@TLF from sensitivity
+    DEL HdlValueId@@EAC from sensitivity
+    DEL HdlValueId@@COUT from sensitivity
+    DEL HdlValueId@@DIVEND from sensitivity
+    DEL HdlValueId@@DIVC from sensitivity
+    DEL HdlValueId@@QSGN from sensitivity
+    DEL HdlValueId@@WBIT from sensitivity
+    DEL HdlValueId@@ISIZES from sensitivity
+    DEL HdlValueId@@ISELS from sensitivity
+    DEL HdlValueId@@WRBIT from sensitivity
+    DEL HdlValueId@@ISIZEW from sensitivity
+    DEL HdlValueId@@STAGE from sensitivity
+    DEL HdlValueId@@NULLSHIFT from sensitivity
+    DEL HdlValueId@@ALUCONT from sensitivity
+    DEL HdlValueId@@FLAGS from sensitivity
+    DEL HdlValueId@@CXZ from sensitivity
+    DEL HdlValueId@@RCXZ from sensitivity
+    DEL HdlValueId@@NRORCXLE1 from sensitivity
+    DEL HdlValueId@@TZF from sensitivity
+    DEL HdlValueId@@JMPC from sensitivity
+    DEL HdlValueId@@LOOPC from sensitivity
+    DEL HdlValueId@@ICODE1 from sensitivity
+    DEL HdlValueId@@DIVQSGN from sensitivity
+    DEL HdlValueId@@DIVSGN from sensitivity
+    DEL HdlValueId@@DIVRSGN from sensitivity
+    DEL HdlValueId@@SOUT from sensitivity
+    DEL list@@sensitivity from 
+
+UPD HdlStmCase@@ICODE1 to ICODE1
+    INS HdlStmCaseType@@CASE to ICODE1
+    INS HdlValueId@@ICODE1 to ICODE1
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@AND_LOG to ASSIGN
+            MOV HdlOp@@AND_LOG to ops
+            HdlOp: AND_LOG
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: CPUStatus
+                            HdlValueInt: 4
+                    HdlOp: OR_LOG
+                        list: ops
+                            HdlOp: NOR_UNARY
+                                list: ops
+                                    HdlValueId: CXZ
+                            HdlOp: XOR
+                                list: ops
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: CPUStatus
+                                            HdlValueInt: 3
+                                    HdlValueId: TZF
+            UPD HdlOp@@AND_LOG to AND_LOG
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueId@@CPUStatus to IFETCH
+                    MOV HdlValueId@@CPUStatus to ops
+                    HdlValueId: CPUStatus
+                    DEL HdlValueInt@@4 from ops
+                    DEL list@@ops from INDEX
+                UPD HdlOp@@OR_LOG to OR
+                UPD HdlOp@@OR_LOG to OR_LOG
+                    UPD HdlOp@@NOR_UNARY to NOR_UNARY
+                        UPD HdlValueId@@CXZ to NRORCXLE1
+                        MOV HdlValueId@@CXZ to ops
+                        HdlValueId: CXZ
+                        DEL list@@ops from NOR_UNARY
+                    UPD HdlOp@@XOR to XOR
+                        UPD HdlValueId@@TZF to CMPS
+                    DEL HdlOp@@NOR_UNARY from ops
+                DEL HdlOp@@INDEX from ops
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@NEG to NEG
+                UPD HdlValueId@@IFETCH to RCXZ
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: IFETCH
+                HdlOp: NEG
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: CPUStatus
+                                HdlValueInt: 4
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS HdlValueId@@RCXZ to ops
+
+UPD HdlStmCase@@ICODE1 to ICODE1
+    DEL HdlStmCaseType@@CASE from ICODE1
+    DEL HdlValueId@@ICODE1 from ICODE1
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: NOBP
+                HdlValueInt: 1
+
+
+CommitId: d7736d76528ad13359fdf7360dbd0a40ad07c1be
+Fixed CMPS/SCAS bug when interrupted on the <equal> item
+--- a/Next186_CPU.v
++++ b/Next186_CPU.v
+@@ -1101,15 +1105,14 @@ module Next186_CPU(
+ 			34: begin
+ 				DISP16 = 1'b0;
+ 				AEXT = 1'b0;
+-				NOBP = 1'b1;	// for RSSEL (not really necesary, but with it the synthesis generates better speed)
+ 				if(!STAGE[0]) begin	// stage1, read ES:[DI] in TMP16, inc/dec DI
+ 					RASEL = 3'b111; 	// DI
+ 					RSSEL = 2'b00;		// ES
+ 					ALUOP = {4'b0100, FLAGS[10]};	
+ 					EAC = 4'b0101;		// DI+DISP
+ 					DISEL = 2'b11;		// ALU 16bit
+-					IFETCH = CPUStatus[4] && (~|CXZ || (CPUStatus[3] ^ TZF));	// REP & CX==0
+-					MREQ = ~IFETCH;
++					IFETCH = RCXZ;//(~|CXZ || (CPUStatus[3] ^ TZF));	// REP & CX==0
++					MREQ = ~RCXZ;
+ 					WE[3:0] = IFETCH ? 4'b0000 : 4'b1011;		// TMP16, RASEL_HI, RASEL_LO
+ 				end else begin	//stage2, compare AL/AX with TMP16, set flags, dec CX
+ 					RASEL = 3'b000;		// AL/AX
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS list@@sensitivity to 
+    INS HdlValueId@@MOD to sensitivity
+    INS HdlValueId@@REG to sensitivity
+    INS HdlValueId@@RM to sensitivity
+    INS HdlValueId@@CPUStatus to sensitivity
+    INS HdlValueId@@USEBP to sensitivity
+    INS HdlValueId@@NOBP to sensitivity
+    INS HdlValueId@@RASEL to sensitivity
+    INS HdlValueId@@ISIZEI to sensitivity
+    INS HdlValueId@@TLF to sensitivity
+    INS HdlValueId@@EAC to sensitivity
+    INS HdlValueId@@COUT to sensitivity
+    INS HdlValueId@@DIVEND to sensitivity
+    INS HdlValueId@@DIVC to sensitivity
+    INS HdlValueId@@QSGN to sensitivity
+    INS HdlValueId@@CMPS to sensitivity
+    INS HdlValueId@@SCAS to sensitivity
+    INS HdlValueId@@WBIT to sensitivity
+    INS HdlValueId@@ISIZES to sensitivity
+    INS HdlValueId@@ISELS to sensitivity
+    INS HdlValueId@@WRBIT to sensitivity
+    INS HdlValueId@@ISIZEW to sensitivity
+    INS HdlValueId@@STAGE to sensitivity
+    INS HdlValueId@@NULLSHIFT to sensitivity
+    INS HdlValueId@@ALUCONT to sensitivity
+    INS HdlValueId@@FLAGS to sensitivity
+    INS HdlValueId@@CXZ to sensitivity
+    INS HdlValueId@@RCXZ to sensitivity
+    INS HdlValueId@@NRORCXLE1 to sensitivity
+    INS HdlValueId@@TZF to sensitivity
+    INS HdlValueId@@JMPC to sensitivity
+    INS HdlValueId@@LOOPC to sensitivity
+    INS HdlValueId@@ICODE1 to sensitivity
+    INS HdlValueId@@DIVQSGN to sensitivity
+    INS HdlValueId@@DIVSGN to sensitivity
+    INS HdlValueId@@DIVRSGN to sensitivity
+    INS HdlValueId@@SOUT to sensitivity
+
+UPD HdlStmProcess@@ to 
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 0
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 1
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 2
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 3
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 4
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 5
+    DEL HdlValueId@@MOD from sensitivity
+    DEL HdlValueId@@REG from sensitivity
+    DEL HdlValueId@@RM from sensitivity
+    DEL HdlValueId@@CPUStatus from sensitivity
+    DEL HdlValueId@@USEBP from sensitivity
+    DEL HdlValueId@@NOBP from sensitivity
+    DEL HdlValueId@@RASEL from sensitivity
+    DEL HdlValueId@@ISIZEI from sensitivity
+    DEL HdlValueId@@TLF from sensitivity
+    DEL HdlValueId@@EAC from sensitivity
+    DEL HdlValueId@@COUT from sensitivity
+    DEL HdlValueId@@DIVEND from sensitivity
+    DEL HdlValueId@@DIVC from sensitivity
+    DEL HdlValueId@@QSGN from sensitivity
+    DEL HdlValueId@@WBIT from sensitivity
+    DEL HdlValueId@@ISIZES from sensitivity
+    DEL HdlValueId@@ISELS from sensitivity
+    DEL HdlValueId@@WRBIT from sensitivity
+    DEL HdlValueId@@ISIZEW from sensitivity
+    DEL HdlValueId@@STAGE from sensitivity
+    DEL HdlValueId@@NULLSHIFT from sensitivity
+    DEL HdlValueId@@ALUCONT from sensitivity
+    DEL HdlValueId@@FLAGS from sensitivity
+    DEL HdlValueId@@CXZ from sensitivity
+    DEL HdlValueId@@RCXZ from sensitivity
+    DEL HdlValueId@@NRORCXLE1 from sensitivity
+    DEL HdlValueId@@TZF from sensitivity
+    DEL HdlValueId@@JMPC from sensitivity
+    DEL HdlValueId@@LOOPC from sensitivity
+    DEL HdlValueId@@ICODE1 from sensitivity
+    DEL HdlValueId@@DIVQSGN from sensitivity
+    DEL HdlValueId@@DIVSGN from sensitivity
+    DEL HdlValueId@@DIVRSGN from sensitivity
+    DEL HdlValueId@@SOUT from sensitivity
+    DEL list@@sensitivity from 
+
+UPD HdlStmCase@@ICODE1 to ICODE1
+    INS HdlStmCaseType@@CASE to ICODE1
+    INS HdlValueId@@ICODE1 to ICODE1
+
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@AND_LOG to ASSIGN
+            MOV HdlOp@@AND_LOG to ops
+            HdlOp: AND_LOG
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: CPUStatus
+                            HdlValueInt: 4
+                    HdlOp: OR_LOG
+                        list: ops
+                            HdlOp: NOR_UNARY
+                                list: ops
+                                    HdlValueId: CXZ
+                            HdlOp: XOR
+                                list: ops
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: CPUStatus
+                                            HdlValueInt: 3
+                                    HdlValueId: TZF
+            UPD HdlOp@@AND_LOG to AND_LOG
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueId@@CPUStatus to IFETCH
+                    MOV HdlValueId@@CPUStatus to ops
+                    HdlValueId: CPUStatus
+                    DEL HdlValueInt@@4 from ops
+                    DEL list@@ops from INDEX
+                UPD HdlOp@@OR_LOG to OR
+                UPD HdlOp@@OR_LOG to OR_LOG
+                    UPD HdlOp@@NOR_UNARY to NOR_UNARY
+                        UPD HdlValueId@@CXZ to NRORCXLE1
+                        MOV HdlValueId@@CXZ to ops
+                        HdlValueId: CXZ
+                        DEL list@@ops from NOR_UNARY
+                    UPD HdlOp@@XOR to XOR
+                        UPD HdlValueId@@TZF to SCAS
+                    DEL HdlOp@@NOR_UNARY from ops
+                DEL HdlOp@@INDEX from ops
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@NEG to NEG
+                UPD HdlValueId@@IFETCH to RCXZ
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: IFETCH
+                HdlOp: NEG
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: CPUStatus
+                                HdlValueInt: 4
+
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS HdlValueId@@RCXZ to ops
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS HdlValueId@@RCXZ to ops
+
+UPD HdlStmCase@@ICODE1 to ICODE1
+    DEL HdlStmCaseType@@CASE from ICODE1
+    DEL HdlValueId@@ICODE1 from ICODE1
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: NOBP
+                HdlValueInt: 1
+
+
+CommitId: d7736d76528ad13359fdf7360dbd0a40ad07c1be
+Fixed CMPS/SCAS bug when interrupted on the <equal> item
+--- a/Next186_CPU.v
++++ b/Next186_CPU.v
+@@ -1117,7 +1120,7 @@ module Next186_CPU(
+ 					WE[4] = 1'b1;			// flags
+ 					ALUOP = 5'b00111;		// cmp
+ 					MREQ = 1'b0;
+-					IFETCH = ~CPUStatus[4];
++					IFETCH = NRORCXLE1 | (CPUStatus[3] ^ SCAS);
+ 					DECCX = CPUStatus[4];
+ 					REPINT = 1'b1;
+ 				end
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS list@@sensitivity to 
+    INS HdlValueId@@MOD to sensitivity
+    INS HdlValueId@@REG to sensitivity
+    INS HdlValueId@@RM to sensitivity
+    INS HdlValueId@@CPUStatus to sensitivity
+    INS HdlValueId@@USEBP to sensitivity
+    INS HdlValueId@@NOBP to sensitivity
+    INS HdlValueId@@RASEL to sensitivity
+    INS HdlValueId@@ISIZEI to sensitivity
+    INS HdlValueId@@TLF to sensitivity
+    INS HdlValueId@@EAC to sensitivity
+    INS HdlValueId@@COUT to sensitivity
+    INS HdlValueId@@DIVEND to sensitivity
+    INS HdlValueId@@DIVC to sensitivity
+    INS HdlValueId@@QSGN to sensitivity
+    INS HdlValueId@@CMPS to sensitivity
+    INS HdlValueId@@SCAS to sensitivity
+    INS HdlValueId@@WBIT to sensitivity
+    INS HdlValueId@@ISIZES to sensitivity
+    INS HdlValueId@@ISELS to sensitivity
+    INS HdlValueId@@WRBIT to sensitivity
+    INS HdlValueId@@ISIZEW to sensitivity
+    INS HdlValueId@@STAGE to sensitivity
+    INS HdlValueId@@NULLSHIFT to sensitivity
+    INS HdlValueId@@ALUCONT to sensitivity
+    INS HdlValueId@@FLAGS to sensitivity
+    INS HdlValueId@@CXZ to sensitivity
+    INS HdlValueId@@RCXZ to sensitivity
+    INS HdlValueId@@NRORCXLE1 to sensitivity
+    INS HdlValueId@@TZF to sensitivity
+    INS HdlValueId@@JMPC to sensitivity
+    INS HdlValueId@@LOOPC to sensitivity
+    INS HdlValueId@@ICODE1 to sensitivity
+    INS HdlValueId@@DIVQSGN to sensitivity
+    INS HdlValueId@@DIVSGN to sensitivity
+    INS HdlValueId@@DIVRSGN to sensitivity
+    INS HdlValueId@@SOUT to sensitivity
+
+UPD HdlStmProcess@@ to 
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 0
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 1
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 2
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 3
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 4
+    MOV HdlOp@@INDEX to sensitivity
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: FETCH
+            HdlValueInt: 5
+    DEL HdlValueId@@MOD from sensitivity
+    DEL HdlValueId@@REG from sensitivity
+    DEL HdlValueId@@RM from sensitivity
+    DEL HdlValueId@@CPUStatus from sensitivity
+    DEL HdlValueId@@USEBP from sensitivity
+    DEL HdlValueId@@NOBP from sensitivity
+    DEL HdlValueId@@RASEL from sensitivity
+    DEL HdlValueId@@ISIZEI from sensitivity
+    DEL HdlValueId@@TLF from sensitivity
+    DEL HdlValueId@@EAC from sensitivity
+    DEL HdlValueId@@COUT from sensitivity
+    DEL HdlValueId@@DIVEND from sensitivity
+    DEL HdlValueId@@DIVC from sensitivity
+    DEL HdlValueId@@QSGN from sensitivity
+    DEL HdlValueId@@WBIT from sensitivity
+    DEL HdlValueId@@ISIZES from sensitivity
+    DEL HdlValueId@@ISELS from sensitivity
+    DEL HdlValueId@@WRBIT from sensitivity
+    DEL HdlValueId@@ISIZEW from sensitivity
+    DEL HdlValueId@@STAGE from sensitivity
+    DEL HdlValueId@@NULLSHIFT from sensitivity
+    DEL HdlValueId@@ALUCONT from sensitivity
+    DEL HdlValueId@@FLAGS from sensitivity
+    DEL HdlValueId@@CXZ from sensitivity
+    DEL HdlValueId@@RCXZ from sensitivity
+    DEL HdlValueId@@NRORCXLE1 from sensitivity
+    DEL HdlValueId@@TZF from sensitivity
+    DEL HdlValueId@@JMPC from sensitivity
+    DEL HdlValueId@@LOOPC from sensitivity
+    DEL HdlValueId@@ICODE1 from sensitivity
+    DEL HdlValueId@@DIVQSGN from sensitivity
+    DEL HdlValueId@@DIVSGN from sensitivity
+    DEL HdlValueId@@DIVRSGN from sensitivity
+    DEL HdlValueId@@SOUT from sensitivity
+    DEL list@@sensitivity from 
+
+UPD HdlStmCase@@ICODE1 to ICODE1
+    INS HdlStmCaseType@@CASE to ICODE1
+    INS HdlValueId@@ICODE1 to ICODE1
+
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@AND_LOG to ASSIGN
+            MOV HdlOp@@AND_LOG to ops
+            HdlOp: AND_LOG
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: CPUStatus
+                            HdlValueInt: 4
+                    HdlOp: OR_LOG
+                        list: ops
+                            HdlOp: NOR_UNARY
+                                list: ops
+                                    HdlValueId: CXZ
+                            HdlOp: XOR
+                                list: ops
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: CPUStatus
+                                            HdlValueInt: 3
+                                    HdlValueId: TZF
+            UPD HdlOp@@AND_LOG to AND_LOG
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueId@@CPUStatus to IFETCH
+                    MOV HdlValueId@@CPUStatus to ops
+                    HdlValueId: CPUStatus
+                    DEL HdlValueInt@@4 from ops
+                    DEL list@@ops from INDEX
+                UPD HdlOp@@OR_LOG to OR
+                UPD HdlOp@@OR_LOG to OR_LOG
+                    UPD HdlOp@@NOR_UNARY to NOR_UNARY
+                        UPD HdlValueId@@CXZ to NRORCXLE1
+                        MOV HdlValueId@@CXZ to ops
+                        HdlValueId: CXZ
+                        DEL list@@ops from NOR_UNARY
+                    UPD HdlOp@@XOR to XOR
+                        UPD HdlValueId@@TZF to SCAS
+                    DEL HdlOp@@NOR_UNARY from ops
+                DEL HdlOp@@INDEX from ops
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@NEG to NEG
+                UPD HdlValueId@@IFETCH to RCXZ
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: IFETCH
+                HdlOp: NEG
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: CPUStatus
+                                HdlValueInt: 4
+
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS HdlValueId@@RCXZ to ops
+
+UPD HdlStmCase@@ICODE1 to ICODE1
+    DEL HdlStmCaseType@@CASE from ICODE1
+    DEL HdlValueId@@ICODE1 from ICODE1
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: NOBP
+                HdlValueInt: 1
+
+
+CommitId: de2db82030df695c5c086e6b5d42e7785bd60642
+fixed DIV bug (exception on sign bit)
+--- a/Next186_CPU.v
++++ b/Next186_CPU.v
+@@ -916,7 +917,8 @@ module Next186_CPU(
+ 								DIVSTAGE = ~DIVEND;
+ 								ALUSTAGE = ~DIVEND | ~DIVQSGN;
+ 								DIVOP = 1'b1;
+-								IRQ = ~|STAGE[6:3] & DIVC & ~(STAGE[2] & DIVSGN); // early overflow for positive quotient
++//								IRQ = ~|STAGE[6:3] & DIVC & ~(STAGE[2] & DIVSGN); - DIV bug, fixed 23Dec2012
++								IRQ = ~|STAGE[6:3] & DIVC & (~STAGE[2] | (~DIVSGN & IDIV)); // early overflow for positive quotient
+ 								IFETCH = (DIVEND && ~DIVQSGN && ~DIVRSGN) || IRQ;
+ 							end
+ 							3'b100: begin		// stage5, post inc R
+
+ParseResult:
+UPD HdlStmCase@@ICODE1 to ICODE1
+    INS HdlStmCaseType@@CASE to ICODE1
+    INS HdlValueId@@ICODE1 to ICODE1
+    INS HdlValueInt@@27 to 
+
+UPD HdlStmCase@@REG to REG
+    INS HdlStmCaseType@@CASE to REG
+    INS HdlValueId@@REG to REG
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': ['DIVEND',          {'__class__': 'HdlOp',           'fn': 'INDEX',           'ops': ['STAGE',                   {'__class__': 'HdlOp',                    'fn': 'DOWNTO',                    'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                            {'__class__': 'HdlValueInt',                             'base': 10,                             'val': '0'}]}]}]}  to {'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': ['DIVEND',          {'__class__': 'HdlOp',           'fn': 'INDEX',           'ops': ['STAGE',                   {'__class__': 'HdlOp',                    'fn': 'DOWNTO',                    'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                            {'__class__': 'HdlValueInt',                             'base': 10,                             'val': '0'}]}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@AND to AND
+                UPD HdlOp@@NEG to OR
+                UPD HdlOp@@NEG to NEG
+                    UPD HdlOp@@AND to NEG
+                    UPD HdlOp@@AND to AND
+                        DEL HdlValueId@@DIVSGN from ops
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@AND to AND
+                UPD HdlOp@@NEG to OR
+                UPD HdlOp@@NEG to NEG
+                    UPD HdlOp@@AND to NEG
+                    UPD HdlOp@@AND to AND
+                        DEL HdlValueId@@DIVSGN from ops
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': ['DIVEND',          {'__class__': 'HdlOp',           'fn': 'INDEX',           'ops': ['STAGE',                   {'__class__': 'HdlOp',                    'fn': 'DOWNTO',                    'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                            {'__class__': 'HdlValueInt',                             'base': 10,                             'val': '0'}]}]}]}  to {'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': ['DIVEND',          {'__class__': 'HdlOp',           'fn': 'INDEX',           'ops': ['STAGE',                   {'__class__': 'HdlOp',                    'fn': 'DOWNTO',                    'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                            {'__class__': 'HdlValueInt',                             'base': 10,                             'val': '0'}]}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@AND to AND
+                UPD HdlOp@@NEG to OR
+                UPD HdlOp@@NEG to NEG
+                    UPD HdlOp@@AND to NEG
+                    UPD HdlOp@@AND to AND
+                        DEL HdlValueId@@DIVSGN from ops
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@AND to AND
+                UPD HdlOp@@NEG to OR
+                UPD HdlOp@@NEG to NEG
+                    UPD HdlOp@@AND to NEG
+                    UPD HdlOp@@AND to AND
+                        DEL HdlValueId@@DIVSGN from ops
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': ['DIVEND',          {'__class__': 'HdlOp',           'fn': 'INDEX',           'ops': ['STAGE',                   {'__class__': 'HdlOp',                    'fn': 'DOWNTO',                    'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                            {'__class__': 'HdlValueInt',                             'base': 10,                             'val': '0'}]}]}]}  to {'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': ['DIVEND',          {'__class__': 'HdlOp',           'fn': 'INDEX',           'ops': ['STAGE',                   {'__class__': 'HdlOp',                    'fn': 'DOWNTO',                    'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                            {'__class__': 'HdlValueInt',                             'base': 10,                             'val': '0'}]}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@AND to AND
+                UPD HdlOp@@OR to OR
+                    INS HdlOp@@AND to ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: NEG
+                                list: ops
+                                    HdlValueId: DIVSGN
+                            HdlValueId: IDIV
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@AND to AND
+                UPD HdlOp@@OR to OR
+                    INS HdlOp@@AND to ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: NEG
+                                list: ops
+                                    HdlValueId: DIVSGN
+                            HdlValueId: IDIV
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': ['DIVEND',          {'__class__': 'HdlOp',           'fn': 'INDEX',           'ops': ['STAGE',                   {'__class__': 'HdlOp',                    'fn': 'DOWNTO',                    'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                            {'__class__': 'HdlValueInt',                             'base': 10,                             'val': '0'}]}]}]}  to {'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': ['DIVEND',          {'__class__': 'HdlOp',           'fn': 'INDEX',           'ops': ['STAGE',                   {'__class__': 'HdlOp',                    'fn': 'DOWNTO',                    'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                            {'__class__': 'HdlValueInt',                             'base': 10,                             'val': '0'}]}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@AND to AND
+                UPD HdlOp@@OR to OR
+                    INS HdlOp@@AND to ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: NEG
+                                list: ops
+                                    HdlValueId: DIVSGN
+                            HdlValueId: IDIV
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@AND to AND
+                UPD HdlOp@@OR to OR
+                    INS HdlOp@@AND to ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: NEG
+                                list: ops
+                                    HdlValueId: DIVSGN
+                            HdlValueId: IDIV
+
+UPD HdlStmCase@@ICODE1 to ICODE1
+    DEL HdlStmCaseType@@CASE from ICODE1
+    DEL HdlValueId@@ICODE1 from ICODE1
+    DEL HdlValueInt@@27 from 
+
+UPD HdlStmCase@@REG to REG
+    DEL HdlStmCaseType@@CASE from REG
+    DEL HdlValueId@@REG from REG
+
+
+CommitId: 60d105ae1c0dce9bce15b19a6b695c54b0a8985a
+fixed DAA,DAS bug
+--- a/Next186_ALU.v
++++ b/Next186_ALU.v
+@@ -110,9 +111,8 @@ module Next186_ALU(
+ 	wire zero = ~|ALUOUT[15:0];
+ 	wire overflow8 = (SUMOP1[7] & SUMOP2[7] & !SUMOUT[7]) | (!SUMOP1[7] & !SUMOP2[7] & SUMOUT[7]);
+ 	wire overflow = (SUMOP1[15] & SUMOP2[15] & !SUMOUT[15]) | (!SUMOP1[15] & !SUMOP2[15] & SUMOUT[15]);
+-	wire LO9 = RA[3:0] > 9;
+-	wire LONIBBLE =  LO9 | FIN[4];
+-	wire HINIBBLE = (RA[7:4] > 8 && LO9) | FIN[0];
++	wire LONIBBLE = (RA[3:0] > 4'h9)  || FIN[4];
++	wire HINIBBLE = (RA[7:0] > 8'h99) || FIN[0];
+ 
+ // ADDER		
+ 	assign {AF, SUMOUT[3:0]} = SUMOP1[3:0] + SUMOP2[3:0] + SCIN;
+
+ParseResult:
+UPD HdlIdDef@@LO9 to LONIBBLE
+
+INS HdlIdDef@@HINIBBLE to objs
+
+UPD HdlIdDef@@LONIBBLE to LONIBBLE
+    INS HdlOp@@OR_LOG to LONIBBLE
+    UPD HdlOp@@OR_LOG to OR_LOG
+        INS list@@ops to OR_LOG
+
+UPD HdlIdDef@@HINIBBLE to HINIBBLE
+    INS HdlOp@@OR_LOG to HINIBBLE
+    INS HdlDirection@@INTERNAL to HINIBBLE
+    UPD HdlOp@@OR_LOG to OR_LOG
+        INS list@@ops to OR_LOG
+        INS HdlOp@@GT to ops
+        HdlOp: GT
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: RA
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 7
+                                HdlValueInt: 0
+                HdlValueInt: 99
+
+UPD HdlIdDef@@LO9 to LO9
+    MOV HdlOp@@GT to LO9
+    HdlOp: GT
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: RA
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 3
+                            HdlValueInt: 0
+            HdlValueInt: 9
+
+UPD HdlIdDef@@LONIBBLE to LONIBBLE
+    UPD HdlOp@@OR to OR
+        MOV HdlOp@@INDEX to ops
+        HdlOp: INDEX
+            list: ops
+                HdlValueId: FIN
+                HdlValueInt: 4
+        DEL HdlValueId@@LO9 from ops
+        DEL list@@ops from OR
+    DEL HdlOp@@OR from LONIBBLE
+    DEL HdlDirection@@INTERNAL from LONIBBLE
+
+UPD HdlIdDef@@HINIBBLE to HINIBBLE
+    UPD HdlOp@@OR to OR
+        MOV HdlOp@@INDEX to ops
+        HdlOp: INDEX
+            list: ops
+                HdlValueId: FIN
+                HdlValueInt: 0
+        DEL HdlOp@@AND_LOG from ops
+        HdlOp: AND_LOG
+            list: ops
+                HdlOp: GT
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: RA
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 7
+                                        HdlValueInt: 4
+                        HdlValueInt: 8
+                HdlValueId: LO9
+        DEL list@@ops from OR
+    DEL HdlOp@@OR from HINIBBLE
+    DEL HdlDirection@@INTERNAL from HINIBBLE
+
+DEL HdlIdDef@@LONIBBLE from objs
+
+DEL HdlIdDef@@HINIBBLE from objs
+
+
+CommitId: 60d105ae1c0dce9bce15b19a6b695c54b0a8985a
+fixed DAA,DAS bug
+--- a/Next186_ALU.v
++++ b/Next186_ALU.v
+@@ -207,8 +207,8 @@ module Next186_ALU(
+ 			end
+ 			5'b01100, 5'b01101: begin 	// DAA, DAS
+ 				ALUOUT = SUMOUT;
+-				FOUT[0] = HINIBBLE ? 1'b1 : FIN[0];
+-				FOUT[4] = LONIBBLE ? 1'b1 : FIN[4];
++				FOUT[0] = HINIBBLE;
++				FOUT[4] = LONIBBLE;
+ 			end
+ 			5'b01110, 5'b01111: begin	// AAA, AAS
+ 				ALUOUT = {SUMOUT[15:8], 4'b0000, SUMOUT[3:0]};
+
+ParseResult:
+UPD HdlStmCase@@ALUOP to ALUOP
+    INS HdlStmCaseType@@CASE to ALUOP
+    INS HdlValueId@@ALUOP to ALUOP
+    INS tuple@@ to cases
+    INS tuple@@ to cases
+    INS HdlValueInt@@01100 to 
+    INS HdlStmBlock@@SEQ to 
+    INS HdlValueInt@@01101 to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+        INS HdlOp@@ASSIGN to body
+        INS HdlOp@@ASSIGN to body
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS list@@ops to ASSIGN
+            INS HdlValueId@@HINIBBLE to ops
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS list@@ops to ASSIGN
+            INS HdlValueId@@LONIBBLE to ops
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+        INS HdlOp@@ASSIGN to body
+        INS HdlOp@@ASSIGN to body
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS list@@ops to ASSIGN
+            INS HdlValueId@@HINIBBLE to ops
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS list@@ops to ASSIGN
+            INS HdlValueId@@LONIBBLE to ops
+
+UPD HdlStmCase@@ALUOP to ALUOP
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: ALUOUT
+                HdlValueId: SUMOUT
+        UPD HdlOp@@ASSIGN to ASSIGN
+            MOV HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: FOUT
+                    HdlValueInt: 0
+            DEL HdlOp@@TERNARY from ops
+            HdlOp: TERNARY
+                list: ops
+                    HdlValueId: HINIBBLE
+                    HdlValueInt: 1
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: FIN
+                            HdlValueInt: 0
+            DEL list@@ops from ASSIGN
+        UPD HdlOp@@ASSIGN to ASSIGN
+            MOV HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: FOUT
+                    HdlValueInt: 4
+            DEL HdlOp@@TERNARY from ops
+            HdlOp: TERNARY
+                list: ops
+                    HdlValueId: LONIBBLE
+                    HdlValueInt: 1
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: FIN
+                            HdlValueInt: 4
+            DEL list@@ops from ASSIGN
+        DEL HdlOp@@ASSIGN from body
+        DEL HdlOp@@ASSIGN from body
+        DEL list@@body from SEQ
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: ALUOUT
+                HdlValueId: SUMOUT
+        UPD HdlOp@@ASSIGN to ASSIGN
+            MOV HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: FOUT
+                    HdlValueInt: 0
+            DEL HdlOp@@TERNARY from ops
+            HdlOp: TERNARY
+                list: ops
+                    HdlValueId: HINIBBLE
+                    HdlValueInt: 1
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: FIN
+                            HdlValueInt: 0
+            DEL list@@ops from ASSIGN
+        UPD HdlOp@@ASSIGN to ASSIGN
+            MOV HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: FOUT
+                    HdlValueInt: 4
+            DEL HdlOp@@TERNARY from ops
+            HdlOp: TERNARY
+                list: ops
+                    HdlValueId: LONIBBLE
+                    HdlValueInt: 1
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: FIN
+                            HdlValueInt: 4
+            DEL list@@ops from ASSIGN
+        DEL HdlOp@@ASSIGN from body
+        DEL HdlOp@@ASSIGN from body
+        DEL list@@body from SEQ
+    DEL HdlStmCaseType@@CASE from ALUOP
+    DEL HdlValueId@@ALUOP from ALUOP
+    DEL HdlValueInt@@01100 from 
+    DEL HdlStmBlock@@SEQ from 
+    DEL tuple@@ from cases
+    DEL HdlValueInt@@01101 from 
+    DEL HdlStmBlock@@SEQ from 
+    DEL tuple@@ from cases
+
+
+CommitId: b10e27b3ee2b9562d1ec53346835195d98a1b1fe
+fixed MUL/IMUL 8bit flags bug
+--- a/Next186_CPU.v
++++ b/Next186_CPU.v
+@@ -861,6 +862,7 @@ module Next186_CPU(
+ 					3'b100, 3'b101: begin	// MUL, IMUL
+ 						ISIZE = ISIZES;
+ 						ALUOP = {4'b1000, REG[0]};		// BASEL = FETCH[0][1] = 1
++						WE[4] = 1'b1;			// fix MUL/IMUL 8bit flags bug
+ 						case(STAGE[1:0])
+ 							2'b00: begin		// stage1, RA -> TMP16, RB (mem) -> FETCH
+ 								MREQ = ~&MOD;
+
+ParseResult:
+UPD HdlStmCase@@ICODE1 to ICODE1
+    INS HdlStmCaseType@@CASE to ICODE1
+    INS HdlValueId@@ICODE1 to ICODE1
+    INS HdlValueInt@@27 to 
+
+UPD HdlStmCase@@REG to REG
+    INS HdlStmCaseType@@CASE to REG
+    INS HdlValueId@@REG to REG
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: WE
+                        HdlValueInt: 4
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: WE
+                        HdlValueInt: 4
+                HdlValueInt: 1
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS HdlOp@@INDEX to ops
+            UPD HdlOp@@INDEX to INDEX
+                INS list@@ops to INDEX
+                INS HdlOp@@DOWNTO to ops
+                HdlOp: DOWNTO
+                    list: ops
+                        HdlValueInt: 1
+                        HdlValueInt: 0
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@10011 to 11
+            MOV HdlValueId@@WE to ops
+            HdlValueId: WE
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS HdlOp@@INDEX to ops
+            UPD HdlOp@@INDEX to INDEX
+                INS list@@ops to INDEX
+                INS HdlOp@@DOWNTO to ops
+                HdlOp: DOWNTO
+                    list: ops
+                        HdlValueInt: 1
+                        HdlValueInt: 0
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@10011 to 11
+            MOV HdlValueId@@WE to ops
+            HdlValueId: WE
+
+UPD HdlStmCase@@ICODE1 to ICODE1
+    DEL HdlStmCaseType@@CASE from ICODE1
+    DEL HdlValueId@@ICODE1 from ICODE1
+    DEL HdlValueInt@@27 from 
+
+UPD HdlStmCase@@REG to REG
+    DEL HdlStmCaseType@@CASE from REG
+    DEL HdlValueId@@REG from REG
+
+
+CommitId: b10e27b3ee2b9562d1ec53346835195d98a1b1fe
+fixed MUL/IMUL 8bit flags bug
+--- a/Next186_CPU.v
++++ b/Next186_CPU.v
+@@ -869,14 +871,14 @@ module Next186_CPU(
+ 								DOSEL = 2'b11;	 
+ 								IFETCH = 1'b0;
+ 							end
+-							2'b01: begin				// stage2, write AX
+-								WE[1:0] = 2'b11;	
++							2'b01: begin			// stage2, write AX
++								WE[1:0] = 2'b11;	// flags, RASEL_HI, RASEL_LO 
+ 								RASEL = 3'b000;	// AX
+ 								MREQ = 1'b0;
+ 								IFETCH = ~FETCH[0][0];
+ 							end
+ 							2'b10: begin			// stage 2, write DX
+-								WE = 5'b10011;		
++								WE[1:0] = 2'b11;	// flags, RASEL_HI, RASEL_LO	
+ 								RASEL = 3'b010;	// DX
+ 								MREQ = 1'b0;
+ 							end
+
+ParseResult:
+UPD HdlStmCase@@ICODE1 to ICODE1
+    INS HdlStmCaseType@@CASE to ICODE1
+    INS HdlValueId@@ICODE1 to ICODE1
+    INS HdlValueInt@@27 to 
+
+UPD HdlStmCase@@REG to REG
+    INS HdlStmCaseType@@CASE to REG
+    INS HdlValueId@@REG to REG
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: WE
+                        HdlValueInt: 4
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: WE
+                        HdlValueInt: 4
+                HdlValueInt: 1
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS HdlOp@@INDEX to ops
+            UPD HdlOp@@INDEX to INDEX
+                INS list@@ops to INDEX
+                INS HdlOp@@DOWNTO to ops
+                HdlOp: DOWNTO
+                    list: ops
+                        HdlValueInt: 1
+                        HdlValueInt: 0
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@10011 to 11
+            MOV HdlValueId@@WE to ops
+            HdlValueId: WE
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS HdlOp@@INDEX to ops
+            UPD HdlOp@@INDEX to INDEX
+                INS list@@ops to INDEX
+                INS HdlOp@@DOWNTO to ops
+                HdlOp: DOWNTO
+                    list: ops
+                        HdlValueInt: 1
+                        HdlValueInt: 0
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@10011 to 11
+            MOV HdlValueId@@WE to ops
+            HdlValueId: WE
+
+UPD HdlStmCase@@ICODE1 to ICODE1
+    DEL HdlStmCaseType@@CASE from ICODE1
+    DEL HdlValueId@@ICODE1 from ICODE1
+    DEL HdlValueInt@@27 from 
+
+UPD HdlStmCase@@REG to REG
+    DEL HdlStmCaseType@@CASE from REG
+    DEL HdlValueId@@REG from REG
+
+
+CommitId: acbf6bf494a1dc71c987adc9dac4a7ba917e4626
+fix IDIV when Q=0
+--- a/Next186_ALU.v
++++ b/Next186_ALU.v
+@@ -91,7 +91,6 @@ module Next186_ALU(
+ 	 output reg ALUCONT,
+ 	 output NULLSHIFT,
+ 	 output COUT,
+-	 output SOUT,
+ 	 input [2:0]STAGE,
+ 	 input CLK
+     );
+
+ParseResult:
+DEL HdlIdDef@@SOUT from ports
+HdlIdDef: SOUT
+    HdlValueId: wire
+    HdlDirection: OUT
+
+
+CommitId: acbf6bf494a1dc71c987adc9dac4a7ba917e4626
+fix IDIV when Q=0
+--- a/Next186_ALU.v
++++ b/Next186_ALU.v
+@@ -119,7 +118,6 @@ module Next186_ALU(
+ 	assign {SC8OUT, SUMOUT[7:4]} = SUMOP1[7:4] + SUMOP2[7:4] + AF;
+ 	assign {SC16OUT, SUMOUT[15:8]} = SUMOP1[15:8] + SUMOP2[15:8] + SC8OUT;
+ 	assign COUT = (WORD ? SC16OUT : SC8OUT) ^ CPLOP2;
+-	assign SOUT = WORD ? SUMOUT[15] : SUMOUT[7];
+ 
+ // SHIFTER
+ 	reg [4:0]SHNOPT;	// optimized shift
+
+ParseResult:
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlOp: TERNARY
+        list: ops
+            HdlValueId: WORD
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: SUMOUT
+                    HdlValueInt: 15
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: SUMOUT
+                    HdlValueInt: 7
+    HdlValueId: SOUT
+
+
+CommitId: dd60d5f0d9ea5602148c681d90c03ac2e35857b2
+fixed OV/CY flags for IMUL
+--- a/Next186_ALU.v
++++ b/Next186_ALU.v
+@@ -216,7 +216,9 @@ module Next186_ALU(
+ 			end
+ 			5'b10000, 5'b10001 : begin	// MUL, IMUL
+ 				ALUOUT = STAGE[1] ? MUL[31:16] : MUL[15:0];
+-				FOUT[0] = WORD ? !zero | (ALUOP[0] & MUL[15]): |MUL[15:8] | (ALUOP[0] & MUL[7]); //07Jul2013 - fixed OV/CY flags for IMUL
++//07Jul2013 - fixed OV/CY flags for IMUL
++				if(ALUOP[0]) FOUT[0] = WORD ? MUL[31:16] != {16{MUL[15]}} : MUL[15:8] != {8{MUL[7]}}; // IMUL
++				else FOUT[0] = WORD ? !zero : |MUL[15:8];	// MUL
+ 				FOUT[11] = FOUT[0];
+ 			end
+ 			5'b11001: begin		// flag op
+
+ParseResult:
+UPD HdlStmCase@@ALUOP to ALUOP
+    INS HdlStmCaseType@@CASE to ALUOP
+    INS HdlValueId@@ALUOP to ALUOP
+    INS tuple@@ to cases
+    INS tuple@@ to cases
+    INS HdlValueInt@@10000 to 
+    INS HdlStmBlock@@SEQ to 
+    INS HdlValueInt@@10001 to 
+    INS HdlStmBlock@@SEQ to 
+
+UPD HdlStmCase@@ALUOP to ALUOP
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD list@@ops to body
+            MOV list@@ops to ASSIGN
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: FOUT
+                        HdlValueInt: 0
+                HdlOp: TERNARY
+                    list: ops
+                        HdlValueId: WORD
+                        HdlOp: OR
+                            list: ops
+                                HdlOp: NEG_LOG
+                                    list: ops
+                                        HdlValueId: zero
+                                HdlOp: AND
+                                    list: ops
+                                        HdlOp: INDEX
+                                            list: ops
+                                                HdlValueId: ALUOP
+                                                HdlValueInt: 0
+                                        HdlOp: INDEX
+                                            list: ops
+                                                HdlValueId: MUL
+                                                HdlValueInt: 15
+                        HdlOp: OR
+                            list: ops
+                                HdlOp: OR_UNARY
+                                    list: ops
+                                        HdlOp: INDEX
+                                            list: ops
+                                                HdlValueId: MUL
+                                                HdlOp: DOWNTO
+                                                    list: ops
+                                                        HdlValueInt: 15
+                                                        HdlValueInt: 8
+                                HdlOp: AND
+                                    list: ops
+                                        HdlOp: INDEX
+                                            list: ops
+                                                HdlValueId: ALUOP
+                                                HdlValueInt: 0
+                                        HdlOp: INDEX
+                                            list: ops
+                                                HdlValueId: MUL
+                                                HdlValueInt: 7
+            UPD HdlOp@@TERNARY to TERNARY
+                UPD HdlOp@@OR to OR
+                    UPD HdlOp@@AND to AND
+                        MOV HdlOp@@INDEX to ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: ALUOP
+                                HdlValueInt: 0
+                    UPD HdlOp@@AND to REPL_CONCAT
+                    MOV HdlOp@@AND to ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: ALUOP
+                                    HdlValueInt: 0
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: MUL
+                                    HdlValueInt: 7
+                UPD HdlOp@@OR to OR
+                    UPD HdlOp@@AND to AND
+                        MOV HdlOp@@INDEX to ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: ALUOP
+                                HdlValueInt: 0
+                        UPD HdlOp@@INDEX to INDEX
+                            UPD HdlValueId@@ALUOP to FOUT
+                            UPD HdlValueInt@@0 to 16
+                            MOV HdlValueInt@@0 to ops
+                            HdlValueInt: 0
+                    MOV HdlOp@@NEG_LOG to ops
+                    HdlOp: NEG_LOG
+                        list: ops
+                            HdlValueId: zero
+                    UPD HdlOp@@AND to REPL_CONCAT
+                UPD HdlOp@@OR to TERNARY
+                UPD HdlOp@@OR to NE
+                MOV HdlOp@@OR to ops
+                HdlOp: OR
+                    list: ops
+                        HdlOp: NEG_LOG
+                            list: ops
+                                HdlValueId: zero
+                        HdlOp: AND
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: ALUOP
+                                        HdlValueInt: 0
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: MUL
+                                        HdlValueInt: 15
+                DEL HdlValueId@@WORD from ops
+            UPD HdlOp@@TERNARY to ASSIGN
+            MOV HdlOp@@TERNARY to ops
+            HdlOp: TERNARY
+                list: ops
+                    HdlValueId: WORD
+                    HdlOp: OR
+                        list: ops
+                            HdlOp: NEG_LOG
+                                list: ops
+                                    HdlValueId: zero
+                            HdlOp: AND
+                                list: ops
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: ALUOP
+                                            HdlValueInt: 0
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: MUL
+                                            HdlValueInt: 15
+                    HdlOp: OR
+                        list: ops
+                            HdlOp: OR_UNARY
+                                list: ops
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: MUL
+                                            HdlOp: DOWNTO
+                                                list: ops
+                                                    HdlValueInt: 15
+                                                    HdlValueInt: 8
+                            HdlOp: AND
+                                list: ops
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: ALUOP
+                                            HdlValueInt: 0
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: MUL
+                                            HdlValueInt: 7
+            MOV HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: FOUT
+                    HdlValueInt: 0
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: ALUOUT
+                HdlOp: TERNARY
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: STAGE
+                                HdlValueInt: 1
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: MUL
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 31
+                                        HdlValueInt: 16
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: MUL
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 15
+                                        HdlValueInt: 0
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: FOUT
+                        HdlValueInt: 11
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: FOUT
+                        HdlValueInt: 0
+        DEL HdlOp@@ASSIGN from body
+        DEL list@@body from SEQ
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD list@@ops to body
+            MOV list@@ops to ASSIGN
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: FOUT
+                        HdlValueInt: 0
+                HdlOp: TERNARY
+                    list: ops
+                        HdlValueId: WORD
+                        HdlOp: OR
+                            list: ops
+                                HdlOp: NEG_LOG
+                                    list: ops
+                                        HdlValueId: zero
+                                HdlOp: AND
+                                    list: ops
+                                        HdlOp: INDEX
+                                            list: ops
+                                                HdlValueId: ALUOP
+                                                HdlValueInt: 0
+                                        HdlOp: INDEX
+                                            list: ops
+                                                HdlValueId: MUL
+                                                HdlValueInt: 15
+                        HdlOp: OR
+                            list: ops
+                                HdlOp: OR_UNARY
+                                    list: ops
+                                        HdlOp: INDEX
+                                            list: ops
+                                                HdlValueId: MUL
+                                                HdlOp: DOWNTO
+                                                    list: ops
+                                                        HdlValueInt: 15
+                                                        HdlValueInt: 8
+                                HdlOp: AND
+                                    list: ops
+                                        HdlOp: INDEX
+                                            list: ops
+                                                HdlValueId: ALUOP
+                                                HdlValueInt: 0
+                                        HdlOp: INDEX
+                                            list: ops
+                                                HdlValueId: MUL
+                                                HdlValueInt: 7
+            UPD HdlOp@@TERNARY to TERNARY
+                UPD HdlOp@@OR to OR
+                    UPD HdlOp@@AND to AND
+                        MOV HdlOp@@INDEX to ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: ALUOP
+                                HdlValueInt: 0
+                    UPD HdlOp@@AND to REPL_CONCAT
+                    MOV HdlOp@@AND to ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: ALUOP
+                                    HdlValueInt: 0
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: MUL
+                                    HdlValueInt: 7
+                UPD HdlOp@@OR to OR
+                    UPD HdlOp@@AND to AND
+                        MOV HdlOp@@INDEX to ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: ALUOP
+                                HdlValueInt: 0
+                        UPD HdlOp@@INDEX to INDEX
+                            UPD HdlValueId@@ALUOP to FOUT
+                            UPD HdlValueInt@@0 to 16
+                            MOV HdlValueInt@@0 to ops
+                            HdlValueInt: 0
+                    MOV HdlOp@@NEG_LOG to ops
+                    HdlOp: NEG_LOG
+                        list: ops
+                            HdlValueId: zero
+                    UPD HdlOp@@AND to REPL_CONCAT
+                UPD HdlOp@@OR to TERNARY
+                UPD HdlOp@@OR to NE
+                MOV HdlOp@@OR to ops
+                HdlOp: OR
+                    list: ops
+                        HdlOp: NEG_LOG
+                            list: ops
+                                HdlValueId: zero
+                        HdlOp: AND
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: ALUOP
+                                        HdlValueInt: 0
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: MUL
+                                        HdlValueInt: 15
+                DEL HdlValueId@@WORD from ops
+            UPD HdlOp@@TERNARY to ASSIGN
+            MOV HdlOp@@TERNARY to ops
+            HdlOp: TERNARY
+                list: ops
+                    HdlValueId: WORD
+                    HdlOp: OR
+                        list: ops
+                            HdlOp: NEG_LOG
+                                list: ops
+                                    HdlValueId: zero
+                            HdlOp: AND
+                                list: ops
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: ALUOP
+                                            HdlValueInt: 0
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: MUL
+                                            HdlValueInt: 15
+                    HdlOp: OR
+                        list: ops
+                            HdlOp: OR_UNARY
+                                list: ops
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: MUL
+                                            HdlOp: DOWNTO
+                                                list: ops
+                                                    HdlValueInt: 15
+                                                    HdlValueInt: 8
+                            HdlOp: AND
+                                list: ops
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: ALUOP
+                                            HdlValueInt: 0
+                                    HdlOp: INDEX
+                                        list: ops
+                                            HdlValueId: MUL
+                                            HdlValueInt: 7
+            MOV HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: FOUT
+                    HdlValueInt: 0
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: ALUOUT
+                HdlOp: TERNARY
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: STAGE
+                                HdlValueInt: 1
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: MUL
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 31
+                                        HdlValueInt: 16
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: MUL
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 15
+                                        HdlValueInt: 0
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: FOUT
+                        HdlValueInt: 11
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: FOUT
+                        HdlValueInt: 0
+        DEL HdlOp@@ASSIGN from body
+        DEL list@@body from SEQ
+    DEL HdlStmCaseType@@CASE from ALUOP
+    DEL HdlValueId@@ALUOP from ALUOP
+    DEL HdlValueInt@@10000 from 
+    DEL HdlStmBlock@@SEQ from 
+    DEL tuple@@ from cases
+    DEL HdlValueInt@@10001 from 
+    DEL HdlStmBlock@@SEQ from 
+    DEL tuple@@ from cases
+
+INS HdlStmIf@@ to body
+
+INS HdlStmIf@@ to body
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@ASSIGN to 
+    INS list@@elifs to 
+    UPD HdlOp@@ASSIGN to ASSIGN
+        INS list@@ops to ASSIGN
+        INS HdlOp@@TERNARY to ops
+        UPD HdlOp@@TERNARY to TERNARY
+            INS list@@ops to TERNARY
+            INS HdlValueId@@WORD to ops
+            INS HdlOp@@NE to ops
+            UPD HdlOp@@NE to NE
+                INS list@@ops to NE
+                INS HdlOp@@INDEX to ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: MUL
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 15
+                                HdlValueInt: 8
+                UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                    INS HdlValueInt@@8 to ops
+            UPD HdlOp@@NE to NE
+                INS HdlOp@@INDEX to ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: MUL
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 31
+                                HdlValueInt: 16
+    UPD HdlOp@@ASSIGN to ASSIGN
+        UPD HdlOp@@INDEX to INDEX
+            INS HdlValueInt@@0 to ops
+        UPD HdlOp@@TERNARY to TERNARY
+            INS HdlValueId@@WORD to ops
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@ASSIGN to 
+    INS list@@elifs to 
+    UPD HdlOp@@ASSIGN to ASSIGN
+        INS list@@ops to ASSIGN
+        INS HdlOp@@TERNARY to ops
+        UPD HdlOp@@TERNARY to TERNARY
+            INS list@@ops to TERNARY
+            INS HdlValueId@@WORD to ops
+            INS HdlOp@@NE to ops
+            UPD HdlOp@@NE to NE
+                INS list@@ops to NE
+                INS HdlOp@@INDEX to ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: MUL
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 15
+                                HdlValueInt: 8
+                UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                    INS HdlValueInt@@8 to ops
+            UPD HdlOp@@NE to NE
+                INS HdlOp@@INDEX to ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: MUL
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 31
+                                HdlValueInt: 16
+    UPD HdlOp@@ASSIGN to ASSIGN
+        UPD HdlOp@@INDEX to INDEX
+            INS HdlValueInt@@0 to ops
+        UPD HdlOp@@TERNARY to TERNARY
+            INS HdlValueId@@WORD to ops
+
+

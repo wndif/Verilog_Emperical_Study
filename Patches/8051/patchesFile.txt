@@ -1,0 +1,2196 @@
+CommitId: 255fa92ab88e79f49b384e61055dd40659371d2f
+fix some bugs
+--- a/rtl/verilog/oc8051_divide.v
++++ b/rtl/verilog/oc8051_divide.v
+@@ -76,7 +76,6 @@ wire [7:0] rem0, rem1, rem2;
+ wire [8:0] sub0, sub1;
+ wire [15:0] cmp0, cmp1;
+ wire [7:0] div_out, rem_out;
+-wire [7:0] div;
+ 
+ // real registers
+ reg [1:0] cycle;
+
+ParseResult:
+DEL HdlIdDef@@div from objs
+HdlIdDef: div
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 7
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+
+CommitId: 255fa92ab88e79f49b384e61055dd40659371d2f
+fix some bugs
+--- a/rtl/verilog/oc8051_divide.v
++++ b/rtl/verilog/oc8051_divide.v
+@@ -91,11 +90,11 @@ assign rem2 = cycle != 0 ? tmp_rem : src1;
+ 
+ assign sub1 = {1'b0, rem2} - {1'b0, cmp1[7:0]};
+ assign div1 = |cmp1[15:8] ? 1'b0 : !sub1[8];
+-assign rem1 = div1 ? sub1[7:0] : cmp1[7:0];
++assign rem1 = div1 ? sub1[7:0] : rem2[7:0];
+ 
+ assign sub0 = {1'b0, rem1} - {1'b0, cmp0[7:0]};
+ assign div0 = |cmp0[15:8] ? 1'b0 : !sub0[8];
+-assign rem0 = div0 ? sub0[7:0] : cmp0[7:0];
++assign rem0 = div0 ? sub0[7:0] : rem1[7:0];
+ 
+ //
+ // in clock cycle 0 we first calculate two MSB bits, ...
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@cmp1 to rem2
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@cmp0 to rem1
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_multiply.v
++++ b/rtl/verilog/oc8051_multiply.v
+@@ -43,16 +44,21 @@
+ //
+ // ver: 1
+ //
+-
++// ver: 2 markom
++// changed to two cycle multiplication, to save resources and
++// increase speed
+ 
+ // synopsys translate_off
+ `include "oc8051_timescale.v"
+ // synopsys translate_on
+ 
+ 
+-module oc8051_multiply (src1, src2, des1, des2, desOv);
++module oc8051_multiply (clk, rst, enable, src1, src2, des1, des2, desOv);
+ //
+ // this module is part of alu
++// clk          (in)
++// rst          (in)
++// enable       (in)
+ // src1         (in)  first operand
+ // src2         (in)  second operand
+ // des1         (out) first result
+
+ParseResult:
+UPD HdlIdDef@@desOv to cycle
+
+MOV HdlIdDef@@desOv to ports
+HdlIdDef: desOv
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: OUT
+
+INS HdlIdDef@@clk to ports
+HdlIdDef: clk
+    HdlDirection: IN
+
+INS HdlIdDef@@rst to ports
+HdlIdDef: rst
+    HdlDirection: IN
+
+INS HdlIdDef@@enable to ports
+HdlIdDef: enable
+    HdlDirection: IN
+
+INS HdlIdDef@@desOv to ports
+HdlIdDef: desOv
+    HdlDirection: OUT
+
+UPD HdlIdDef@@desOv to desOv
+    UPD HdlDirection@@OUT to INTERNAL
+
+UPD HdlIdDef@@des1 to des1
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlValueId@@reg to wire
+
+UPD HdlIdDef@@des2 to des2
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlValueId@@reg to wire
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_multiply.v
++++ b/rtl/verilog/oc8051_multiply.v
+@@ -60,18 +66,32 @@ module oc8051_multiply (src1, src2, des1, des2, desOv);
+ // desOv        (out) Overflow output
+ //
+ 
++input clk, rst, enable;
+ input [7:0] src1, src2;
+ output desOv;
+ output [7:0] des1, des2;
+-reg desOv; reg [7:0] des1, des2;
+ 
+-always @(src1 or src2)
++// wires
++wire [15:0] mul_result1, mul_result;
++
++// real registers
++reg cycle;
++reg [11:0] tmp_mul;
++
++assign mul_result1 = src1 * (cycle ? src2[7:4] : src2[3:0]);
++assign mul_result = mul_result1 + tmp_mul;
++assign des1 = mul_result[7:0];
++assign des2 = mul_result[15:8];
++assign desOv = des2 != 8'h0;
++
++always @(posedge clk or posedge rst)
+ begin
+-  {des2, des1} = src1* src2;
+-  if (des2!=8'b00000000)
+-    desOv = 1'b1;
+-  else
+-    desOv = 1'b0;
++  if (rst) cycle <= #1 1'b0;
++  else begin
++    if (enable && !cycle) cycle <= #1 1'b1;
++    else cycle <= #1 1'b0;
++    tmp_mul <= #1 mul_result1[11:0];
++  end
+ end
+ 
+ endmodule
+
+ParseResult:
+INS HdlIdDef@@mul_result1 to objs
+
+INS HdlIdDef@@mul_result to objs
+HdlIdDef: mul_result
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 15
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@tmp_mul to objs
+HdlIdDef: tmp_mul
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 11
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlStmAssign@@ to objs
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: ADD
+        list: ops
+            HdlValueId: mul_result1
+            HdlValueId: tmp_mul
+    HdlValueId: mul_result
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: mul_result
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 7
+                    HdlValueInt: 0
+    HdlValueId: des1
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: mul_result
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 15
+                    HdlValueInt: 8
+    HdlValueId: des2
+
+INS HdlStmAssign@@ to objs
+
+INS HdlStmProcess@@ to objs
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@NE to 
+    HdlOp: NE
+        list: ops
+            HdlValueId: des2
+            HdlValueInt: 00000000
+    UPD HdlOp@@NE to NE
+        UPD HdlValueInt@@00000000 to 0
+    UPD HdlOp@@ASSIGN to AND_LOG
+    MOV HdlOp@@ASSIGN to 
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: desOv
+            HdlValueInt: 1
+    MOV list@@elifs to 
+    list: elifs
+    UPD HdlOp@@ASSIGN to INDEX
+    MOV HdlOp@@ASSIGN to 
+    HdlOp: ASSIGN
+        list: ops
+            HdlValueId: desOv
+            HdlValueInt: 0
+    UPD HdlOp@@ASSIGN to ASSIGN
+        UPD HdlValueId@@desOv to mul_result1
+        MOV HdlValueInt@@0 to ops
+        HdlValueInt: 0
+    UPD HdlOp@@ASSIGN to ASSIGN
+        MOV list@@ops to ASSIGN
+        list: ops
+            HdlValueId: desOv
+            HdlValueInt: 1
+        UPD HdlValueId@@desOv to cycle
+        DEL HdlValueInt@@1 from ops
+
+UPD HdlStmProcess@@ to 
+    UPD HdlValueId@@src1 to wire
+    MOV HdlValueId@@src1 to sensitivity
+    HdlValueId: src1
+    UPD HdlValueId@@src2 to src1
+    MOV HdlValueId@@src2 to sensitivity
+    HdlValueId: src2
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to TERNARY
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlOp: CONCAT
+                    list: ops
+                        HdlValueId: des2
+                        HdlValueId: des1
+                HdlOp: MUL
+                    list: ops
+                        HdlValueId: src1
+                        HdlValueId: src2
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@CONCAT to INDEX
+            UPD HdlOp@@MUL to INDEX
+            UPD HdlOp@@CONCAT to CONCAT
+                UPD HdlValueId@@des2 to src2
+                DEL HdlValueId@@des1 from ops
+            UPD HdlOp@@MUL to MUL
+                DEL HdlValueId@@src1 from ops
+        DEL list@@body from SEQ
+    DEL list@@sensitivity from 
+    DEL HdlStmBlock@@SEQ from 
+
+INS HdlStmIf@@ to body
+
+INS HdlStmAssign@@if_true to 
+HdlStmAssign: if_true
+    HdlValueInt: 0
+    HdlValueId: cycle
+    HdlValueInt: 1
+
+INS HdlStmIf@@ to body
+
+INS HdlStmAssign@@ to body
+
+INS HdlStmAssign@@if_true to 
+HdlStmAssign: if_true
+    HdlValueInt: 1
+    HdlValueId: cycle
+    HdlValueInt: 1
+
+INS HdlStmAssign@@if_false to 
+HdlStmAssign: if_false
+    HdlValueInt: 0
+    HdlValueId: cycle
+    HdlValueInt: 1
+
+DEL HdlStmIf@@ from body
+
+DEL HdlStmProcess@@ from objs
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_reg2.v
++++ b/rtl/verilog/oc8051_reg2.v
+@@ -49,14 +49,13 @@
+ // synopsys translate_on
+ 
+ 
+-module oc8051_reg2 (clk, rst, in, out);
+-input [1:0] in; input clk, rst;
+-output [1:0] out;
+-reg [1:0] out;
++module oc8051_reg2 (clk, rst, din, dout);
++input [1:0] din; input clk, rst;
++output [1:0] dout;
++reg [1:0] dout;
+ 
+ always @(posedge clk or posedge rst)
+-  if (rst) out <= 2'b00;
+-  else
+-    out <= #1 in;
++  if (rst) dout <= 2'b00;
++  else dout <= #1 din;
+ 
+ endmodule
+ParseResult:
+UPD HdlIdDef@@in to din
+
+UPD HdlIdDef@@out to dout
+
+UPD HdlStmAssign@@if_true to if_true
+    UPD HdlValueId@@out to dout
+
+UPD HdlStmAssign@@if_false to if_false
+    UPD HdlValueId@@in to din
+    UPD HdlValueId@@out to dout
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_reg1.v
++++ b/rtl/verilog/oc8051_reg1.v
+@@ -50,14 +50,13 @@
+ // synopsys translate_on
+ 
+ 
+-module oc8051_reg1 (clk, rst, in, out);
+-input in, clk, rst;
+-output out;
+-reg out;
++module oc8051_reg1 (clk, rst, din, dout);
++input din, clk, rst;
++output dout;
++reg dout;
+ 
+ always @(posedge clk or posedge rst)
+-  if (rst) out <= 1'b0;
+-  else
+-    out <= #1 in;
++  if (rst) dout <= 1'b0;
++  else dout <= #1 din;
+ 
+ endmodule
+ParseResult:
+UPD HdlIdDef@@in to din
+
+UPD HdlIdDef@@out to dout
+
+UPD HdlStmAssign@@if_true to if_true
+    UPD HdlValueId@@out to dout
+
+UPD HdlStmAssign@@if_false to if_false
+    UPD HdlValueId@@in to din
+    UPD HdlValueId@@out to dout
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_reg3.v
++++ b/rtl/verilog/oc8051_reg3.v
+@@ -49,15 +49,14 @@
+ // synopsys translate_on
+ 
+ 
+-module oc8051_reg3 (clk, rst, in, out);
+-input [2:0] in; input clk, rst;
+-output [2:0] out;
+-reg [2:0] out;
++module oc8051_reg3 (clk, rst, din, dout);
++input [2:0] din; input clk, rst;
++output [2:0] dout;
++reg [2:0] dout;
+ 
+ always @(posedge clk or posedge rst)
+-  if (rst) out <= 3'b000;
+-  else
+-    out <= #1 in;
++  if (rst) dout <= 3'b000;
++  else dout <= #1 din;
+ 
+ endmodule
+ 
+ParseResult:
+UPD HdlIdDef@@in to din
+
+UPD HdlIdDef@@out to dout
+
+UPD HdlStmAssign@@if_true to if_true
+    UPD HdlValueId@@out to dout
+
+UPD HdlStmAssign@@if_false to if_false
+    UPD HdlValueId@@in to din
+    UPD HdlValueId@@out to dout
+
+
+CommitId: 256776fa707a2febb20ec4ee629ff0ce68a3a63d
+fix some bugs.
+--- a/rtl/verilog/oc8051_int.v
++++ b/rtl/verilog/oc8051_int.v
+@@ -46,6 +46,9 @@
+ // CVS Revision History
+ //
+ // $Log: not supported by cvs2svn $
++// Revision 1.8  2003/04/07 14:58:02  simont
++// change sfr's interface.
++//
+ // Revision 1.7  2003/03/28 17:45:57  simont
+ // change module name.
+ //
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS HdlOp@@AND to 
+    UPD HdlOp@@AND to AND
+        INS list@@ops to AND
+        INS HdlValueId@@int_proc to ops
+
+UPD HdlStmIf@@ to 
+    MOV HdlValueId@@reti to 
+    HdlValueId: reti
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_alu.v
++++ b/rtl/verilog/oc8051_alu.v
+@@ -54,7 +54,7 @@
+ 
+ 
+ 
+-module oc8051_alu (op_code, src1, src2, src3, srcCy, srcAc, bit_in, des1, des2, desCy, desAc, desOv);
++module oc8051_alu (clk, rst, op_code, src1, src2, src3, srcCy, srcAc, bit_in, des1, des2, desCy, desAc, desOv);
+ //
+ // op_code      (in)  operation code [oc8051_decoder.alu_op -r]
+ // src1         (in)  first operand [oc8051_alu_src1_sel.des]
+
+ParseResult:
+INS HdlStmAssign@@ to body
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: enable_div
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueId@@enable_mul to 
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['src1', {'__class__': 'HdlValueInt', 'base': 10, 'val': '7'}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['src1', {'__class__': 'HdlValueInt', 'base': 10, 'val': '7'}]} 
+    UPD HdlOp@@ASSIGN to ASSIGN
+        MOV HdlOp@@ADD to ops
+        HdlOp: ADD
+            list: ops
+                HdlOp: CONCAT
+                    list: ops
+                        HdlValueId: src3
+                        HdlValueId: src2
+                HdlValueId: src1
+        MOV HdlOp@@CONCAT to ops
+        HdlOp: CONCAT
+            list: ops
+                HdlValueId: des2
+                HdlValueId: des1
+        UPD HdlOp@@ADD to ADD
+            MOV HdlValueId@@src1 to ops
+            HdlValueId: src1
+        DEL list@@ops from ASSIGN
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD list@@ops to body
+            MOV list@@ops to ASSIGN
+            list: ops
+                HdlValueId: des1
+                HdlOp: ADD
+                    list: ops
+                        HdlValueId: src2
+                        HdlValueId: src1
+            MOV HdlOp@@ADD to ops
+            HdlOp: ADD
+                list: ops
+                    HdlValueId: src2
+                    HdlValueId: src1
+            DEL HdlValueId@@des1 from ops
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueId@@des2 to des1
+            MOV HdlValueId@@des2 to ops
+            HdlValueId: des2
+            MOV HdlValueId@@src3 to ops
+            HdlValueId: src3
+            DEL list@@ops from ASSIGN
+        DEL HdlOp@@ASSIGN from body
+        DEL HdlOp@@ASSIGN from body
+        DEL list@@body from SEQ
+    DEL HdlOp@@ASSIGN from {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['src1', {'__class__': 'HdlValueInt', 'base': 10, 'val': '7'}]} 
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_alu.v
++++ b/rtl/verilog/oc8051_alu.v
+@@ -70,7 +70,7 @@ module oc8051_alu (op_code, src1, src2, src3, srcCy, srcAc, bit_in, des1, des2,
+ // desOv        (out) Overflow output [oc8051_psw.ov_in]
+ //
+ 
+-input srcCy, srcAc, bit_in; input [3:0] op_code; input [7:0] src1, src2, src3;
++input srcCy, srcAc, bit_in, clk, rst; input [3:0] op_code; input [7:0] src1, src2, src3;
+ output desCy, desAc, desOv;
+ output [7:0] des1, des2;
+ 
+
+ParseResult:
+INS HdlStmAssign@@ to body
+
+INS HdlStmAssign@@ to body
+
+INS HdlStmAssign@@ to body
+
+INS HdlStmAssign@@ to body
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: enable_div
+
+INS HdlStmAssign@@default to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['src1', {'__class__': 'HdlValueInt', 'base': 10, 'val': '7'}]} 
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueInt@@0 to 
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueId@@enable_mul to 
+
+UPD HdlStmAssign@@default to default
+    UPD HdlOp@@ADD to ADD
+        INS HdlOp@@CONCAT to ops
+        UPD HdlOp@@CONCAT to CONCAT
+            INS list@@ops to CONCAT
+            INS HdlValueInt@@00 to ops
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_alu.v
++++ b/rtl/verilog/oc8051_alu.v
+@@ -91,12 +91,14 @@ output [7:0] des1, des2;
+ //
+   wire [7:0] mulsrc1, mulsrc2;
+   wire mulOv;
++  reg enable_mul;
+ 
+ //
+ //div
+ //
+ wire [7:0] divsrc1,divsrc2;
+ wire divOv;
++reg enable_div;
+ 
+ //
+ //da
+
+ParseResult:
+INS HdlStmAssign@@ to body
+
+INS HdlStmAssign@@ to body
+
+INS HdlStmAssign@@ to body
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueInt@@0 to 
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_alu.v
++++ b/rtl/verilog/oc8051_alu.v
+@@ -104,8 +106,8 @@ wire divOv;
+ reg da_tmp;
+ //reg [8:0] da1;
+ 
+-oc8051_multiply oc8051_mul1(.src1(src1), .src2(src2), .des1(mulsrc1), .des2(mulsrc2), .desOv(mulOv));
+-oc8051_divide oc8051_div1(.src1(src1), .src2(src2), .des1(divsrc1), .des2(divsrc2), .desOv(divOv));
++oc8051_multiply oc8051_mul1(.clk(clk), .rst(rst), .enable(enable_mul), .src1(src1), .src2(src2), .des1(mulsrc1), .des2(mulsrc2), .desOv(mulOv));
++oc8051_divide oc8051_div1(.clk(clk), .rst(rst), .enable(enable_div), .src1(src1), .src2(src2), .des1(divsrc1), .des2(divsrc2), .desOv(divOv));
+ 
+ always @(op_code or src1 or src2 or srcCy or srcAc or bit_in or src3 or mulsrc1 or mulsrc2 or mulOv or divsrc1 or divsrc2 or divOv)
+ begin
+
+ParseResult:
+INS HdlStmAssign@@ to body
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: enable_div
+
+UPD HdlStmAssign@@ to 
+    INS HdlValueId@@enable_mul to 
+
+
+CommitId: 12e2c568e9b9b89ea67d4894e41a42dbf5813206
+fix some bugs, use oc8051_cache_ram.
+--- a/rtl/verilog/oc8051_icache.v
++++ b/rtl/verilog/oc8051_icache.v
+@@ -114,7 +117,7 @@ reg [13-ADR_WIDTH:0] con_buf [BL_NUM:0];
+ reg [BL_NUM:0] valid;
+ // con0, con2 contain temporal control information of current address and corrent address+2
+ // part of con_buf memory
+-reg [14-ADR_WIDTH:0] con0, con2;
++reg [13-ADR_WIDTH:0] con0, con2;
+ //current upper address,
+ reg [13-ADR_WIDTH:0] cadr0, cadr2;
+ reg stb_b;
+
+ParseResult:
+INS HdlIdDef@@con0 to objs
+HdlIdDef: con0
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueInt: 13
+                            HdlValueId: ADR_WIDTH
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@con2 to objs
+HdlIdDef: con2
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueInt: 13
+                            HdlValueId: ADR_WIDTH
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@con0 from objs
+HdlIdDef: con0
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueInt: 14
+                            HdlValueId: ADR_WIDTH
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@con2 from objs
+HdlIdDef: con2
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlOp: SUB
+                        list: ops
+                            HdlValueInt: 14
+                            HdlValueId: ADR_WIDTH
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+
+CommitId: 12e2c568e9b9b89ea67d4894e41a42dbf5813206
+fix some bugs, use oc8051_cache_ram.
+--- a/rtl/verilog/oc8051_icache.v
++++ b/rtl/verilog/oc8051_icache.v
+@@ -128,6 +131,11 @@ reg [31:0] data1_i;
+ reg [15:0] tmp_data1;
+ reg wr1, wr1_t, stb_it;
+ 
++////////////////
++
++reg vaild_h, vaild_l;
++
++
+ wire [31:0] data0, data1_o;
+ wire cy, cy1;
+ wire [BL_WIDTH-1:0] adr_i2;
+
+ParseResult:
+INS HdlIdDef@@vaild_h to objs
+HdlIdDef: vaild_h
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@vaild_l to objs
+HdlIdDef: vaild_l
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+
+CommitId: 12e2c568e9b9b89ea67d4894e41a42dbf5813206
+fix some bugs, use oc8051_cache_ram.
+--- a/rtl/verilog/oc8051_icache.v
++++ b/rtl/verilog/oc8051_icache.v
+@@ -141,14 +149,13 @@ wire [LINE_WIDTH-1:0] adr_r1;
+ 
+ assign cy = &adr_i[LINE_WIDTH+1:1];
+ assign {cy1, adr_i2} = {1'b0, adr_i[ADR_WIDTH+1:LINE_WIDTH+2]}+cy;
+-assign hit_l =(con0=={cadr0,1'b1});
+-assign hit_h =(con2=={cadr2,1'b1});
++assign hit_l = (con0==cadr0) & vaild_l;
++assign hit_h = (con2==cadr2) & vaild_h;
+ assign hit = hit_l && hit_h;
+ 
+ assign adr_r = adr_i[ADR_WIDTH+1:2] + adr_i[1];
+ assign addr1 = wr1 ? adr_w : adr_r;
+ assign adr_r1 = adr_r[LINE_WIDTH-1:0] + 2'b01;
+-//assign ack_o = hit;
+ assign ack_o = hit && stb_it;
+ 
+ assign data1 = wr1_t ? tmp_data1 : data1_o[31:16];
+
+ParseResult:
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: AND
+        list: ops
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: con0
+                    HdlValueId: cadr0
+            HdlValueId: vaild_l
+    HdlValueId: hit_l
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: AND
+        list: ops
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: con2
+                    HdlValueId: cadr2
+            HdlValueId: vaild_h
+    HdlValueId: hit_h
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlOp: EQ
+        list: ops
+            HdlValueId: con0
+            HdlOp: CONCAT
+                list: ops
+                    HdlValueId: cadr0
+                    HdlValueInt: 1
+    HdlValueId: hit_l
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlOp: EQ
+        list: ops
+            HdlValueId: con2
+            HdlOp: CONCAT
+                list: ops
+                    HdlValueId: cadr2
+                    HdlValueInt: 1
+    HdlValueId: hit_h
+
+
+CommitId: 12e2c568e9b9b89ea67d4894e41a42dbf5813206
+fix some bugs, use oc8051_cache_ram.
+--- a/rtl/verilog/oc8051_icache.v
++++ b/rtl/verilog/oc8051_icache.v
+@@ -183,11 +214,15 @@ begin
+     begin
+         con0 <= #1 9'h0;
+         con2 <= #1 9'h0;
++        vaild_h <= #1 1'b0;
++	vaild_l <= #1 1'b0;
+     end
+   else
+     begin
+-        con0 <= #1 {con_buf[adr_i[ADR_WIDTH+1:LINE_WIDTH+2]], valid[adr_i[ADR_WIDTH+1:LINE_WIDTH+2]]};
+-        con2 <= #1 {con_buf[adr_i2], valid[adr_i2]};
++        con0 <= #1 {con_buf[adr_i[ADR_WIDTH+1:LINE_WIDTH+2]]};
++        con2 <= #1 {con_buf[adr_i2]};
++	vaild_l <= #1 valid[adr_i[ADR_WIDTH+1:LINE_WIDTH+2]];
++	vaild_h <= #1 valid[adr_i2];
+     end
+ end
+ 
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV list@@body to SEQ
+        list: body
+            HdlStmAssign
+                HdlOp: CONCAT
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: con_buf
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: adr_i
+                                        HdlOp: DOWNTO
+                                            list: ops
+                                                HdlOp: ADD
+                                                    list: ops
+                                                        HdlValueId: ADR_WIDTH
+                                                        HdlValueInt: 1
+                                                HdlOp: ADD
+                                                    list: ops
+                                                        HdlValueId: LINE_WIDTH
+                                                        HdlValueInt: 2
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: valid
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: adr_i
+                                        HdlOp: DOWNTO
+                                            list: ops
+                                                HdlOp: ADD
+                                                    list: ops
+                                                        HdlValueId: ADR_WIDTH
+                                                        HdlValueInt: 1
+                                                HdlOp: ADD
+                                                    list: ops
+                                                        HdlValueId: LINE_WIDTH
+                                                        HdlValueInt: 2
+                HdlValueId: con0
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlOp: CONCAT
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: con_buf
+                                HdlValueId: adr_i2
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: valid
+                                HdlValueId: adr_i2
+                HdlValueId: con2
+                HdlValueInt: 1
+
+MOV HdlStmIf@@ to body
+HdlStmIf
+    HdlValueId: rst
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: con0
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: con2
+                HdlValueInt: 1
+    list: elifs
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlOp: CONCAT
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: con_buf
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: adr_i
+                                        HdlOp: DOWNTO
+                                            list: ops
+                                                HdlOp: ADD
+                                                    list: ops
+                                                        HdlValueId: ADR_WIDTH
+                                                        HdlValueInt: 1
+                                                HdlOp: ADD
+                                                    list: ops
+                                                        HdlValueId: LINE_WIDTH
+                                                        HdlValueInt: 2
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: valid
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: adr_i
+                                        HdlOp: DOWNTO
+                                            list: ops
+                                                HdlOp: ADD
+                                                    list: ops
+                                                        HdlValueId: ADR_WIDTH
+                                                        HdlValueInt: 1
+                                                HdlOp: ADD
+                                                    list: ops
+                                                        HdlValueId: LINE_WIDTH
+                                                        HdlValueInt: 2
+                HdlValueId: con0
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlOp: CONCAT
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: con_buf
+                                HdlValueId: adr_i2
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: valid
+                                HdlValueId: adr_i2
+                HdlValueId: con2
+                HdlValueInt: 1
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD list@@ops to body
+        MOV list@@ops to CONCAT
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: con_buf
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: adr_i
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlOp: ADD
+                                        list: ops
+                                            HdlValueId: ADR_WIDTH
+                                            HdlValueInt: 1
+                                    HdlOp: ADD
+                                        list: ops
+                                            HdlValueId: LINE_WIDTH
+                                            HdlValueInt: 2
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: valid
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: adr_i
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlOp: ADD
+                                        list: ops
+                                            HdlValueId: ADR_WIDTH
+                                            HdlValueInt: 1
+                                    HdlOp: ADD
+                                        list: ops
+                                            HdlValueId: LINE_WIDTH
+                                            HdlValueInt: 2
+        MOV HdlOp@@INDEX to ops
+        HdlOp: INDEX
+            list: ops
+                HdlValueId: con_buf
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: adr_i
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlOp: ADD
+                                    list: ops
+                                        HdlValueId: ADR_WIDTH
+                                        HdlValueInt: 1
+                                HdlOp: ADD
+                                    list: ops
+                                        HdlValueId: LINE_WIDTH
+                                        HdlValueInt: 2
+        MOV HdlOp@@INDEX to ops
+        HdlOp: INDEX
+            list: ops
+                HdlValueId: valid
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: adr_i
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlOp: ADD
+                                    list: ops
+                                        HdlValueId: ADR_WIDTH
+                                        HdlValueInt: 1
+                                HdlOp: ADD
+                                    list: ops
+                                        HdlValueId: LINE_WIDTH
+                                        HdlValueInt: 2
+    DEL HdlOp@@CONCAT from 
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: vaild_h
+    HdlValueInt: 1
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: vaild_l
+    HdlValueInt: 1
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlOp: CONCAT
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: con_buf
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: adr_i
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlOp: ADD
+                                        list: ops
+                                            HdlValueId: ADR_WIDTH
+                                            HdlValueInt: 1
+                                    HdlOp: ADD
+                                        list: ops
+                                            HdlValueId: LINE_WIDTH
+                                            HdlValueInt: 2
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: valid
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: adr_i
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlOp: ADD
+                                        list: ops
+                                            HdlValueId: ADR_WIDTH
+                                            HdlValueInt: 1
+                                    HdlOp: ADD
+                                        list: ops
+                                            HdlValueId: LINE_WIDTH
+                                            HdlValueInt: 2
+    HdlValueId: con0
+    HdlValueInt: 1
+
+INS HdlStmAssign@@ to body
+
+INS HdlStmAssign@@ to body
+
+MOV HdlStmAssign@@ to body
+HdlStmAssign
+    HdlOp: CONCAT
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: con_buf
+                    HdlValueId: adr_i2
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: valid
+                    HdlValueId: adr_i2
+    HdlValueId: con2
+    HdlValueInt: 1
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        MOV HdlOp@@INDEX to ops
+        HdlOp: INDEX
+            list: ops
+                HdlValueId: con_buf
+                HdlValueId: adr_i2
+        MOV HdlOp@@INDEX to ops
+        HdlOp: INDEX
+            list: ops
+                HdlValueId: valid
+                HdlValueId: adr_i2
+        DEL list@@ops from CONCAT
+    UPD HdlValueId@@con2 to vaild_h
+    DEL HdlOp@@CONCAT from 
+
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL list@@body from SEQ
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_divide.v
++++ b/rtl/verilog/oc8051_divide.v
+@@ -43,14 +44,19 @@
+ //
+ // ver: 1
+ //
++// ver: 2 markom
++// changed nonsynthesizable version to two cycle divison
+ 
+ // synopsys translate_off
+ `include "oc8051_timescale.v"
+ // synopsys translate_on
+ 
+-module oc8051_divide (src1, src2, des1, des2, desOv);
++module oc8051_divide (clk, rst, enable, src1, src2, des1, des2, desOv);
+ //
+ // this module is part of alu
++// clk          (in)
++// rst          (in)
++// enable       (in)  starts divison
+ // src1         (in)  first operand
+ // src2         (in)  second operand
+ // des1         (out) first result
+
+ParseResult:
+UPD HdlIdDef@@des1 to div_out
+
+MOV HdlIdDef@@des1 to ports
+HdlIdDef: des1
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 7
+                    HdlValueInt: 0
+    HdlDirection: OUT
+
+UPD HdlIdDef@@des2 to rem_out
+
+MOV HdlIdDef@@des2 to ports
+HdlIdDef: des2
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 7
+                    HdlValueInt: 0
+    HdlDirection: OUT
+
+INS HdlIdDef@@clk to ports
+HdlIdDef: clk
+    HdlDirection: IN
+
+INS HdlIdDef@@rst to ports
+HdlIdDef: rst
+    HdlDirection: IN
+
+INS HdlIdDef@@enable to ports
+HdlIdDef: enable
+    HdlDirection: IN
+
+INS HdlIdDef@@des1 to ports
+
+INS HdlIdDef@@des2 to ports
+
+UPD HdlIdDef@@des1 to des1
+    UPD HdlDirection@@OUT to INTERNAL
+
+UPD HdlIdDef@@des2 to des2
+    UPD HdlDirection@@OUT to INTERNAL
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_top.v
++++ b/rtl/verilog/oc8051_top.v
+@@ -123,7 +123,7 @@ wire src_sel3, src_sel3_r, rom_addr_sel, ext_addr_sel, write_p, rmw, ea_int;
+ // tf1		interrupt from t/c 1
+ // tr0		timer 0 run
+ // tr1		timer 1 run
+-wire int_uart, tf0, tf1, tr0, tr1, reti, int, ack;
++wire int_uart, tf0, tf1, tr0, tr1, reti, intr, ack;
+ wire [7:0] int_src;
+ 
+ //
+
+ParseResult:
+INS HdlIdDef@@intr to objs
+HdlIdDef: intr
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@int from objs
+HdlIdDef: int
+    HdlDirection: INTERNAL
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_top.v
++++ b/rtl/verilog/oc8051_top.v
+@@ -143,7 +143,7 @@ wire [3:0] alu_op, alu_op_r; wire [1:0] psw_set, psw_set_r;
+ // desAc
+ // desOv                overflow
+ // wr, wr_r             write to data ram
+-wire [7:0] src1, src2, src3, des1, des2, des1_r, psw;
++wire [7:0] src1, src2, src3, des1, des2, des1_r, psw, psw_r;
+ wire desCy, desAc, desOv, alu_cy, wr, wr_r;
+ wire [7:0] immediate1, immediate1_r, immediate2, immediate2_r;
+ 
+
+ParseResult:
+INS HdlIdDef@@psw_r to objs
+HdlIdDef: psw_r
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 7
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_top.v
++++ b/rtl/verilog/oc8051_top.v
+@@ -160,7 +160,7 @@ wire [1:0] pc_wr_sel;
+ // op3_n,         output of op_select, to immediate_sel1, ram_wr_sel1
+ // op2_dr,      output of op_select, to ram_rd_sel1, ram_wr_sel1
+ wire [7:0] op1_n, op2_n, op2_dr, op3_n, op2_nr, pc_hi_r;
+-wire [7:0] sp_r, op2_dr_r, ri_r, op3_nr;
++wire [7:0] op2_dr_r, ri_r, op3_nr;
+ wire [2:0] op1_r;
+ 
+ //
+
+ParseResult:
+MOV HdlIdDef@@sp_r to objs
+HdlIdDef: sp_r
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 7
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+
+CommitId: 6e11b89f0a1e1d903e79cc345a1e316a4ed018c6
+fix bugs in instruction interface
+--- a/rtl/verilog/oc8051_top.v
++++ b/rtl/verilog/oc8051_top.v
+@@ -187,7 +190,7 @@ wire [2:0] op1_r;
+ // eq           result (from comp1 to decoder)
+ // wad2, wad2_r write to accumulator from destination 2
+ wire [1:0] comp_sel;
+-wire eq, wad2, wad2_r;
++wire eq, wad2, wad2_r, nop;
+ 
+ 
+ //
+
+ParseResult:
+INS HdlIdDef@@nop to objs
+HdlIdDef: nop
+    HdlDirection: INTERNAL
+
+
+CommitId: 6e11b89f0a1e1d903e79cc345a1e316a4ed018c6
+fix bugs in instruction interface
+--- a/rtl/verilog/oc8051_top.v
++++ b/rtl/verilog/oc8051_top.v
+@@ -198,7 +201,7 @@ wire bit_addr, bit_data, bit_out, bit_addr_r;
+ 
+ //
+ // p     parity from accumulator to psw
+-wire p;
++wire p, pc_wait;
+ wire b_bit, acc_bit, psw_bit, int_bit, port_bit, uart_bit;
+ 
+ 
+
+ParseResult:
+INS HdlIdDef@@pc_wait to objs
+HdlIdDef: pc_wait
+    HdlDirection: INTERNAL
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_reg8.v
++++ b/rtl/verilog/oc8051_reg8.v
+@@ -48,14 +48,13 @@
+ `include "oc8051_timescale.v"
+ // synopsys translate_on
+ 
+-module oc8051_reg8 (clk, rst, in, out);
+-input [7:0] in; input clk, rst;
+-output [7:0] out;
+-reg [7:0] out;
++module oc8051_reg8 (clk, rst, din, dout);
++input [7:0] din; input clk, rst;
++output [7:0] dout;
++reg [7:0] dout;
+ 
+ always @(posedge clk or posedge rst)
+-  if (rst) out <= 1'b0;
+-  else
+-    out <= #1 in;
++  if (rst) dout <= 1'b0;
++  else dout <= #1 din;
+ 
+-endmodule
+\ No newline at end of file
++endmodule
+
+ParseResult:
+UPD HdlIdDef@@in to din
+
+UPD HdlIdDef@@out to dout
+
+UPD HdlStmAssign@@if_true to if_true
+    UPD HdlValueId@@out to dout
+
+UPD HdlStmAssign@@if_false to if_false
+    UPD HdlValueId@@in to din
+    UPD HdlValueId@@out to dout
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_rom_addr_sel.v
++++ b/rtl/verilog/oc8051_rom_addr_sel.v
+@@ -50,18 +50,18 @@
+ // synopsys translate_on
+ 
+ 
+-module oc8051_rom_addr_sel (clk, rst, select, des1, des2, pc, out_addr);
++module oc8051_rom_addr_sel (clk, rst, sel, des1, des2, pc, out_addr);
+ //
+ // clk          (in)  clock
+ // rst          (in)  reset
+-// select       (in)  output select [oc8051_decoder.rom_addr_sel]
++// sel          (in)  output select [oc8051_decoder.rom_addr_sel]
+ // des1, des2   (in)  alu destination input [{oc8051_alu.des1,oc8051_alu.des2}]
+ // pc           (in)  pc input [oc8051_pc.pc_out]
+ // out_addr     (out) output address (to program rom) [oc8051_rom.addr]
+ //
+ 
+ 
+-input clk, rst, select;
++input clk, rst, sel;
+ input [7:0] des1, des2;
+ input [15:0] pc;
+ output [15:0] out_addr;
+
+ParseResult:
+UPD HdlIdDef@@select to sel
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_rom_addr_sel.v
++++ b/rtl/verilog/oc8051_rom_addr_sel.v
+@@ -70,6 +70,6 @@ output [15:0] out_addr;
+ //
+ // output address is alu destination
+ // (instructions MOVC)
+-assign out_addr = select ? {des2, des1} : pc;
++assign out_addr = sel ? {des2, des1} : pc;
+ 
+-endmodule
+\ No newline at end of file
++endmodule
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        UPD HdlValueId@@select to sel
+
+
+CommitId: dc9f8a0a77acd10a9b06fe3a73ba887a361d5a1e
+fix bug (cyc_o and stb_o)
+--- a/rtl/verilog/oc8051_wb_iinterface.v
++++ b/rtl/verilog/oc8051_wb_iinterface.v
+@@ -95,20 +98,20 @@ output [15:0] adr_o;
+ // internal bufers and wires
+ //
+ reg [15:0] adr;
+-reg stb;
++//reg stb;
+ 
+ assign ack_o = ack_i;
+ assign dat_o = dat_i;
+-assign stb_o = stb || ack_i;
+-assign cyc_o = stb;
++assign stb_o = stb_i || ack_i;
++assign cyc_o = stb_i || ack_i;
+ assign adr_o = ack_i ? adr : adr_i;
+ 
+ always @(posedge clk or posedge rst)
+   if (rst) begin
+-    stb <= #1 1'b0;
++//    stb <= #1 1'b0;
+     adr <= #1 16'h0000;
+   end else begin
+-    stb <= #1 stb_i;
++//    stb <= #1 stb_i;
+     adr <= #1 adr_i;
+   end
+ 
+ParseResult:
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@OR_LOG to 
+    UPD HdlOp@@OR_LOG to OR_LOG
+        INS list@@ops to OR_LOG
+        INS HdlValueId@@ack_i to ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@OR_LOG to OR_LOG
+        UPD HdlValueId@@stb to stb_i
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@stb to stb_i
+    MOV HdlValueId@@stb to 
+    HdlValueId: stb
+
+DEL HdlIdDef@@stb from objs
+HdlIdDef: stb
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: stb
+    HdlValueInt: 1
+
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueId: stb_i
+    HdlValueId: stb
+    HdlValueInt: 1
+
+
+CommitId: 74172734e2d66d14f163e370899d93db2201952b
+fix bugs
+--- a/rtl/verilog/oc8051_icache.v
++++ b/rtl/verilog/oc8051_icache.v
+@@ -104,8 +107,8 @@ parameter CACHE_RAM = 64; // cache ram x 32 (2^ADR_WIDTH)
+ //
+ // con_buf control buffer, contains upper addresses [15:ADDR_WIDTH1] in cache
+ reg [13-ADR_WIDTH:0] con_buf [BL_NUM:0];
+-// viald[x]=1 if block x is vaild;
+-reg [BL_NUM:0] vaild;
++// valid[x]=1 if block x is valid;
++reg [BL_NUM:0] valid;
+ // con0, con2 contain temporal control information of current address and corrent address+2
+ // part of con_buf memory
+ reg [14-ADR_WIDTH:0] con0, con2;
+
+ParseResult:
+UPD HdlIdDef@@vaild to valid
+
+
+CommitId: 74172734e2d66d14f163e370899d93db2201952b
+fix bugs
+--- a/rtl/verilog/oc8051_icache.v
++++ b/rtl/verilog/oc8051_icache.v
+@@ -173,13 +176,16 @@ end
+ 
+ always @(posedge clk or posedge rst)
+ begin
+-  if (rst) begin
+-    con0 <= #1 9'h0;
+-    con2 <= #1 9'h0;
+-  end else begin
+-    con0 <= #1 {con_buf[adr_i[ADR_WIDTH+1:LINE_WIDTH+2]], vaild[adr_i[ADR_WIDTH+1:LINE_WIDTH+2]]};
+-    con2 <= #1 {con_buf[adr_i2], vaild[adr_i2]};
+-  end
++  if (rst)
++    begin
++        con0 <= #1 9'h0;
++        con2 <= #1 9'h0;
++    end
++  else
++    begin
++        con0 <= #1 {con_buf[adr_i[ADR_WIDTH+1:LINE_WIDTH+2]], valid[adr_i[ADR_WIDTH+1:LINE_WIDTH+2]]};
++        con2 <= #1 {con_buf[adr_i2], valid[adr_i2]};
++    end
+ end
+ 
+ always @(posedge clk or posedge rst)
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@vaild to valid
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@vaild to valid
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_reg4.v
++++ b/rtl/verilog/oc8051_reg4.v
+@@ -48,15 +48,14 @@
+ `include "oc8051_timescale.v"
+ // synopsys translate_on
+ 
+-module oc8051_reg4 (clk, rst, in, out);
+-input [3:0] in; input clk, rst;
+-output [3:0] out;
+-reg [3:0] out;
++module oc8051_reg4 (clk, rst, din, dout);
++input [3:0] din; input clk, rst;
++output [3:0] dout;
++reg [3:0] dout;
+ 
+ always @(posedge clk or posedge rst)
+-  if (rst) out <= 4'b0000;
+-  else
+-    out <= #1 in;
++  if (rst) dout <= 4'b0000;
++  else dout <= #1 din;
+ 
+ endmodule
+ 
+ParseResult:
+UPD HdlIdDef@@in to din
+
+UPD HdlIdDef@@out to dout
+
+UPD HdlStmAssign@@if_true to if_true
+    UPD HdlValueId@@out to dout
+
+UPD HdlStmAssign@@if_false to if_false
+    UPD HdlValueId@@in to din
+    UPD HdlValueId@@out to dout
+
+
+CommitId: 585c0770cf38b9c376a84728df07a64c580ea629
+fix bug.
+--- a/rtl/verilog/oc8051_icache.v
++++ b/rtl/verilog/oc8051_icache.v
+@@ -283,7 +286,7 @@ end
+ 
+ //rih
+ always @(posedge clk)
+-  if ( ~(stb_b && !hit && !stb_o && !wr1) & (stb_o && ack_i & &cyc) )
++  if ( ~(stb_b && !hit && !stb_o && !wr1) & (stb_o && ack_i && cyc) )
+     con_buf[mis_adr[ADR_WIDTH+1:LINE_WIDTH+2]] <= #1 mis_adr[15:ADR_WIDTH+2];
+ 
+ 
+ParseResult:
+UPD HdlStmIf@@body to body
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@AND_LOG to AND_LOG
+            INS HdlOp@@AND_LOG to ops
+            UPD HdlOp@@AND_LOG to AND_LOG
+                INS list@@ops to AND_LOG
+
+UPD HdlStmIf@@body to body
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@AND_LOG to AND_LOG
+            UPD HdlOp@@AND to AND
+                UPD HdlOp@@AND_UNARY to AND_UNARY
+                    MOV HdlValueId@@cyc to ops
+                    HdlValueId: cyc
+                    DEL list@@ops from AND_UNARY
+                MOV HdlValueId@@ack_i to ops
+                HdlValueId: ack_i
+                DEL HdlOp@@AND_UNARY from ops
+                DEL list@@ops from AND
+            MOV HdlValueId@@stb_o to ops
+            HdlValueId: stb_o
+            DEL HdlOp@@AND from ops
+
+
+CommitId: 0d5bea54d89c3beb77a721333cb431788d202fb2
+mul bug fixed
+--- a/rtl/verilog/oc8051_multiply.v
++++ b/rtl/verilog/oc8051_multiply.v
+@@ -87,7 +87,7 @@ assign mul_result1 = src1 * (cycle == 0 ? src2[7:6]
+                            : cycle == 2 ? src2[3:2]
+                            : src2[1:0]);
+ 
+-assign mul_result = mul_result1 + {2'b0, tmp_mul};
++assign mul_result = mul_result1 + ({2'b0, tmp_mul} << {cycle, 1'b0});
+ assign des1 = mul_result[7:0];
+ assign des2 = mul_result[15:8];
+ assign desOv = des2 != 8'h0;
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@ADD to 
+    UPD HdlOp@@ADD to ADD
+        INS list@@ops to ADD
+        UPD HdlOp@@SLL to SLL
+            INS HdlOp@@CONCAT to ops
+            HdlOp: CONCAT
+                list: ops
+                    HdlValueId: cycle
+                    HdlValueInt: 0
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@ADD to ADD
+        MOV HdlValueId@@mul_result1 to ops
+        HdlValueId: mul_result1
+    UPD HdlOp@@ADD to SLL
+    MOV HdlOp@@ADD to 
+    HdlOp: ADD
+        list: ops
+            HdlValueId: mul_result1
+            HdlOp: CONCAT
+                list: ops
+                    HdlValueInt: 0
+                    HdlValueId: tmp_mul
+
+
+CommitId: 0d5bea54d89c3beb77a721333cb431788d202fb2
+mul bug fixed
+--- a/rtl/verilog/oc8051_multiply.v
++++ b/rtl/verilog/oc8051_multiply.v
+@@ -99,7 +99,7 @@ begin
+     tmp_mul <= #1 14'b0;
+   end else begin
+     if (enable || cycle != 0) cycle <= #1 cycle + 2'b1;
+-    tmp_mul <= #1 mul_result1[13:0];
++    tmp_mul <= #1 mul_result[13:0];
+   end
+ end
+ 
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlValueId@@mul_result1 to mul_result
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_int.v
++++ b/rtl/verilog/oc8051_int.v
+@@ -31,11 +31,11 @@
+ 
+ 
+ 
+-module oc0851_int (clk, wr_addr, rd_addr, data_in, bit_in, data_out, bit_out, wr, wr_bit, tf0, tf1, int, ie0, ie1, rst, reti, int_vec, tr0, tr1, uart, ack);
++module oc0851_int (clk, wr_addr, rd_addr, data_in, bit_in, data_out, bit_out, wr, wr_bit, tf0, tf1, intr, ie0, ie1, rst, reti, int_vec, tr0, tr1, uart, ack);
+ input [7:0] wr_addr, data_in, rd_addr;
+ input wr, tf0, tf1, ie0, ie1, clk, rst, reti, wr_bit, bit_in, uart, ack;
+ 
+-output tr0, tr1, int, bit_out;
++output tr0, tr1, intr, bit_out;
+ output [7:0] int_vec, data_out;
+ 
+ reg [7:0] ip, ie, int_vec, id, data_out;
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS HdlOp@@RISING to sensitivity
+    HdlOp: RISING
+        list: ops
+            HdlValueId: rst
+
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@rst to 
+    INS list@@elifs to 
+    INS tuple@@ to elifs
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@AND to 
+    HdlOp: AND
+        list: ops
+            HdlOp: AND
+                list: ops
+                    HdlOp: AND
+                        list: ops
+                            HdlValueId: wr
+                            HdlOp: NEG_LOG
+                                list: ops
+                                    HdlValueId: wr_bit
+                    HdlOp: EQ
+                        list: ops
+                            HdlValueId: wr_addr
+                            HdlValueId: rd_addr
+            HdlOp: OR
+                list: ops
+                    HdlOp: OR
+                        list: ops
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: wr_addr
+                                    HdlValueInt: b8
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: wr_addr
+                                    HdlValueInt: a8
+                    HdlOp: EQ
+                        list: ops
+                            HdlValueId: wr_addr
+                            HdlValueInt: 88
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueId: data_in
+                HdlValueId: data_out
+                HdlValueInt: 1
+    DEL list@@elifs from 
+
+UPD HdlStmProcess@@ to 
+    DEL HdlOp@@RISING from sensitivity
+    HdlOp: RISING
+        list: ops
+            HdlValueId: clk
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_int.v
++++ b/rtl/verilog/oc8051_int.v
+@@ -59,9 +59,6 @@ reg [1:0] int_levl, int_levl_w;
+ wire [4:0] int_l0, int_l1;
+ wire il0, il1;
+ 
+-integer n;
+-
+-
+ //reg set_tf0, set_tf1, set_ie0, set_ie1;
+ reg tf0_buff, tf1_buff, ie0_buff, ie1_buff;
+ //reg tf0_ack, tf1_ack, ie0_ack, ie1_ack;
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+
+INS HdlStmIf@@body to 
+HdlStmIf: body
+    HdlValueId: rst
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: tf0_buff
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: tf1_buff
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: ie0_buff
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: ie1_buff
+                HdlValueInt: 1
+    list: elifs
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueId: tf0
+                HdlValueId: tf0_buff
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueId: tf1
+                HdlValueId: tf1_buff
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueId: ie0
+                HdlValueId: ie0_buff
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueId: ie1
+                HdlValueId: ie1_buff
+                HdlValueInt: 1
+
+UPD HdlStmProcess@@ to 
+    INS HdlOp@@RISING to sensitivity
+    HdlOp: RISING
+        list: ops
+            HdlValueId: rst
+
+DEL HdlStmProcess@@ from objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmAssign: body
+        HdlValueId: tf0
+        HdlValueId: tf0_buff
+        HdlValueInt: 1
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_int.v
++++ b/rtl/verilog/oc8051_int.v
+@@ -69,7 +66,7 @@ reg tf0_buff, tf1_buff, ie0_buff, ie1_buff;
+ assign tcon = {tcon_tf1, tcon_s[3], tcon_tf0, tcon_s[2], tcon_ie1, tcon_s[1], tcon_ie0, tcon_s[0]};
+ assign tr0 = tcon_s[2];
+ assign tr1 = tcon_s[3];
+-assign int = |int_vec;
++assign intr = |int_vec;
+ 
+ assign int_l0 = ~ip[4:0] & ie[4:0] & {uart, tcon_tf1, tcon_ie1, tcon_tf0, tcon_ie0};
+ assign int_l1 = ip[4:0] & ie[4:0] & {uart, tcon_tf1, tcon_ie1, tcon_tf0, tcon_ie0};
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+
+INS HdlStmIf@@body to 
+HdlStmIf: body
+    HdlValueId: rst
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: tf0_buff
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: tf1_buff
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: ie0_buff
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: ie1_buff
+                HdlValueInt: 1
+    list: elifs
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueId: tf0
+                HdlValueId: tf0_buff
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueId: tf1
+                HdlValueId: tf1_buff
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueId: ie0
+                HdlValueId: ie0_buff
+                HdlValueInt: 1
+            HdlStmAssign
+                HdlValueId: ie1
+                HdlValueId: ie1_buff
+                HdlValueInt: 1
+
+UPD HdlStmProcess@@ to 
+    INS HdlOp@@RISING to sensitivity
+    HdlOp: RISING
+        list: ops
+            HdlValueId: rst
+
+DEL HdlStmProcess@@ from objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmAssign: body
+        HdlValueId: tf0
+        HdlValueId: tf0_buff
+        HdlValueInt: 1
+
+DEL HdlStmProcess@@ from objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmAssign: body
+        HdlValueId: tf1
+        HdlValueId: tf1_buff
+        HdlValueInt: 1
+
+
+CommitId: e5c920cdd192d6a299d9a884ac5fdace6ca915c2
+fix bug in case execution of two data dependent instructions.
+--- a/rtl/verilog/oc8051_sfr.v
++++ b/rtl/verilog/oc8051_sfr.v
+@@ -562,7 +565,9 @@ begin
+   end else if (
+       (((wr_sfr==`OC8051_WRS_ACC1) & (adr0==`OC8051_SFR_ACC)) | 	//write to acc
+       ((wr_sfr==`OC8051_WRS_DPTR) & (adr0==`OC8051_SFR_DPTR_LO)) |	//write to dpl
+-      (adr1[7] & (adr1==adr0) & we & !wr_bit_r)) & !wait_data) begin	//write and read same address
++      (adr1[7] & (adr1==adr0) & we & !wr_bit_r) |			//write and read same address
++      (adr1[7] & (adr1[7:3]==adr0[7:3]) & (~&adr0[2:0]) &  we & wr_bit_r) //write bit addressable to read address
++      ) & !wait_data) begin
+     wait_data <= #1 1'b1;
+ 
+   end else if ((
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND to AND
+        INS HdlOp@@OR to ops
+        UPD HdlOp@@OR to OR
+            INS list@@ops to OR
+            INS HdlOp@@AND to ops
+            HdlOp: AND
+                list: ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: AND
+                                list: ops
+                                    HdlOp: AND
+                                        list: ops
+                                            HdlOp: INDEX
+                                                list: ops
+                                                    HdlValueId: adr1
+                                                    HdlValueInt: 7
+                                            HdlOp: EQ
+                                                list: ops
+                                                    HdlOp: INDEX
+                                                        list: ops
+                                                            HdlValueId: adr1
+                                                            HdlOp: DOWNTO
+                                                                list: ops
+                                                                    HdlValueInt: 7
+                                                                    HdlValueInt: 3
+                                                    HdlOp: INDEX
+                                                        list: ops
+                                                            HdlValueId: adr0
+                                                            HdlOp: DOWNTO
+                                                                list: ops
+                                                                    HdlValueInt: 7
+                                                                    HdlValueInt: 3
+                                    HdlOp: NAND_UNARY
+                                        list: ops
+                                            HdlOp: INDEX
+                                                list: ops
+                                                    HdlValueId: adr0
+                                                    HdlOp: DOWNTO
+                                                        list: ops
+                                                            HdlValueInt: 2
+                                                            HdlValueInt: 0
+                            HdlValueId: we
+                    HdlValueId: wr_bit_r
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND to AND
+        MOV HdlOp@@OR to ops
+        HdlOp: OR
+            list: ops
+                HdlOp: OR
+                    list: ops
+                        HdlOp: AND
+                            list: ops
+                                HdlOp: EQ
+                                    list: ops
+                                        HdlValueId: wr_sfr
+                                        HdlValueInt: 01
+                                HdlOp: EQ
+                                    list: ops
+                                        HdlValueId: adr0
+                                        HdlValueInt: e0
+                        HdlOp: AND
+                            list: ops
+                                HdlOp: EQ
+                                    list: ops
+                                        HdlValueId: wr_sfr
+                                        HdlValueInt: 11
+                                HdlOp: EQ
+                                    list: ops
+                                        HdlValueId: adr0
+                                        HdlValueInt: 82
+                HdlOp: AND
+                    list: ops
+                        HdlOp: AND
+                            list: ops
+                                HdlOp: AND
+                                    list: ops
+                                        HdlOp: INDEX
+                                            list: ops
+                                                HdlValueId: adr1
+                                                HdlValueInt: 7
+                                        HdlOp: EQ
+                                            list: ops
+                                                HdlValueId: adr1
+                                                HdlValueId: adr0
+                                HdlValueId: we
+                        HdlOp: NEG_LOG
+                            list: ops
+                                HdlValueId: wr_bit_r
+
+
+CommitId: 5f5a2d0d52d6559afc9e78dfabb2348d975022b2
+overflow repaired
+--- a/rtl/verilog/oc8051_multiply.v
++++ b/rtl/verilog/oc8051_multiply.v
+@@ -86,11 +86,12 @@ assign mul_result1 = src1 * (cycle == 2'h0 ? src2[7:6]
+                            : cycle == 2'h1 ? src2[5:4]
+                            : cycle == 2'h2 ? src2[3:2]
+                            : src2[1:0]);
++
+ assign shifted = (cycle == 2'h0 ? 16'h0 : {tmp_mul[13:0], 2'b00});
+ assign mul_result = mul_result1 + shifted;
+ assign des1 = mul_result[15:8];
+ assign des2 = mul_result[7:0];
+-assign desOv = src2 != 8'h0;
++assign desOv = | des1;
+ 
+ always @(posedge clk or posedge rst)
+ begin
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@NE to OR_UNARY
+    UPD HdlOp@@NE to NE
+        UPD HdlValueId@@src2 to des1
+        DEL HdlValueInt@@0 from ops
+
+
+CommitId: 54f2c083808ae0940ea2fede25a5980534dd89e2
+fix bug in case of sequence of inc dptr instrucitons.
+--- a/rtl/verilog/oc8051_sfr.v
++++ b/rtl/verilog/oc8051_sfr.v
+@@ -565,13 +568,14 @@ begin
+     dat0 <= #1 8'h00;
+     wait_data <= #1 1'b0;
+   end else if ((wr_sfr==`OC8051_WRS_DPTR) & (adr0==`OC8051_SFR_DPTR_LO)) begin				//write and read same address
+-    dat0 <= #1 dat1;
++    dat0 <= #1 des_acc;
+     wait_data <= #1 1'b0;
+   end else if (
+-      (((wr_sfr==`OC8051_WRS_ACC1) & (adr0==`OC8051_SFR_ACC)) | 	//write to acc
+-      ((wr_sfr==`OC8051_WRS_DPTR) & (adr0==`OC8051_SFR_DPTR_LO)) |	//write to dpl
+-      (adr1[7] & (adr1==adr0) & we & !wr_bit_r) |			//write and read same address
+-      (adr1[7] & (adr1[7:3]==adr0[7:3]) & (~&adr0[2:0]) &  we & wr_bit_r) //write bit addressable to read address
++      (
++        ((wr_sfr==`OC8051_WRS_ACC1) & (adr0==`OC8051_SFR_ACC)) | 	//write to acc
++//        ((wr_sfr==`OC8051_WRS_DPTR) & (adr0==`OC8051_SFR_DPTR_LO)) |	//write to dpl
++        (adr1[7] & (adr1==adr0) & we & !wr_bit_r) |			//write and read same address
++        (adr1[7] & (adr1[7:3]==adr0[7:3]) & (~&adr0[2:0]) &  we & wr_bit_r) //write bit addressable to read address
+       ) & !wait_data) begin
+     wait_data <= #1 1'b1;
+ 
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@OR to OR
+            UPD HdlOp@@OR to OR
+                UPD HdlOp@@OR to OR
+                    MOV HdlOp@@AND to ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: wr_sfr
+                                    HdlValueInt: 01
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: adr0
+                                    HdlValueInt: e0
+                    DEL HdlOp@@AND from ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: wr_sfr
+                                    HdlValueInt: 11
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: adr0
+                                    HdlValueInt: 82
+                    DEL list@@ops from OR
+                DEL HdlOp@@OR from ops
+
+
+CommitId: 54f2c083808ae0940ea2fede25a5980534dd89e2
+fix bug in case of sequence of inc dptr instrucitons.
+--- a/rtl/verilog/oc8051_sfr.v
++++ b/rtl/verilog/oc8051_sfr.v
+@@ -645,6 +649,7 @@ end
+ 
+ //
+ //set output in case of address (bit)
++
+ always @(posedge clk or posedge rst)
+ begin
+   if (rst)
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@OR to OR
+            UPD HdlOp@@OR to OR
+                UPD HdlOp@@OR to OR
+                    MOV HdlOp@@AND to ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: wr_sfr
+                                    HdlValueInt: 01
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: adr0
+                                    HdlValueInt: e0
+                    DEL HdlOp@@AND from ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: wr_sfr
+                                    HdlValueInt: 11
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: adr0
+                                    HdlValueInt: 82
+                    DEL list@@ops from OR
+                DEL HdlOp@@OR from ops
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_alu_src3_sel.v
++++ b/rtl/verilog/oc8051_alu_src3_sel.v
+@@ -48,7 +48,7 @@
+ `include "oc8051_timescale.v"
+ // synopsys translate_on
+ 
+-module oc8051_alu_src3_sel (sel, pc, dptr, out);
++module oc8051_alu_src3_sel (sel, pc, dptr, des);
+ //
+ // sel          (in)  select signals (from decoder, delayd one clock) [oc8051_decoder.src_sel3 -r]
+ // pc           (in)  program counter input [oc8051_pc.pc[15:8] -r]
+
+ParseResult:
+UPD HdlIdDef@@out to des
+
+
+CommitId: ce1d40f25122fe153ea6b2e10cf60dd69981e18b
+Code repaired to satisfy the linter; testbech fails
+--- a/rtl/verilog/oc8051_alu_src3_sel.v
++++ b/rtl/verilog/oc8051_alu_src3_sel.v
+@@ -58,8 +58,8 @@ module oc8051_alu_src3_sel (sel, pc, dptr, out);
+ 
+ input sel;
+ input [7:0] pc, dptr;
+-output [7:0] out;
++output [7:0] des;
+ 
+-assign out = sel ? pc : dptr;
++assign des = sel ? pc : dptr;
+ 
+ endmodule
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@out to des
+
+

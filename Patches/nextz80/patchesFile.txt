@@ -1,0 +1,556 @@
+CommitId: 8fab829e8ea3673c42cfbbb577119cb6c49d4f8e
+Fix: clear I and R at reset
+--- a/NextZ80Reg.v
++++ b/NextZ80Reg.v
+@@ -110,8 +110,8 @@ module Z80Reg(
+ 			if(WE[2]) th <= DI;
+ 			if(WE[3]) sp <= ADDR1;
+ 			if(WE[4]) pc <= ADDR1;
+-			if({SELW[3:0], WE[0]} == 5'b01001) r <= ALU8OUT[7:0]; 
+-			else if(M1) r[6:0] <= r[6:0] + 7'b0000001;
++			if({REG_WSEL, WE[0]} == 5'b10011) r <= ALU8OUT[7:0]; 
++			else if(M1) r[6:0] <= r[6:0] + 1;
+ 			if(WE[5])
+ 				if(rstatus[0]) flg[15:8] <= flgmux;
+ 				else flg[7:0] <= flgmux;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@EQ to EQ
+        UPD HdlValueInt@@01001 to 10011
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlValueId@@SELW to REG_WSEL
+                MOV HdlValueId@@SELW to ops
+                HdlValueId: SELW
+                DEL HdlOp@@DOWNTO from ops
+                HdlOp: DOWNTO
+                    list: ops
+                        HdlValueInt: 3
+                        HdlValueInt: 0
+                DEL list@@ops from INDEX
+            DEL HdlOp@@INDEX from ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@ADD to ADD
+        UPD HdlValueInt@@0000001 to 1
+
+
+CommitId: 8fab829e8ea3673c42cfbbb577119cb6c49d4f8e
+Fix: clear I and R at reset
+--- a/NextZ80CPU.v
++++ b/NextZ80CPU.v
+@@ -1146,7 +1146,7 @@ module NextZ80
+ 								DINW_SEL = 1'b0;					// ALU8OUT
+ 								WE 		= {4'b010x, !FETCH[3], FETCH[3]};	// PC, hi/lo
+ 								ALU8OP	= 29;						// pass D1
+-								REG_WSEL	= 4'b100x;				// IR
++								REG_WSEL	= 4'b1001;				// IR, write r
+ 								REG_RSEL	= 4'b0110;				// A
+ 							end
+ 							2'b01: begin	// LD A I/R
+
+ParseResult:
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
+    INS HdlStmCaseType@@CASE to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@010x to 1001
+    DEL HdlStmCaseType@@CASE from {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '5'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '4'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '5'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '4'}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@100x to 1001
+
+
+CommitId: 8fab829e8ea3673c42cfbbb577119cb6c49d4f8e
+Fix: clear I and R at reset
+--- a/NextZ80CPU.v
++++ b/NextZ80CPU.v
+@@ -1404,7 +1404,7 @@ module NextZ80
+ 					WE 		= 6'bx1xx11;			// PC, hi, lo
+ 					ALU8OP	= 29;						// pass D1
+ 					ALU16OP	= 4;						// NOP
+-					REG_WSEL	= 4'b010x;				// IR
++					REG_WSEL	= 4'b1001;				// IR, write r
+ 					REG_RSEL	= 4'b110x;				// const
+ 					M1 		= 0;
+ 					MREQ		= 0;
+
+ParseResult:
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
+    INS HdlStmCaseType@@CASE to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@010x to 1001
+    DEL HdlStmCaseType@@CASE from {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
+
+
+CommitId: 8fab829e8ea3673c42cfbbb577119cb6c49d4f8e
+Fix: clear I and R at reset
+--- a/NextZ80CPU.v
++++ b/NextZ80CPU.v
+@@ -1458,7 +1458,7 @@ module NextZ80
+ 								WE 		= 6'b010x01;		// PC, lo
+ 								ALU16OP	= intop;				// DEC/DEC2 (if block instruction interrupted)
+ 								next_stage = 1;
+-								REG_WSEL	= 4'b100x;			// Itmp
++								REG_WSEL	= 4'b1000;			// Itmp, no write r
+ 								MREQ		= 0;
+ 								IORQ		= 1;
+ 								status[11]	= 1'b1;
+
+ParseResult:
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
+    INS HdlStmCaseType@@CASE to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@010x to 1001
+    DEL HdlStmCaseType@@CASE from {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '2'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '2'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@100x to 1000
+
+
+CommitId: 1ad91978f77ac42b17862c25ab5ae5bc50945ed1
+Fix the bug related with Z flag and IN/OUT string instructions
+--- a/NextZ80ALU.v
++++ b/NextZ80ALU.v
+@@ -160,7 +160,7 @@ module ALU8(
+ 				FOUT[3] = ALU8DOUT[11];
+ 				FOUT[4] = hf ^ OP[1];
+ 				FOUT[5] = ALU8DOUT[13];
+-				FOUT[6] = (EXOP[5] & DSTHI) ? (zero & FIN[6]) : zero;				// adc16/sbc16
++				FOUT[6] = zero & (FIN[6] | ~EXOP[5] | ~DSTHI | OP[3]); //(EXOP[5] & DSTHI) ? (zero & FIN[6]) : zero;				// adc16/sbc16
+ 				FOUT[7] = ALU8DOUT[15];
+ 			end
+ 			16,17:	begin		// ADD16LO, ADD16HI
+
+ParseResult:
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['OP',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '4'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['OP',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '4'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
+    INS HdlStmCaseType@@CASE to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['OP',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '4'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS list@@ops to ASSIGN
+            INS HdlOp@@AND to ops
+            UPD HdlOp@@AND to AND
+                INS list@@ops to AND
+                INS HdlValueId@@zero to ops
+                UPD HdlOp@@OR to OR
+                    INS HdlOp@@INDEX to ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: OP
+                            HdlValueInt: 3
+                    UPD HdlOp@@OR to OR
+                        INS HdlOp@@NEG to ops
+                        UPD HdlOp@@NEG to NEG
+                            INS list@@ops to NEG
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS list@@ops to ASSIGN
+            INS HdlOp@@AND to ops
+            UPD HdlOp@@AND to AND
+                INS list@@ops to AND
+                INS HdlValueId@@zero to ops
+                UPD HdlOp@@OR to OR
+                    INS HdlOp@@INDEX to ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: OP
+                            HdlValueInt: 3
+                    UPD HdlOp@@OR to OR
+                        INS HdlOp@@NEG to ops
+                        UPD HdlOp@@NEG to NEG
+                            INS list@@ops to NEG
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS list@@ops to ASSIGN
+            INS HdlOp@@AND to ops
+            UPD HdlOp@@AND to AND
+                INS list@@ops to AND
+                INS HdlValueId@@zero to ops
+                UPD HdlOp@@OR to OR
+                    INS HdlOp@@INDEX to ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: OP
+                            HdlValueInt: 3
+                    UPD HdlOp@@OR to OR
+                        INS HdlOp@@NEG to ops
+                        UPD HdlOp@@NEG to NEG
+                            INS list@@ops to NEG
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS list@@ops to ASSIGN
+            INS HdlOp@@AND to ops
+            UPD HdlOp@@AND to AND
+                INS list@@ops to AND
+                INS HdlValueId@@zero to ops
+                UPD HdlOp@@OR to OR
+                    INS HdlOp@@INDEX to ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: OP
+                            HdlValueInt: 3
+                    UPD HdlOp@@OR to OR
+                        INS HdlOp@@NEG to ops
+                        UPD HdlOp@@NEG to NEG
+                            INS list@@ops to NEG
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS list@@ops to ASSIGN
+            INS HdlOp@@AND to ops
+            UPD HdlOp@@AND to AND
+                INS list@@ops to AND
+                INS HdlValueId@@zero to ops
+                UPD HdlOp@@OR to OR
+                    INS HdlOp@@INDEX to ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: OP
+                            HdlValueInt: 3
+                    UPD HdlOp@@OR to OR
+                        INS HdlOp@@NEG to ops
+                        UPD HdlOp@@NEG to NEG
+                            INS list@@ops to NEG
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        UPD HdlOp@@ASSIGN to ASSIGN
+            INS list@@ops to ASSIGN
+            INS HdlOp@@AND to ops
+            UPD HdlOp@@AND to AND
+                INS list@@ops to AND
+                INS HdlValueId@@zero to ops
+                UPD HdlOp@@OR to OR
+                    INS HdlOp@@INDEX to ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: OP
+                            HdlValueInt: 3
+                    UPD HdlOp@@OR to OR
+                        INS HdlOp@@NEG to ops
+                        UPD HdlOp@@NEG to NEG
+                            INS list@@ops to NEG
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['OP',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '4'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['OP',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '4'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            MOV HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: FOUT
+                    HdlValueInt: 6
+            UPD HdlOp@@TERNARY to OR
+            UPD HdlOp@@TERNARY to TERNARY
+                UPD HdlOp@@AND to OR
+                UPD HdlOp@@AND to AND
+                    MOV HdlValueId@@DSTHI to ops
+                    HdlValueId: DSTHI
+                UPD HdlOp@@AND to NEG
+                MOV HdlOp@@AND to ops
+                HdlOp: AND
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: EXOP
+                                HdlValueInt: 5
+                        HdlValueId: DSTHI
+                UPD HdlValueId@@zero to DSTHI
+                MOV HdlValueId@@zero to ops
+                HdlValueId: zero
+                UPD HdlOp@@AND to AND
+                    DEL HdlValueId@@zero from ops
+        UPD HdlOp@@ASSIGN to OR
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: FOUT
+                        HdlValueInt: 6
+                HdlOp: TERNARY
+                    list: ops
+                        HdlOp: AND
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: EXOP
+                                        HdlValueInt: 5
+                                HdlValueId: DSTHI
+                        HdlOp: AND
+                            list: ops
+                                HdlValueId: zero
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: FIN
+                                        HdlValueInt: 6
+                        HdlValueId: zero
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            MOV HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: FOUT
+                    HdlValueInt: 6
+            UPD HdlOp@@TERNARY to OR
+            UPD HdlOp@@TERNARY to TERNARY
+                UPD HdlOp@@AND to OR
+                UPD HdlOp@@AND to AND
+                    MOV HdlValueId@@DSTHI to ops
+                    HdlValueId: DSTHI
+                UPD HdlOp@@AND to NEG
+                MOV HdlOp@@AND to ops
+                HdlOp: AND
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: EXOP
+                                HdlValueInt: 5
+                        HdlValueId: DSTHI
+                UPD HdlValueId@@zero to DSTHI
+                MOV HdlValueId@@zero to ops
+                HdlValueId: zero
+                UPD HdlOp@@AND to AND
+                    DEL HdlValueId@@zero from ops
+        UPD HdlOp@@ASSIGN to OR
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: FOUT
+                        HdlValueInt: 6
+                HdlOp: TERNARY
+                    list: ops
+                        HdlOp: AND
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: EXOP
+                                        HdlValueInt: 5
+                                HdlValueId: DSTHI
+                        HdlOp: AND
+                            list: ops
+                                HdlValueId: zero
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: FIN
+                                        HdlValueInt: 6
+                        HdlValueId: zero
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            MOV HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: FOUT
+                    HdlValueInt: 6
+            UPD HdlOp@@TERNARY to OR
+            UPD HdlOp@@TERNARY to TERNARY
+                UPD HdlOp@@AND to OR
+                UPD HdlOp@@AND to AND
+                    MOV HdlValueId@@DSTHI to ops
+                    HdlValueId: DSTHI
+                UPD HdlOp@@AND to NEG
+                MOV HdlOp@@AND to ops
+                HdlOp: AND
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: EXOP
+                                HdlValueInt: 5
+                        HdlValueId: DSTHI
+                UPD HdlValueId@@zero to DSTHI
+                MOV HdlValueId@@zero to ops
+                HdlValueId: zero
+                UPD HdlOp@@AND to AND
+                    DEL HdlValueId@@zero from ops
+        UPD HdlOp@@ASSIGN to OR
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: FOUT
+                        HdlValueInt: 6
+                HdlOp: TERNARY
+                    list: ops
+                        HdlOp: AND
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: EXOP
+                                        HdlValueInt: 5
+                                HdlValueId: DSTHI
+                        HdlOp: AND
+                            list: ops
+                                HdlValueId: zero
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: FIN
+                                        HdlValueInt: 6
+                        HdlValueId: zero
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            MOV HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: FOUT
+                    HdlValueInt: 6
+            UPD HdlOp@@TERNARY to OR
+            UPD HdlOp@@TERNARY to TERNARY
+                UPD HdlOp@@AND to OR
+                UPD HdlOp@@AND to NEG
+                MOV HdlOp@@AND to ops
+                HdlOp: AND
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: EXOP
+                                HdlValueInt: 5
+                        HdlValueId: DSTHI
+                UPD HdlOp@@AND to AND
+                    DEL HdlValueId@@zero from ops
+                UPD HdlOp@@AND to AND
+                    DEL HdlValueId@@DSTHI from ops
+                DEL HdlValueId@@zero from ops
+        UPD HdlOp@@ASSIGN to OR
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: FOUT
+                        HdlValueInt: 6
+                HdlOp: TERNARY
+                    list: ops
+                        HdlOp: AND
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: EXOP
+                                        HdlValueInt: 5
+                                HdlValueId: DSTHI
+                        HdlOp: AND
+                            list: ops
+                                HdlValueId: zero
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: FIN
+                                        HdlValueInt: 6
+                        HdlValueId: zero
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            MOV HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: FOUT
+                    HdlValueInt: 6
+            UPD HdlOp@@TERNARY to OR
+            UPD HdlOp@@TERNARY to TERNARY
+                UPD HdlOp@@AND to OR
+                UPD HdlOp@@AND to NEG
+                MOV HdlOp@@AND to ops
+                HdlOp: AND
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: EXOP
+                                HdlValueInt: 5
+                        HdlValueId: DSTHI
+                UPD HdlOp@@AND to AND
+                    DEL HdlValueId@@zero from ops
+                UPD HdlOp@@AND to AND
+                    DEL HdlValueId@@DSTHI from ops
+                DEL HdlValueId@@zero from ops
+        UPD HdlOp@@ASSIGN to OR
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: FOUT
+                        HdlValueInt: 6
+                HdlOp: TERNARY
+                    list: ops
+                        HdlOp: AND
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: EXOP
+                                        HdlValueInt: 5
+                                HdlValueId: DSTHI
+                        HdlOp: AND
+                            list: ops
+                                HdlValueId: zero
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: FIN
+                                        HdlValueInt: 6
+                        HdlValueId: zero
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            MOV HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: FOUT
+                    HdlValueInt: 6
+            UPD HdlOp@@TERNARY to OR
+            UPD HdlOp@@TERNARY to TERNARY
+                UPD HdlOp@@AND to OR
+                UPD HdlOp@@AND to NEG
+                MOV HdlOp@@AND to ops
+                HdlOp: AND
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: EXOP
+                                HdlValueInt: 5
+                        HdlValueId: DSTHI
+                UPD HdlOp@@AND to AND
+                    DEL HdlValueId@@zero from ops
+                UPD HdlOp@@AND to AND
+                    DEL HdlValueId@@DSTHI from ops
+                DEL HdlValueId@@zero from ops
+        UPD HdlOp@@ASSIGN to OR
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: FOUT
+                        HdlValueInt: 6
+                HdlOp: TERNARY
+                    list: ops
+                        HdlOp: AND
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: EXOP
+                                        HdlValueInt: 5
+                                HdlValueId: DSTHI
+                        HdlOp: AND
+                            list: ops
+                                HdlValueId: zero
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: FIN
+                                        HdlValueInt: 6
+                        HdlValueId: zero
+    DEL HdlStmCaseType@@CASE from {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['OP',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '4'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
+
+

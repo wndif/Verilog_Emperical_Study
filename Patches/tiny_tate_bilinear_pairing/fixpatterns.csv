@@ -1,0 +1,7 @@
+,update,move,insert
+HdlIdDef-HdlModuleDec,3.0,,
+HdlIdDef-HdlModuleDef,3.0,,
+HdlOp-PARAMETRIZATION-HdlIdDef,3.0,,
+HdlOp-DOWNTO-HdlOp-PARAMETRIZATION,3.0,,
+HdlStmIf-HdlStmProcess,,2.0,
+HdlStmAssign-HdlStmIf,,,2.0

@@ -1,0 +1,6 @@
+,update
+HdlOp-DOWNTO-HdlOp-MemberAccessing,1
+HdlOp-InfixExpression-HdlOp-DOWNTO,1
+HdlOp-InfixExpression-HdlOp-InfixExpression,1
+HdlOp-MemberAccessing-HdlStmAssign,1
+HdlStmAssign-HdlStmCase,1
