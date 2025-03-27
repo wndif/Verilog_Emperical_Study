@@ -45,10 +45,13 @@ This repository contains empirical data from our analysis of 300+ open-source Ve
    - Columns: Fix types (update/insert/move/delete)
    - Values: Occurrence counts
 
-3. **fixpatterns.csv** - Cross-level repair pattern aggregation  
-   - Rows: Combined bug-fix patterns (BugType-FixType)
-   - Columns: Fix operations
-   - Values: Pattern frequency
+3. **fixpatterns.csv** - Aggregation of statement/expression-level bug patterns and repair methods  
+   - Rows: Defect location descriptor (ChildNodeType-ParentNodeType)  
+     *Example: `HdlIdDef-HdlModuleDef` indicates a defect located at a child node of type `HdlIdDef` under a parent node of type `HdlModuleDef`*  
+   - Columns: Repair actions (update, insert, delete, move)  
+     *Specific code modification operations*  
+   - Values: Pattern frequency  
+     *Count of repair actions applied to defects at the specified hierarchical location*  
 
 4. **patchesFile.txt** - AST diff analysis of bug-fix commits  
    Format:
