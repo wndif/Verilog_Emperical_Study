@@ -136,30 +136,6 @@ UPD HdlStmCase@@wstate to wstate
                 HdlValueInt: 1
 
 
-CommitId: 5c3415e8875c905be632b2e8c314463a6f87e83c
-Fixed DQM problem with last write
---- a/rtl/hpdmc_scheduler.v
-+++ b/rtl/hpdmc_scheduler.v
-@@ -623,7 +622,8 @@ always @(*) begin
- 					next_wstate = WBURST_WRITE;
- 				else
- 					next_wstate = WIDLE;
--			end
-+			end else
-+				buffer_w_nextburst = 1'b1;
- 		end
- 		WBURST_WRITE: begin
- 			wb_ack_o = 1'b1;
-ParseResult:
-UPD HdlStmCase@@wstate to wstate
-    UPD HdlStmBlock@@SEQ to SEQ
-        MOV HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: buffer_w_nextburst
-                HdlValueInt: 1
-
-
 CommitId: e850e5ef7accf41062f23931186f088992008dda
 Write debugging in progress
 --- a/rtl/hpdmc_scheduler.v
@@ -256,36 +232,6 @@ UPD HdlStmIf@@ to
         list: ops
             HdlValueId: next_wstate
             HdlValueId: WPROCESS_WRITE
-
-
-CommitId: e850e5ef7accf41062f23931186f088992008dda
-Write debugging in progress
---- a/rtl/hpdmc_scheduler.v
-+++ b/rtl/hpdmc_scheduler.v
-@@ -612,8 +614,8 @@ always @(*) begin
- 		end
- 		
- 		WPROCESS_WRITE: begin
--			fq_clearfetch = 1'b1;
- 			if(write_valid) begin
-+				fq_clearfetch = 1'b1;
- 				wb_ack_o = 1'b1;
- 				buffer_w_next = 1'b1;
- 				reload_maxburst_counter = 1'b1;
-ParseResult:
-UPD HdlStmCase@@wstate to wstate
-    UPD HdlStmBlock@@SEQ to SEQ
-        MOV HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: buffer_w_nextburst
-                HdlValueInt: 1
-    UPD HdlStmBlock@@SEQ to SEQ
-        MOV HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: fq_clearfetch
-                HdlValueInt: 1
 
 
 CommitId: 5c3415e8875c905be632b2e8c314463a6f87e83c

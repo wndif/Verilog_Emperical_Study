@@ -1,2 +1,4 @@
-,delete
-HdlIdDef-HdlModuleDec,1
+,delete,update
+HdlIdDef-HdlModuleDec,1.0,
+HdlStmIf-HdlStmProcess,,2.0
+HdlStmCase-HdlStmIf,,2.0

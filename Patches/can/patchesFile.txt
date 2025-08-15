@@ -1,0 +1,3552 @@
+CommitId: 7d5af99f0d8dbfe6c98443bb239473df0f30bd4c
+Most of the registers added. Registers "arbitration lost capture", "error code
+--- a/rtl/verilog/can_top.v
++++ b/rtl/verilog/can_top.v
+@@ -290,19 +300,25 @@ can_registers i_can_registers
+   .need_to_tx(need_to_tx),
+   .overrun(overrun),
+   .info_empty(info_empty),
++  .go_error_frame(go_error_frame),
++  .priority_lost(priority_lost),
++  .node_error_passive(node_error_passive),
++  .node_error_active(node_error_active),
++
+ 
+   /* Mode register */
+   .reset_mode(reset_mode),
+   .listen_only_mode(listen_only_mode),
+   .acceptance_filter_mode(acceptance_filter_mode),
+-  .sleep_mode(sleep_mode),
++  .self_test_mode(self_test_mode),
+ 
+   /* Command register */
+   .clear_data_overrun(),
+   .release_buffer(release_buffer),
+   .abort_tx(abort_tx),
+   .tx_request(tx_request),
+-  .self_rx_request(),
++  .self_rx_request(self_rx_request),
++  .single_shot_transmission(single_shot_transmission),
+ 
+   /* Bus Timing 0 register */
+   .baud_r_presc(baud_r_presc),
+
+ParseResult:
+INS HdlIdDef@@self_test_mode to objs
+HdlIdDef: self_test_mode
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@self_rx_request to objs
+HdlIdDef: self_rx_request
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@single_shot_transmission to objs
+HdlIdDef: single_shot_transmission
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@sleep_mode from objs
+HdlIdDef: sleep_mode
+    HdlDirection: INTERNAL
+
+
+CommitId: 7d5af99f0d8dbfe6c98443bb239473df0f30bd4c
+Most of the registers added. Registers "arbitration lost capture", "error code
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -276,6 +292,10 @@ output        tx_successful;
+ output        need_to_tx;
+ output        overrun;
+ output        info_empty;
++output        go_error_frame;
++output        priority_lost;
++output        node_error_passive;
++output        node_error_active;
+ 
+ 
+ /* This section is for BASIC and EXTENDED mode */
+
+ParseResult:
+INS HdlIdDef@@listen_only_mode to ports
+HdlIdDef: listen_only_mode
+    HdlDirection: IN
+
+
+CommitId: 7d5af99f0d8dbfe6c98443bb239473df0f30bd4c
+Most of the registers added. Registers "arbitration lost capture", "error code
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -1591,8 +1609,8 @@ end
+ 
+ 
+ 
+-assign go_early_tx = need_to_tx & (~tx_state) & (~suspend) & sample_point & (~sampled_bit) & (rx_idle | last_bit_of_inter);
+-assign go_tx       = need_to_tx & (~tx_state) & (~suspend) & (go_early_tx | rx_idle);
++assign go_early_tx = (~listen_only_mode) & need_to_tx & (~tx_state) & (~suspend) & sample_point & (~sampled_bit) & (rx_idle | last_bit_of_inter);
++assign go_tx       = (~listen_only_mode) & need_to_tx & (~tx_state) & (~suspend) & (go_early_tx | rx_idle);
+ 
+ 
+ // Tx state
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@OR to OR
+        UPD HdlOp@@OR to OR
+            UPD HdlOp@@OR to OR
+                UPD HdlOp@@OR to OR
+                    UPD HdlOp@@OR to OR
+                        UPD HdlOp@@OR to OR
+                            UPD HdlOp@@OR to OR
+                                UPD HdlOp@@OR to OR
+                                    MOV HdlOp@@AND to ops
+                                    HdlOp: AND
+                                        list: ops
+                                            HdlOp: AND
+                                                list: ops
+                                                    HdlOp: AND
+                                                        list: ops
+                                                            HdlOp: AND
+                                                                list: ops
+                                                                    HdlOp: NEG
+                                                                        list: ops
+                                                                            HdlValueId: bit_de_stuff_tx
+                                                                    HdlValueId: tx_point
+                                                            HdlOp: NEG
+                                                                list: ops
+                                                                    HdlValueId: rx_data
+                                                    HdlValueId: extended_mode
+                                            HdlOp: EQ
+                                                list: ops
+                                                    HdlValueId: tx_pointer
+                                                    HdlValueInt: 38
+                                    UPD HdlOp@@AND to AND
+                                        MOV HdlOp@@AND to ops
+                                        HdlOp: AND
+                                            list: ops
+                                                HdlOp: AND
+                                                    list: ops
+                                                        HdlOp: AND
+                                                            list: ops
+                                                                HdlOp: NEG
+                                                                    list: ops
+                                                                        HdlValueId: bit_de_stuff_tx
+                                                                HdlValueId: tx_point
+                                                        HdlOp: NEG
+                                                            list: ops
+                                                                HdlValueId: rx_data
+                                                HdlValueId: extended_mode
+
+
+CommitId: 41f096ac5d359cd62fcabfb165210a46a69c3715
+Fixed according to the linter.
+--- a/rtl/verilog/can_btl.v
++++ b/rtl/verilog/can_btl.v
+@@ -371,11 +371,11 @@ end
+ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+-    delay <= 0;
++    delay <= 4'h0;
+   else if (resync & seg1 & (~transmitting))  // when transmitting 0 with positive error delay is set to 0
+-    delay <=#Tp (quant_cnt > {3'h0, sync_jump_width})? (sync_jump_width + 1'b1) : (quant_cnt + 1'b1);
++    delay <=#Tp (quant_cnt > {2'h0, sync_jump_width})? ({2'h0, sync_jump_width} + 1'b1) : (quant_cnt + 1'b1);
+   else if (go_sync | go_seg1)
+-    delay <=#Tp 0;
++    delay <=#Tp 4'h0;
+ end
+ 
+ 
+
+ParseResult:
+UPD HdlIdDef@@quant_cnt to quant_cnt
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueInt@@4 to 3
+
+
+CommitId: 41f096ac5d359cd62fcabfb165210a46a69c3715
+Fixed according to the linter.
+--- a/rtl/verilog/can_btl.v
++++ b/rtl/verilog/can_btl.v
+@@ -430,7 +430,6 @@ begin
+     begin
+       if (resync)
+         sync_blocked <=#Tp 1'b1;
+-//      else if (seg2 & (quant_cnt[2:0] == time_segment2))
+       else if (go_seg2)
+         sync_blocked <=#Tp 1'b0;
+     end
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@EQ to EQ
+        INS HdlOp@@CONCAT to ops
+        UPD HdlOp@@CONCAT to CONCAT
+            INS list@@ops to CONCAT
+            INS HdlValueInt@@0 to ops
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@EQ to EQ
+        MOV HdlValueId@@clk_cnt to ops
+        HdlValueId: clk_cnt
+
+
+CommitId: aed4083f232ca8f8bcded47e97b6e99f4b6bf17a
+Synchronization fixed. In some strange cases it didn't work according to
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -1687,14 +1698,15 @@ begin
+ end
+ 
+ 
+-assign tx_successful = transmitter & go_rx_inter & ((~error_frame_ended) & (~overload_frame_ended) & (~arbitration_lost) | single_shot_transmission);
++//assign tx_successful = transmitter & go_rx_inter & ((~error_frame_ended) & (~overload_frame_ended) & (~arbitration_lost) | single_shot_transmission);
++assign tx_successful = transmitter & go_rx_inter & (~error_frame_ended) & (~overload_frame_ended) & (~arbitration_lost);
+ 
+ 
+ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+     need_to_tx <= 1'b0;
+-  else if (tx_successful | reset_mode | (abort_tx & (~transmitting)))
++  else if (tx_successful | reset_mode | (abort_tx & (~transmitting)) | ((~tx_state) & tx_state_q & single_shot_transmission))
+     need_to_tx <=#Tp 1'h0;
+   else if (tx_request & sample_point)
+     need_to_tx <=#Tp 1'b1;
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@OR to OR
+            MOV HdlOp@@AND to ops
+            HdlOp: AND
+                list: ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: NEG
+                                list: ops
+                                    HdlValueId: error_frame_ended
+                            HdlOp: NEG
+                                list: ops
+                                    HdlValueId: overload_frame_ended
+                    HdlOp: NEG
+                        list: ops
+                            HdlValueId: arbitration_lost
+            UPD HdlOp@@AND to AND
+                UPD HdlOp@@AND to AND
+                    MOV HdlOp@@NEG to ops
+                    HdlOp: NEG
+                        list: ops
+                            HdlValueId: error_frame_ended
+            DEL HdlValueId@@single_shot_transmission from ops
+            DEL list@@ops from OR
+        DEL HdlOp@@OR from ops
+    MOV HdlOp@@AND to 
+    HdlOp: AND
+        list: ops
+            HdlOp: AND
+                list: ops
+                    HdlValueId: transmitter
+                    HdlValueId: go_rx_inter
+            HdlOp: OR
+                list: ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: AND
+                                list: ops
+                                    HdlOp: NEG
+                                        list: ops
+                                            HdlValueId: error_frame_ended
+                                    HdlOp: NEG
+                                        list: ops
+                                            HdlValueId: overload_frame_ended
+                            HdlOp: NEG
+                                list: ops
+                                    HdlValueId: arbitration_lost
+                    HdlValueId: single_shot_transmission
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@OR to 
+    UPD HdlOp@@OR to OR
+        INS list@@ops to OR
+        INS HdlOp@@AND to ops
+        HdlOp: AND
+            list: ops
+                HdlOp: AND
+                    list: ops
+                        HdlOp: NEG
+                            list: ops
+                                HdlValueId: tx_state
+                        HdlValueId: tx_state_q
+                HdlValueId: single_shot_transmission
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@OR to 
+    HdlOp: OR
+        list: ops
+            HdlOp: OR
+                list: ops
+                    HdlValueId: tx_successful
+                    HdlValueId: reset_mode
+            HdlOp: AND
+                list: ops
+                    HdlValueId: abort_tx
+                    HdlOp: NEG
+                        list: ops
+                            HdlValueId: transmitting
+
+
+CommitId: aed4083f232ca8f8bcded47e97b6e99f4b6bf17a
+Synchronization fixed. In some strange cases it didn't work according to
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -1730,6 +1742,11 @@ begin
+     tx_state <=#Tp 1'b1;
+ end
+ 
++always @ (posedge clk)
++begin
++  tx_state_q <=#Tp tx_state;
++end
++
+ 
+ 
+ // Node is a transmitter
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueId: tx_state
+                HdlValueId: tx_state_q
+                HdlValueId: Tp
+
+
+CommitId: d80749a0454153857ca945fef2955739501dc288
+Synchronization changed, error counters fixed.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -599,9 +620,6 @@ wire          overload_frame_ended;
+ wire          bit_err;
+ wire          ack_err;
+ wire          stuff_err;
+-                                    // of intermission, it starts reading the identifier (and transmitting its own).
+-wire          overload_needed =1'b0;// When receiver is busy, it needs to send overload frame. Only 2 overload frames are allowed to
+-                                    // be send in a row. This is not implemented because host can not send an overload request.
+ 
+ wire          id_ok;                // If received ID matches ID set in registers
+ wire          no_byte0;             // There is no byte 0 (RTR bit set to 1 or DLC field equal to 0). Signal used for acceptance filter.
+
+ParseResult:
+MOV HdlIdDef@@overload_frame to objs
+HdlIdDef: overload_frame
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+UPD HdlIdDef@@overload_frame to overload_frame
+    UPD HdlDirection@@INTERNAL to OUT
+
+
+CommitId: d80749a0454153857ca945fef2955739501dc288
+Synchronization changed, error counters fixed.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -666,15 +684,15 @@ assign go_rx_crc_lim  = (~bit_de_stuff) & sample_point &  rx_crc  & (bit_cnt[3:0
+ assign go_rx_ack      = (~bit_de_stuff) & sample_point &  rx_crc_lim;
+ assign go_rx_ack_lim  =                   sample_point &  rx_ack;
+ assign go_rx_eof      =                   sample_point &  rx_ack_lim;
+-assign go_rx_inter    =                 ((sample_point &  rx_eof  & (eof_cnt == 3'd6)) | error_frame_ended | overload_frame_ended) & (~overload_needed);
++assign go_rx_inter    =                 ((sample_point &  rx_eof  & (eof_cnt == 3'd6)) | error_frame_ended | overload_frame_ended) & (~overload_request);
+ 
+ assign go_error_frame = (form_err | stuff_err | bit_err | ack_err | (crc_err & go_rx_eof));
+ assign error_frame_ended = (error_cnt2 == 3'd7) & tx_point;
+ assign overload_frame_ended = (overload_cnt2 == 3'd7) & tx_point;
+ 
+-assign go_overload_frame = (   ((sample_point &  rx_eof  & (eof_cnt == 3'd6)) | error_frame_ended | overload_frame_ended) & overload_needed | 
+-                               sample_point & (~sampled_bit) & rx_inter & (bit_cnt[1:0] < 2'd2)                                                  |
+-                               sample_point & (~sampled_bit) & ((error_cnt2 == 3'd7) | (overload_cnt2 == 3'd7))
++assign go_overload_frame = (   ((sample_point &  rx_eof  & (eof_cnt == 3'd6)) | error_frame_ended | overload_frame_ended) & overload_request | 
++                                 sample_point & (~sampled_bit) & rx_inter & (bit_cnt[1:0] < 2'd2)                                            |
++                                 sample_point & (~sampled_bit) & ((error_cnt2 == 3'd7) | (overload_cnt2 == 3'd7))
+                            )
+                            & (~overload_frame_blocked)
+                            ;
+
+ParseResult:
+DEL HdlIdDef@@overload_needed from objs
+HdlIdDef: overload_needed
+    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@send_ack from objs
+HdlIdDef: send_ack
+    HdlDirection: INTERNAL
+
+
+CommitId: d80749a0454153857ca945fef2955739501dc288
+Synchronization changed, error counters fixed.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -720,7 +739,8 @@ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+     rx_id1 <= 1'b0;
+-  else if (reset_mode | go_rx_rtr1 | error_frame)
++//  else if (reset_mode | go_rx_rtr1 | error_frame)
++  else if (reset_mode | go_rx_rtr1 | go_error_frame)
+     rx_id1 <=#Tp 1'b0;
+   else if (go_rx_id1)
+     rx_id1 <=#Tp 1'b1;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@OR to OR
+        UPD HdlValueId@@error_frame to go_error_frame
+
+
+CommitId: d80749a0454153857ca945fef2955739501dc288
+Synchronization changed, error counters fixed.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -744,7 +765,8 @@ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+     rx_ide <= 1'b0;
+-  else if (reset_mode | go_rx_r0 | go_rx_id2 | error_frame)
++//  else if (reset_mode | go_rx_r0 | go_rx_id2 | error_frame)
++  else if (reset_mode | go_rx_r0 | go_rx_id2 | go_error_frame)
+     rx_ide <=#Tp 1'b0;
+   else if (go_rx_ide)
+     rx_ide <=#Tp 1'b1;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@OR to OR
+        UPD HdlValueId@@error_frame to go_error_frame
+
+
+CommitId: d80749a0454153857ca945fef2955739501dc288
+Synchronization changed, error counters fixed.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -756,7 +778,8 @@ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+     rx_id2 <= 1'b0;
+-  else if (reset_mode | go_rx_rtr2 | error_frame)
++//  else if (reset_mode | go_rx_rtr2 | error_frame)
++  else if (reset_mode | go_rx_rtr2 | go_error_frame)
+     rx_id2 <=#Tp 1'b0;
+   else if (go_rx_id2)
+     rx_id2 <=#Tp 1'b1;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@OR to OR
+        UPD HdlValueId@@error_frame to go_error_frame
+
+
+CommitId: d80749a0454153857ca945fef2955739501dc288
+Synchronization changed, error counters fixed.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -768,7 +791,8 @@ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+     rx_rtr2 <= 1'b0;
+-  else if (reset_mode | go_rx_r1 | error_frame)
++//  else if (reset_mode | go_rx_r1 | error_frame)
++  else if (reset_mode | go_rx_r1 | go_error_frame)
+     rx_rtr2 <=#Tp 1'b0;
+   else if (go_rx_rtr2)
+     rx_rtr2 <=#Tp 1'b1;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@OR to OR
+        UPD HdlValueId@@error_frame to go_error_frame
+
+
+CommitId: d80749a0454153857ca945fef2955739501dc288
+Synchronization changed, error counters fixed.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -780,7 +804,8 @@ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+     rx_r1 <= 1'b0;
+-  else if (reset_mode | go_rx_r0 | error_frame)
++//  else if (reset_mode | go_rx_r0 | error_frame)
++  else if (reset_mode | go_rx_r0 | go_error_frame)
+     rx_r1 <=#Tp 1'b0;
+   else if (go_rx_r1)
+     rx_r1 <=#Tp 1'b1;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@OR to OR
+        UPD HdlValueId@@error_frame to go_error_frame
+
+
+CommitId: d80749a0454153857ca945fef2955739501dc288
+Synchronization changed, error counters fixed.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -804,7 +830,8 @@ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+     rx_dlc <= 1'b0;
+-  else if (reset_mode | go_rx_data | go_rx_crc | error_frame)
++//  else if (reset_mode | go_rx_data | go_rx_crc | error_frame)
++  else if (reset_mode | go_rx_data | go_rx_crc | go_error_frame)
+     rx_dlc <=#Tp 1'b0;
+   else if (go_rx_dlc)
+     rx_dlc <=#Tp 1'b1;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@OR to OR
+        UPD HdlValueId@@error_frame to go_error_frame
+
+
+CommitId: d80749a0454153857ca945fef2955739501dc288
+Synchronization changed, error counters fixed.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -840,7 +869,8 @@ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+     rx_crc_lim <= 1'b0;
+-  else if (reset_mode | go_rx_ack | error_frame)
++//  else if (reset_mode | go_rx_ack | error_frame)
++  else if (reset_mode | go_rx_ack | go_error_frame)
+     rx_crc_lim <=#Tp 1'b0;
+   else if (go_rx_crc_lim)
+     rx_crc_lim <=#Tp 1'b1;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@OR to OR
+        UPD HdlValueId@@error_frame to go_error_frame
+
+
+CommitId: d80749a0454153857ca945fef2955739501dc288
+Synchronization changed, error counters fixed.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -864,7 +895,8 @@ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+     rx_ack_lim <= 1'b0;
+-  else if (reset_mode | go_rx_eof | error_frame)
++//  else if (reset_mode | go_rx_eof | error_frame)
++  else if (reset_mode | go_rx_eof | go_error_frame)
+     rx_ack_lim <=#Tp 1'b0;
+   else if (go_rx_ack_lim)
+     rx_ack_lim <=#Tp 1'b1;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@OR to OR
+        UPD HdlValueId@@error_frame to go_error_frame
+
+
+CommitId: d80749a0454153857ca945fef2955739501dc288
+Synchronization changed, error counters fixed.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -876,7 +908,8 @@ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+     rx_eof <= 1'b0;
+-  else if (go_rx_inter | error_frame | go_overload_frame)
++//  else if (go_rx_inter | error_frame | go_overload_frame)
++  else if (go_rx_inter | go_error_frame | go_overload_frame)
+     rx_eof <=#Tp 1'b0;
+   else if (go_rx_eof)
+     rx_eof <=#Tp 1'b1;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@OR to OR
+        UPD HdlValueId@@error_frame to go_error_frame
+
+
+CommitId: d80749a0454153857ca945fef2955739501dc288
+Synchronization changed, error counters fixed.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -1760,10 +1814,11 @@ begin
+     transmitter <= 1'b0;
+   else if (go_tx)
+     transmitter <=#Tp 1'b1;
+-  else if ((reset_mode | go_rx_inter ) | ((~tx_state) & tx_state_q))
++//  else if ((reset_mode | go_rx_inter ) | ((~tx_state) & tx_state_q))
++  else if (reset_mode | go_rx_idle)
+     transmitter <=#Tp 1'b0;
+ end
+-
++ 
+ 
+ 
+ // Signal "transmitting" signals that the core is a transmitting (message, error frame or overload frame). No synchronization is done meanwhile.
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@OR to OR
+        MOV HdlOp@@OR to ops
+        HdlOp: OR
+            list: ops
+                HdlValueId: reset_mode
+                HdlValueId: go_rx_inter
+        UPD HdlOp@@OR to OR
+            UPD HdlValueId@@go_rx_inter to go_rx_idle
+        DEL HdlOp@@AND from ops
+        HdlOp: AND
+            list: ops
+                HdlOp: NEG
+                    list: ops
+                        HdlValueId: tx_state
+                HdlValueId: tx_state_q
+        DEL list@@ops from OR
+    DEL HdlOp@@OR from 
+
+
+CommitId: d80749a0454153857ca945fef2955739501dc288
+Synchronization changed, error counters fixed.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -1772,9 +1827,10 @@ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+     transmitting <= 1'b0;
+-  else if (go_error_frame | go_overload_frame | go_tx)
++//  else if (go_error_frame | go_overload_frame | go_tx)
++  else if (go_error_frame | go_overload_frame | go_tx | send_ack)
+     transmitting <=#Tp 1'b1;
+-  else if (reset_mode | go_rx_idle | (go_rx_id1 & (~tx_state)) | (arbitration_lost & tx_state))
++  else if (reset_mode | go_rx_idle | (go_rx_id1 & (~tx_state)) | (arbitration_lost & tx_state) | rx_ack_lim)
+     transmitting <=#Tp 1'b0;
+ end
+ 
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@OR to 
+    HdlOp: OR
+        list: ops
+            HdlOp: OR
+                list: ops
+                    HdlValueId: go_error_frame
+                    HdlValueId: go_overload_frame
+            HdlValueId: go_tx
+    MOV HdlOp@@OR to 
+    HdlOp: OR
+        list: ops
+            HdlOp: OR
+                list: ops
+                    HdlOp: OR
+                        list: ops
+                            HdlValueId: reset_mode
+                            HdlValueId: go_rx_idle
+                    HdlOp: AND
+                        list: ops
+                            HdlValueId: go_rx_id1
+                            HdlOp: NEG
+                                list: ops
+                                    HdlValueId: tx_state
+            HdlOp: AND
+                list: ops
+                    HdlValueId: arbitration_lost
+                    HdlValueId: tx_state
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@AND to AND
+            UPD HdlValueId@@go_rx_inter to rx_inter
+
+
+CommitId: 7d5af99f0d8dbfe6c98443bb239473df0f30bd4c
+Most of the registers added. Registers "arbitration lost capture", "error code
+--- a/rtl/verilog/can_registers.v
++++ b/rtl/verilog/can_registers.v
+@@ -234,6 +242,10 @@ input         tx_successful;
+ input         need_to_tx;
+ input         overrun;
+ input         info_empty;
++input         go_error_frame;
++input         priority_lost;
++input         node_error_passive;
++input         node_error_active;
+ 
+ 
+ 
+
+ParseResult:
+INS HdlIdDef@@go_error_frame to ports
+HdlIdDef: go_error_frame
+    HdlDirection: IN
+
+
+CommitId: 7d5af99f0d8dbfe6c98443bb239473df0f30bd4c
+Most of the registers added. Registers "arbitration lost capture", "error code
+--- a/rtl/verilog/can_registers.v
++++ b/rtl/verilog/can_registers.v
+@@ -241,7 +253,7 @@ input         info_empty;
+ output        reset_mode;
+ output        listen_only_mode;
+ output        acceptance_filter_mode;
+-output        sleep_mode;
++output        self_test_mode;
+ 
+ /* Command register */
+ output        clear_data_overrun;
+
+ParseResult:
+INS HdlIdDef@@priority_lost to ports
+HdlIdDef: priority_lost
+    HdlDirection: IN
+
+INS HdlIdDef@@node_error_passive to ports
+HdlIdDef: node_error_passive
+    HdlDirection: IN
+
+INS HdlIdDef@@node_error_active to ports
+HdlIdDef: node_error_active
+    HdlDirection: IN
+
+
+CommitId: 7d5af99f0d8dbfe6c98443bb239473df0f30bd4c
+Most of the registers added. Registers "arbitration lost capture", "error code
+--- a/rtl/verilog/can_registers.v
++++ b/rtl/verilog/can_registers.v
+@@ -374,13 +400,24 @@ wire   we_acceptance_mask_3     = cs & we & (addr == 8'd23) & reset_mode & exten
+ 
+ 
+ 
++always @ (posedge clk)
++begin
++  tx_successful_q           <=#Tp tx_successful;
++  overrun_q                 <=#Tp overrun;
++  transmit_buffer_status_q  <=#Tp transmit_buffer_status;
++  info_empty_q              <=#Tp info_empty;
++  error_status_q            <=#Tp error_status;
++  node_bus_off_q            <=#Tp node_bus_off;
++  priority_lost_q           <=#Tp priority_lost;
++  node_error_passive_q      <=#Tp node_error_passive;
++end
+ 
+ 
+ 
+ /* Mode register */
+ wire   [0:0] mode;
+ wire   [4:1] mode_basic;
+-wire   [4:1] mode_ext;
++wire   [3:1] mode_ext;
+ wire         receive_irq_en_basic;
+ wire         transmit_irq_en_basic;
+ wire         error_irq_en_basic;
+
+ParseResult:
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueId: error_status
+    HdlValueId: error_status_q
+    HdlValueId: Tp
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueId: node_bus_off
+    HdlValueId: node_bus_off_q
+    HdlValueId: Tp
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueId: priority_lost
+    HdlValueId: priority_lost_q
+    HdlValueId: Tp
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueId: node_error_passive
+    HdlValueId: node_error_passive_q
+    HdlValueId: Tp
+
+
+CommitId: 7d5af99f0d8dbfe6c98443bb239473df0f30bd4c
+Most of the registers added. Registers "arbitration lost capture", "error code
+--- a/rtl/verilog/can_registers.v
++++ b/rtl/verilog/can_registers.v
+@@ -403,18 +440,18 @@ can_register_asyn #(4, 0) MODE_REG_BASIC
+   .rst(rst)
+ );
+ 
+-can_register_asyn #(4, 0) MODE_REG_EXT
+-( .data_in(data_in[4:1]),
+-  .data_out(mode_ext[4:1]),
+-  .we(we_mode),
++can_register_asyn #(3, 0) MODE_REG_EXT
++( .data_in(data_in[3:1]),
++  .data_out(mode_ext[3:1]),
++  .we(we_mode & reset_mode),
+   .clk(clk),
+   .rst(rst)
+ );
+ 
+ assign reset_mode             = mode[0];
+ assign listen_only_mode       = mode_ext[1];
++assign self_test_mode         = mode_ext[2];
+ assign acceptance_filter_mode = mode_ext[3];
+-assign sleep_mode             = mode_ext[4];
+ 
+ assign receive_irq_en_basic  = mode_basic[1];
+ assign transmit_irq_en_basic = mode_basic[2];
+
+ParseResult:
+DEL HdlIdDef@@mode_ext from objs
+HdlIdDef: mode_ext
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 4
+                    HdlValueInt: 1
+    HdlDirection: INTERNAL
+
+
+CommitId: 1b745641d45174d20dacd8e9354eb61e015cce5f
+Error counters changed.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -695,9 +700,10 @@ assign go_error_frame = (form_err | stuff_err | bit_err | ack_err | (crc_err & g
+ assign error_frame_ended = (error_cnt2 == 3'd7) & tx_point;
+ assign overload_frame_ended = (overload_cnt2 == 3'd7) & tx_point;
+ 
+-//assign go_overload_frame = (   ((sample_point &  rx_eof  & (eof_cnt == 3'd6)) | error_frame_ended | overload_frame_ended) & overload_request | 
+-assign go_overload_frame = (   ((sample_point &  rx_eof  & (eof_cnt == 3'd6)) | error_frame_ended | overload_frame_ended) & (overload_request | (~sampled_bit)) | 
+-                                 sample_point & (~sampled_bit) & rx_inter & (bit_cnt[1:0] < 2'd2)                                            |
++//assign go_overload_frame = (   ((sample_point &  rx_eof  & (eof_cnt == 3'd6)) | error_frame_ended | overload_frame_ended) & (overload_request | (~sampled_bit)) | 
++//assign go_overload_frame = (     sample_point & ((~sampled_bit) | overload_request) & (rx_eof  & (eof_cnt == 3'd6) | error_frame_ended | overload_frame_ended) | 
++assign go_overload_frame = (     sample_point & ((~sampled_bit) | overload_request) & (rx_eof & (~transmitter) & (eof_cnt == 3'd6) | error_frame_ended | overload_frame_ended) | 
++                                 sample_point & (~sampled_bit) & rx_inter & (bit_cnt[1:0] < 2'd2)                                                            |
+                                  sample_point & (~sampled_bit) & ((error_cnt2 == 3'd7) | (overload_cnt2 == 3'd7))
+                            )
+                            & (~overload_frame_blocked)
+
+ParseResult:
+INS HdlIdDef@@bit_err_exc6 to objs
+HdlIdDef: bit_err_exc6
+    HdlDirection: INTERNAL
+
+
+CommitId: 1b745641d45174d20dacd8e9354eb61e015cce5f
+Error counters changed.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -714,12 +720,13 @@ assign remote_rq = ((~ide) & rtr1) | (ide & rtr2);
+ assign limited_data_len = (data_len < 4'h8)? data_len : 4'h8;
+ 
+ assign ack_err = rx_ack & sample_point & sampled_bit & tx_state & (~self_test_mode);
+-assign bit_err = (tx_state | error_frame | overload_frame | rx_ack) & sample_point & (tx != sampled_bit) & (~bit_err_exc1) & (~bit_err_exc2) & (~bit_err_exc3) & (~bit_err_exc4) & (~bit_err_exc5);
++assign bit_err = (tx_state | error_frame | overload_frame | rx_ack) & sample_point & (tx != sampled_bit) & (~bit_err_exc1) & (~bit_err_exc2) & (~bit_err_exc3) & (~bit_err_exc4) & (~bit_err_exc5) & (~bit_err_exc6);
+ assign bit_err_exc1 = tx_state & arbitration_field & tx;
+ assign bit_err_exc2 = rx_ack & tx;
+ assign bit_err_exc3 = error_frame & node_error_passive & (error_cnt1 < 3'd7);
+ assign bit_err_exc4 = (error_frame & (error_cnt1 == 3'd7) & (~enable_error_cnt2)) | (overload_frame & (overload_cnt1 == 3'd7) & (~enable_overload_cnt2));
+ assign bit_err_exc5 = (error_frame & (error_cnt2 == 3'd7)) | (overload_frame & (overload_cnt2 == 3'd7));
++assign bit_err_exc6 = (eof_cnt == 3'd6) & rx_eof & (~transmitter); 
+ 
+ assign arbitration_field = rx_id1 | rx_rtr1 | rx_ide | rx_id2 | rx_rtr2;
+ 
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@OR to OR
+            UPD HdlOp@@OR to OR
+                UPD HdlOp@@AND to AND
+                    INS HdlOp@@AND to ops
+                    UPD HdlOp@@AND to AND
+                        INS list@@ops to AND
+                        INS HdlValueId@@sample_point to ops
+                        UPD HdlOp@@OR to OR
+                            INS HdlValueId@@overload_request to ops
+                    UPD HdlOp@@OR to OR
+                        UPD HdlOp@@OR to OR
+                            UPD HdlOp@@AND to AND
+                                UPD HdlOp@@AND to AND
+                                    INS HdlOp@@NEG to ops
+                                    HdlOp: NEG
+                                        list: ops
+                                            HdlValueId: transmitter
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@OR to OR
+            UPD HdlOp@@OR to OR
+                UPD HdlOp@@AND to AND
+                    MOV HdlOp@@OR to ops
+                    HdlOp: OR
+                        list: ops
+                            HdlValueId: overload_request
+                            HdlOp: NEG
+                                list: ops
+                                    HdlValueId: sampled_bit
+                    UPD HdlOp@@OR to OR
+                        DEL HdlValueId@@overload_request from ops
+                    UPD HdlOp@@OR to OR
+                        UPD HdlOp@@OR to OR
+                            UPD HdlOp@@AND to AND
+                                UPD HdlOp@@AND to AND
+                                    DEL HdlValueId@@sample_point from ops
+
+
+CommitId: 1b745641d45174d20dacd8e9354eb61e015cce5f
+Error counters changed.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -1966,11 +1979,13 @@ begin
+               else
+                 rx_err_cnt <=#Tp rx_err_cnt - 1'b1;
+             end
+-          else if (rx_err_cnt < 9'd248)   // 248 + 8 = 256
++          else if (rx_err_cnt < 9'd128)
+             begin
+               if (go_error_frame & (~rule5))                                                                            // 1  (rule 5 is just the opposite then rule 1 exception
+                 rx_err_cnt <=#Tp rx_err_cnt + 1'b1;
+-              else if ( (error_flag_over & (~error_flag_over_latched) & sample_point & (~sampled_bit) & (error_cnt1 == 3'd7) & (~rx_err_cnt_blocked)  ) |   // 2
++//              else if ( (error_flag_over & (~error_flag_over_latched) & sample_point & (~sampled_bit) & (error_cnt1 == 3'd7) & (~rx_err_cnt_blocked)  ) |   // 2
++//              else if ( (error_flag_over & (~error_flag_over_latched) & sample_point & (~sampled_bit) & (error_cnt1 == 3'd7)     ) |   // 2
++              else if ( (error_flag_over & (~error_flag_over_latched) & sample_point & (~sampled_bit) & (error_cnt1 == 3'd7)     ) |   // 2
+                         (go_error_frame & rule5                                                                                  ) |   // 5
+ //                        (error_frame & sample_point & (~sampled_bit) & (delayed_dominant_cnt == 3'h7)                            )     // 6
+                         (sample_point & (~sampled_bit) & (delayed_dominant_cnt == 3'h7)                            )     // 6
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@rst to 
+    INS list@@elifs to 
+    INS tuple@@ to elifs
+    INS tuple@@ to elifs
+    INS HdlOp@@OR to 
+    HdlOp: OR
+        list: ops
+            HdlOp: OR
+                list: ops
+                    HdlValueId: go_rx_idle
+                    HdlValueId: error_frame_ended
+            HdlValueId: reset_mode
+    INS HdlOp@@AND to 
+    HdlOp: AND
+        list: ops
+            HdlOp: AND
+                list: ops
+                    HdlOp: AND
+                        list: ops
+                            HdlValueId: transmitter
+                            HdlValueId: sample_point
+                    HdlValueId: tx
+            HdlValueId: arbitration_field
+
+
+CommitId: aed4083f232ca8f8bcded47e97b6e99f4b6bf17a
+Synchronization fixed. In some strange cases it didn't work according to
+--- a/rtl/verilog/can_btl.v
++++ b/rtl/verilog/can_btl.v
+@@ -218,8 +221,8 @@ wire          quant_cnt_rst;
+ 
+ 
+ assign preset_cnt = (baud_r_presc + 1'b1)<<1;        // (BRP+1)*2
+-assign hard_sync  =   (rx_idle | last_bit_of_inter)    & (~rx) & sampled_bit & (~hard_sync_blocked);  // Hard synchronization
+-assign resync     =  (~rx_idle) & (~last_bit_of_inter) & (~rx) & sampled_bit & (~sync_blocked) & (~(transmitting & seg1));       // Re-synchronization
++assign hard_sync  =   (rx_idle | not_first_bit_of_inter)    & (~rx) & sampled_bit & (~hard_sync_blocked);  // Hard synchronization
++assign resync     =  (~rx_idle) & (~not_first_bit_of_inter) & (~rx) & sampled_bit & (~sync_blocked);       // Re-synchronization
+ 
+ 
+ /* Generating general enable signal that defines baud rate. */
+
+ParseResult:
+UPD HdlIdDef@@last_bit_of_inter to not_first_bit_of_inter
+
+
+CommitId: a9486ec0b31c85245964885a2c1e25399ccde93e
+Fixed synchronization problem in real hardware when 0xf is used for TSEG1.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -1933,7 +1918,7 @@ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+     arbitration_lost_capture <= 5'h0;
+-  else if (read_arbitration_lost_capture_reg)
++  else if (read_arbitration_lost_capture_reg_q)
+     arbitration_lost_capture <=#Tp 5'h0;
+   else if (sample_point & (~arbitration_blocked) & arbitration_cnt_en & (~bit_de_stuff))
+     arbitration_lost_capture <=#Tp arbitration_lost_capture + 1'b1;
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    INS HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: rst
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmAssign
+                            HdlValueInt: 0
+                            HdlValueId: arbitration_lost_q
+                            HdlValueId: Tp
+                        HdlStmAssign
+                            HdlValueInt: 0
+                            HdlValueId: read_arbitration_lost_capture_reg_q
+                            HdlValueId: Tp
+                list: elifs
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmAssign
+                            HdlValueId: arbitration_lost
+                            HdlValueId: arbitration_lost_q
+                            HdlValueId: Tp
+                        HdlStmAssign
+                            HdlValueId: read_arbitration_lost_capture_reg
+                            HdlValueId: read_arbitration_lost_capture_reg_q
+                            HdlValueId: Tp
+
+
+CommitId: a9486ec0b31c85245964885a2c1e25399ccde93e
+Fixed synchronization problem in real hardware when 0xf is used for TSEG1.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -2001,18 +1986,6 @@ begin
+ end
+ 
+ 
+-always @ (posedge clk or posedge rst)
+-begin
+-  if (rst)
+-    rx_err_cnt_blocked <= 1'b0;
+-  else if (reset_mode | error_frame_ended | go_error_frame | go_overload_frame)
+-    rx_err_cnt_blocked <=#Tp 1'b0;
+-  else if (sample_point & (error_cnt1 == 3'd7))
+-    rx_err_cnt_blocked <=#Tp 1'b1;
+-end
+-
+-
+-
+ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlValueId@@read_arbitration_lost_capture_reg to read_arbitration_lost_capture_reg_q
+
+
+CommitId: d80749a0454153857ca945fef2955739501dc288
+Synchronization changed, error counters fixed.
+--- a/rtl/verilog/can_btl.v
++++ b/rtl/verilog/can_btl.v
+@@ -185,6 +198,15 @@ input         triple_sampling;
+ input         rx_idle;
+ input         not_first_bit_of_inter;
+ input         transmitting;
++input         transmitter;
++input         go_rx_inter;
++input         tx_next;
++
++input         go_overload_frame;
++input         go_error_frame;
++input         go_tx;
++input         send_ack;
++input         node_error_passive;
+ 
+ /* Output signals from this module */
+ output        sample_point;
+
+ParseResult:
+INS HdlIdDef@@tx to ports
+HdlIdDef: tx
+    HdlDirection: IN
+
+
+CommitId: d80749a0454153857ca945fef2955739501dc288
+Synchronization changed, error counters fixed.
+--- a/rtl/verilog/can_btl.v
++++ b/rtl/verilog/can_btl.v
+@@ -372,7 +367,8 @@ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+     delay <= 4'h0;
+-  else if (resync & seg1 & (~transmitting))  // when transmitting 0 with positive error delay is set to 0
++//  else if (resync & seg1 & (~transmitting | transmitting & tx_next_sp))  // when transmitting 0 with positive error delay is set to 0
++  else if (resync & seg1 & (~transmitting | transmitting & (tx_next_sp | (tx & (~rx)))))  // when transmitting 0 with positive error delay is set to 0
+     delay <=#Tp (quant_cnt > {2'h0, sync_jump_width})? ({2'h0, sync_jump_width} + 1'b1) : (quant_cnt + 1'b1);
+   else if (go_sync | go_seg1)
+     delay <=#Tp 4'h0;
+
+ParseResult:
+UPD HdlIdDef@@go_seg1 to tx_next_sp
+
+DEL HdlIdDef@@go_sync from objs
+HdlIdDef: go_sync
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+
+CommitId: 3762eaf9784d6de7dbb0d56fdda1133073d9f858
+Error counters fixed to be compatible with Bosch VHDL reference model.
+--- a/rtl/verilog/can_btl.v
++++ b/rtl/verilog/can_btl.v
+@@ -245,8 +248,8 @@ wire          resync;
+ 
+ 
+ assign preset_cnt = (baud_r_presc + 1'b1)<<1;        // (BRP+1)*2
+-assign hard_sync  =   (rx_idle | not_first_bit_of_inter)    & (~rx) & sampled_bit & (~hard_sync_blocked);  // Hard synchronization
+-assign resync     =  (~rx_idle) & (~not_first_bit_of_inter) & (~rx) & sampled_bit & (~sync_blocked);       // Re-synchronization
++assign hard_sync  =   (rx_idle | rx_inter)    & (~rx) & sampled_bit & (~hard_sync_blocked);  // Hard synchronization
++assign resync     =  (~rx_idle) & (~rx_inter) & (~rx) & sampled_bit & (~sync_blocked);       // Re-synchronization
+ 
+ 
+ /* Generating general enable signal that defines baud rate. */
+
+ParseResult:
+UPD HdlIdDef@@not_first_bit_of_inter to rx_inter
+
+
+CommitId: 2ddc13f64b3b86496f7e52986ca9f1fbebe46c06
+irq is cleared after the release_buffer command. This bug was entered with
+--- a/rtl/verilog/can_registers.v
++++ b/rtl/verilog/can_registers.v
+@@ -1237,7 +1240,7 @@ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+     irq_n <= 1'b1;
+-  else if (read_irq_reg)
++  else if (read_irq_reg || release_buffer)
+     irq_n <=#Tp 1'b1;
+   else if (irq)
+     irq_n <=#Tp 1'b0;
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS HdlOp@@OR_LOG to 
+    UPD HdlOp@@OR_LOG to OR_LOG
+        INS list@@ops to OR_LOG
+        INS HdlValueId@@release_buffer to ops
+
+UPD HdlStmIf@@ to 
+    MOV HdlValueId@@read_irq_reg to 
+    HdlValueId: read_irq_reg
+
+
+CommitId: 1b6a912bc0d19a05a1a457abcdae80e5d056234a
+Fixes for compatibility after the SW reset.
+--- a/rtl/verilog/can_registers.v
++++ b/rtl/verilog/can_registers.v
+@@ -1155,10 +1159,10 @@ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+     transmit_irq <= 1'b0;
++  else if (reset_mode || read_irq_reg)
++    transmit_irq <=#Tp 1'b0;
+   else if (transmit_buffer_status & (~transmit_buffer_status_q) & transmit_irq_en)
+     transmit_irq <=#Tp 1'b1;
+-  else if (read_irq_reg)
+-    transmit_irq <=#Tp 1'b0;
+ end
+ 
+ 
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    MOV HdlValueId@@read_irq_reg to 
+    HdlValueId: read_irq_reg
+
+
+CommitId: 1b6a912bc0d19a05a1a457abcdae80e5d056234a
+Fixes for compatibility after the SW reset.
+--- a/rtl/verilog/can_registers.v
++++ b/rtl/verilog/can_registers.v
+@@ -1167,10 +1171,10 @@ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+     receive_irq <= 1'b0;
+-  else if (release_buffer)
+-    receive_irq <=#Tp 1'b0;
+   else if ((~info_empty) & (~receive_irq) & receive_irq_en)
+     receive_irq <=#Tp 1'b1;
++  else if (reset_mode || release_buffer)
++    receive_irq <=#Tp 1'b0;
+ end
+ 
+ 
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    MOV tuple@@ to elifs
+    tuple
+        HdlOp: AND
+            list: ops
+                HdlOp: AND
+                    list: ops
+                        HdlValueId: transmit_buffer_status
+                        HdlOp: NEG
+                            list: ops
+                                HdlValueId: transmit_buffer_status_q
+                HdlValueId: transmit_irq_en
+        HdlStmAssign
+            HdlValueInt: 1
+            HdlValueId: transmit_irq
+            HdlValueId: Tp
+    MOV HdlValueId@@read_irq_reg to 
+    HdlValueId: read_irq_reg
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@OR_LOG to 
+    UPD HdlOp@@OR_LOG to OR_LOG
+        INS list@@ops to OR_LOG
+        INS HdlValueId@@reset_mode to ops
+
+
+CommitId: 1b6a912bc0d19a05a1a457abcdae80e5d056234a
+Fixes for compatibility after the SW reset.
+--- a/rtl/verilog/can_registers.v
++++ b/rtl/verilog/can_registers.v
+@@ -1193,7 +1197,7 @@ begin
+     bus_error_irq <= 1'b0;
+   else if (set_bus_error_irq & bus_error_irq_en)
+     bus_error_irq <=#Tp 1'b1;
+-  else if (read_irq_reg)
++  else if (reset_mode || read_irq_reg)
+     bus_error_irq <=#Tp 1'b0;
+ end
+ 
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS HdlOp@@OR_LOG to 
+    UPD HdlOp@@OR_LOG to OR_LOG
+        INS list@@ops to OR_LOG
+        INS HdlValueId@@reset_mode to ops
+
+
+CommitId: 1b6a912bc0d19a05a1a457abcdae80e5d056234a
+Fixes for compatibility after the SW reset.
+--- a/rtl/verilog/can_registers.v
++++ b/rtl/verilog/can_registers.v
+@@ -1205,7 +1209,7 @@ begin
+     arbitration_lost_irq <= 1'b0;
+   else if (set_arbitration_lost_irq & arbitration_lost_irq_en)
+     arbitration_lost_irq <=#Tp 1'b1;
+-  else if (read_irq_reg)
++  else if (reset_mode || read_irq_reg)
+     arbitration_lost_irq <=#Tp 1'b0;
+ end
+ 
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    MOV HdlValueId@@read_irq_reg to 
+    HdlValueId: read_irq_reg
+
+
+CommitId: 1b6a912bc0d19a05a1a457abcdae80e5d056234a
+Fixes for compatibility after the SW reset.
+--- a/rtl/verilog/can_registers.v
++++ b/rtl/verilog/can_registers.v
+@@ -1218,7 +1222,7 @@ begin
+     error_passive_irq <= 1'b0;
+   else if ((node_error_passive & (~node_error_passive_q) | (~node_error_passive) & node_error_passive_q & node_error_active) & error_passive_irq_en)
+     error_passive_irq <=#Tp 1'b1;
+-  else if (read_irq_reg)
++  else if (reset_mode || read_irq_reg)
+     error_passive_irq <=#Tp 1'b0;
+ end
+ 
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS HdlOp@@OR_LOG to 
+    UPD HdlOp@@OR_LOG to OR_LOG
+        INS list@@ops to OR_LOG
+        INS HdlValueId@@reset_mode to ops
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@OR_LOG to 
+    UPD HdlOp@@OR_LOG to OR_LOG
+        INS list@@ops to OR_LOG
+        INS HdlValueId@@reset_mode to ops
+
+UPD HdlStmIf@@ to 
+    MOV HdlValueId@@read_irq_reg to 
+    HdlValueId: read_irq_reg
+
+UPD HdlStmIf@@ to 
+    MOV HdlValueId@@read_irq_reg to 
+    HdlValueId: read_irq_reg
+
+
+CommitId: 3762eaf9784d6de7dbb0d56fdda1133073d9f858
+Error counters fixed to be compatible with Bosch VHDL reference model.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -2016,7 +2025,8 @@ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+     node_error_passive <= 1'b0;
+-  else if ((rx_err_cnt < 128) & (tx_err_cnt < 9'd128) & error_frame_ended)
++//  else if ((rx_err_cnt < 128) & (tx_err_cnt < 9'd128) & error_frame_ended)
++  else if ((rx_err_cnt < 128) & (tx_err_cnt < 9'd128))
+     node_error_passive <=#Tp 1'b0;
+   else if (((rx_err_cnt >= 128) | (tx_err_cnt >= 9'd128)) & (error_frame_ended | go_error_frame | (~reset_mode) & reset_mode_q) & (~node_bus_off))
+     node_error_passive <=#Tp 1'b1;
+ParseResult:
+UPD HdlStmIf@@ to 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlOp: NEG
+                    list: ops
+                        HdlValueId: listen_only_mode
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmIf
+                            HdlOp: AND
+                                list: ops
+                                    HdlOp: AND
+                                        list: ops
+                                            HdlOp: AND
+                                                list: ops
+                                                    HdlOp: OR
+                                                        list: ops
+                                                            HdlOp: NEG
+                                                                list: ops
+                                                                    HdlValueId: transmitter
+                                                            HdlValueId: arbitration_lost
+                                                    HdlValueId: go_rx_ack_lim
+                                            HdlOp: NEG
+                                                list: ops
+                                                    HdlValueId: go_error_frame
+                                    HdlOp: GT
+                                        list: ops
+                                            HdlValueId: rx_err_cnt
+                                            HdlValueInt: 0
+                            HdlStmBlock: SEQ
+                                list: body
+                                    HdlStmIf
+                                        HdlOp: GT
+                                            list: ops
+                                                HdlValueId: rx_err_cnt
+                                                HdlValueInt: 127
+                                        HdlStmAssign: if_true
+                                            HdlValueInt: 127
+                                            HdlValueId: rx_err_cnt
+                                            HdlValueId: Tp
+                                        list: elifs
+                                        HdlStmAssign: if_false
+                                            HdlOp: SUB
+                                                list: ops
+                                                    HdlValueId: rx_err_cnt
+                                                    HdlValueInt: 1
+                                            HdlValueId: rx_err_cnt
+                                            HdlValueId: Tp
+                            list: elifs
+                                tuple
+                                    HdlOp: AND
+                                        list: ops
+                                            HdlOp: LT
+                                                list: ops
+                                                    HdlValueId: rx_err_cnt
+                                                    HdlValueInt: 248
+                                            HdlOp: NEG
+                                                list: ops
+                                                    HdlValueId: transmitter
+                                    HdlStmBlock: SEQ
+                                        list: body
+                                            HdlStmIf
+                                                HdlOp: AND
+                                                    list: ops
+                                                        HdlValueId: go_error_frame
+                                                        HdlOp: NEG
+                                                            list: ops
+                                                                HdlValueId: rule5
+                                                HdlStmAssign: if_true
+                                                    HdlOp: ADD
+                                                        list: ops
+                                                            HdlValueId: rx_err_cnt
+                                                            HdlValueInt: 1
+                                                    HdlValueId: rx_err_cnt
+                                                    HdlValueId: Tp
+                                                list: elifs
+                                                    tuple
+                                                        HdlOp: OR
+                                                            list: ops
+                                                                HdlOp: OR
+                                                                    list: ops
+                                                                        HdlOp: AND
+                                                                            list: ops
+                                                                                HdlOp: AND
+                                                                                    list: ops
+                                                                                        HdlOp: AND
+                                                                                            list: ops
+                                                                                                HdlOp: AND
+                                                                                                    list: ops
+                                                                                                        HdlValueId: error_flag_over_latched
+                                                                                                        HdlValueId: sample_point
+                                                                                                HdlOp: NEG
+                                                                                                    list: ops
+                                                                                                        HdlValueId: sampled_bit
+                                                                                        HdlOp: EQ
+                                                                                            list: ops
+                                                                                                HdlValueId: error_cnt1
+                                                                                                HdlValueInt: 7
+                                                                                HdlOp: NEG
+                                                                                    list: ops
+                                                                                        HdlValueId: rx_err_cnt_blocked
+                                                                        HdlOp: AND
+                                                                            list: ops
+                                                                                HdlValueId: go_error_frame
+                                                                                HdlValueId: rule5
+                                                                HdlOp: AND
+                                                                    list: ops
+                                                                        HdlOp: AND
+                                                                            list: ops
+                                                                                HdlOp: AND
+                                                                                    list: ops
+                                                                                        HdlValueId: error_frame
+                                                                                        HdlValueId: sample_point
+                                                                                HdlOp: NEG
+                                                                                    list: ops
+                                                                                        HdlValueId: sampled_bit
+                                                                        HdlOp: EQ
+                                                                            list: ops
+                                                                                HdlValueId: delayed_dominant_cnt
+                                                                                HdlValueInt: 7
+                                                        HdlStmAssign
+                                                            HdlOp: ADD
+                                                                list: ops
+                                                                    HdlValueId: rx_err_cnt
+                                                                    HdlValueInt: 8
+                                                            HdlValueId: rx_err_cnt
+                                                            HdlValueId: Tp
+                list: elifs
+    MOV HdlValueId@@rst to 
+    HdlValueId: rst
+    MOV list@@elifs to 
+    list: elifs
+        tuple
+            HdlOp: AND
+                list: ops
+                    HdlValueId: we_rx_err_cnt
+                    HdlOp: NEG
+                        list: ops
+                            HdlValueId: node_bus_off
+            HdlStmAssign
+                HdlOp: CONCAT
+                    list: ops
+                        HdlValueInt: 0
+                        HdlValueId: data_in
+                HdlValueId: rx_err_cnt
+                HdlValueId: Tp
+        tuple
+            HdlValueId: set_reset_mode
+            HdlStmAssign
+                HdlValueInt: 0
+                HdlValueId: rx_err_cnt
+                HdlValueId: Tp
+
+MOV HdlStmAssign@@if_true to 
+HdlStmAssign: if_true
+    HdlValueInt: 0
+    HdlValueId: rx_err_cnt
+
+DEL HdlStmIf@@ from body
+
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL list@@body from SEQ
+    DEL HdlStmBlock@@SEQ from 
+
+
+CommitId: ef6613e5821e127bc38610e485999e9143611182
+Overload fixed. Hard synchronization also enabled at the last bit of
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -474,10 +483,11 @@ assign bit_err = (tx_state | error_frame | overload_frame | rx_ack) & sample_poi
+ assign bit_err_exc1 = tx_state & arbitration_field & tx;
+ assign bit_err_exc2 = rx_ack & tx;
+ assign bit_err_exc3 = error_frame & node_error_passive & (error_cnt1 < 7);
+-assign bit_err_exc4 = (error_frame | overload_frame) & (error_cnt1 == 7) & (~enable_error_cnt2);
++assign bit_err_exc4 = (error_frame & (error_cnt1 == 7) & (~enable_error_cnt2)) | (overload_frame & (overload_cnt1 == 7) & (~enable_overload_cnt2));
+ 
+ assign arbitration_field = rx_id1 | rx_rtr1 | rx_ide | rx_id2 | rx_rtr2;
+ 
++assign last_bit_of_inter = rx_inter & (bit_cnt == 2);
+ 
+ 
+ // Rx idle state
+
+ParseResult:
+MOV HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: AND
+        list: ops
+            HdlOp: AND
+                list: ops
+                    HdlValueId: sample_point
+                    HdlOp: NEG
+                        list: ops
+                            HdlValueId: sampled_bit
+            HdlOp: OR
+                list: ops
+                    HdlValueId: rx_idle
+                    HdlOp: AND
+                        list: ops
+                            HdlValueId: rx_inter
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: bit_cnt
+                                    HdlValueInt: 2
+    HdlValueId: go_rx_id1
+
+INS HdlStmAssign@@ to objs
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: AND
+        list: ops
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: overload_cnt2
+                    HdlValueInt: 7
+            HdlValueId: tx_point
+    HdlValueId: overload_frame_ended
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        MOV HdlOp@@AND to ops
+        HdlOp: AND
+            list: ops
+                HdlOp: AND
+                    list: ops
+                        HdlValueId: sample_point
+                        HdlValueId: sampled_bit
+                HdlValueId: rx_inter
+        UPD HdlOp@@AND to AND
+            UPD HdlValueId@@rx_inter to last_bit_of_inter
+        DEL HdlOp@@EQ from ops
+        HdlOp: EQ
+            list: ops
+                HdlValueId: bit_cnt
+                HdlValueInt: 2
+        DEL list@@ops from AND
+    DEL HdlOp@@AND from 
+
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@AND to 
+    INS HdlValueId@@go_rx_id1 to 
+    UPD HdlOp@@AND to AND
+        INS list@@ops to AND
+        INS HdlOp@@OR to ops
+        HdlOp: OR
+            list: ops
+                HdlValueId: rx_idle
+                HdlValueId: last_bit_of_inter
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        MOV HdlOp@@AND to ops
+        HdlOp: AND
+            list: ops
+                HdlOp: OR
+                    list: ops
+                        HdlOp: AND
+                            list: ops
+                                HdlOp: AND
+                                    list: ops
+                                        HdlValueId: sample_point
+                                        HdlValueId: rx_eof
+                                HdlOp: EQ
+                                    list: ops
+                                        HdlValueId: eof_cnt
+                                        HdlValueInt: 6
+                        HdlValueId: error_frame_ended
+                HdlOp: NEG
+                    list: ops
+                        HdlValueId: go_overload_frame
+        UPD HdlOp@@AND to AND
+            MOV HdlOp@@OR to ops
+            HdlOp: OR
+                list: ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: AND
+                                list: ops
+                                    HdlValueId: sample_point
+                                    HdlValueId: rx_eof
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: eof_cnt
+                                    HdlValueInt: 6
+                    HdlValueId: error_frame_ended
+        UPD HdlOp@@NEG to NEG
+            UPD HdlValueId@@overload_frame to overload_frame_ended
+            MOV HdlValueId@@overload_frame to ops
+            HdlValueId: overload_frame
+            DEL list@@ops from NEG
+        DEL HdlOp@@NEG from ops
+    UPD HdlOp@@AND to OR
+    MOV HdlOp@@AND to 
+    HdlOp: AND
+        list: ops
+            HdlOp: AND
+                list: ops
+                    HdlOp: OR
+                        list: ops
+                            HdlOp: AND
+                                list: ops
+                                    HdlOp: AND
+                                        list: ops
+                                            HdlValueId: sample_point
+                                            HdlValueId: rx_eof
+                                    HdlOp: EQ
+                                        list: ops
+                                            HdlValueId: eof_cnt
+                                            HdlValueInt: 6
+                            HdlValueId: error_frame_ended
+                    HdlOp: NEG
+                        list: ops
+                            HdlValueId: go_overload_frame
+            HdlOp: NEG
+                list: ops
+                    HdlValueId: overload_frame
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@OR to OR
+            MOV HdlOp@@AND to ops
+            HdlOp: AND
+                list: ops
+                    HdlValueId: rx_inter
+                    HdlOp: EQ
+                        list: ops
+                            HdlValueId: bit_cnt
+                            HdlValueInt: 2
+            DEL HdlValueId@@rx_idle from ops
+            DEL list@@ops from OR
+        MOV HdlOp@@AND to ops
+        HdlOp: AND
+            list: ops
+                HdlValueId: sample_point
+                HdlOp: NEG
+                    list: ops
+                        HdlValueId: sampled_bit
+        DEL HdlOp@@OR from ops
+        DEL list@@ops from AND
+    UPD HdlValueId@@go_rx_id1 to last_bit_of_inter
+    DEL HdlOp@@AND from 
+
+
+CommitId: ef6613e5821e127bc38610e485999e9143611182
+Overload fixed. Hard synchronization also enabled at the last bit of
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -1308,16 +1357,23 @@ begin
+         tx <=#Tp ((~bit_de_stuff_tx) & tx_bit) | (bit_de_stuff_tx & (~tx_q));
+       else if (send_ack)                                                        // Acknowledge
+         tx <=#Tp 1'b0;
+-      else if (error_frame | overload_frame)                                    // Transmitting error frame
++      else if (error_frame)                                                     // Transmitting error frame
+         begin
+           if (error_cnt1 < 6)
+             begin
+-              if (node_error_passive & (~overload_frame))
++              if (node_error_passive)
+                 tx <=#Tp 1'b1;
+               else
+                 tx <=#Tp 1'b0;
+             end
+-          else if (error_cnt2 < 7)
++          else
++            tx <=#Tp 1'b1;
++        end
++      else if (overload_frame)                                                  // Transmitting overload frame
++        begin
++          if (overload_cnt1 < 6)
++            tx <=#Tp 1'b0;
++          else
+             tx <=#Tp 1'b1;
+         end
+       else
+
+ParseResult:
+MOV HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+        HdlOp: RISING
+            list: ops
+                HdlValueId: rst
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: rst
+                HdlStmAssign: if_true
+                    HdlValueInt: 0
+                    HdlValueId: overload_frame
+                list: elifs
+                    tuple
+                        HdlOp: OR
+                            list: ops
+                                HdlValueId: reset_mode
+                                HdlValueId: overload_frame_ended
+                        HdlStmAssign
+                            HdlValueInt: 0
+                            HdlValueId: overload_frame
+                            HdlValueId: Tp
+                    tuple
+                        HdlValueId: go_overload_frame
+                        HdlStmAssign
+                            HdlValueInt: 1
+                            HdlValueId: overload_frame
+                            HdlValueId: Tp
+
+UPD HdlStmIf@@ to 
+    MOV HdlOp@@OR to 
+    HdlOp: OR
+        list: ops
+            HdlValueId: reset_mode
+            HdlValueId: overload_frame_ended
+
+
+CommitId: ef6613e5821e127bc38610e485999e9143611182
+Overload fixed. Hard synchronization also enabled at the last bit of
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -1576,7 +1632,7 @@ begin
+     begin
+       if ((tx_err_cnt < 1023) & transmitter)
+         begin
+-          if ( (sample_point & (~sampled_bit) & (error_delayed_dominant_cnt == 7)               ) |       // 6
++          if ( (sample_point & (~sampled_bit) & (delayed_dominant_cnt == 7)                     ) |       // 6
+                (error_flag_over & (~error_flag_over_blocked) & rule5                            ) |       // 4  (rule 5 is the same as rule 4)
+                (error_flag_over & (~error_flag_over_blocked) & (~rule3_exc1_2) & (~rule3_exc2)  )         // 3
+              )
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND to AND
+        MOV HdlOp@@AND to ops
+        HdlOp: AND
+            list: ops
+                HdlOp: AND
+                    list: ops
+                        HdlValueId: suspend
+                        HdlValueId: sample_point
+                HdlValueId: rx_inter
+        UPD HdlOp@@AND to AND
+            UPD HdlValueId@@rx_inter to last_bit_of_inter
+        DEL HdlOp@@EQ from ops
+        HdlOp: EQ
+            list: ops
+                HdlValueId: bit_cnt
+                HdlValueInt: 2
+        DEL list@@ops from AND
+    DEL HdlOp@@AND from 
+
+
+CommitId: ef6613e5821e127bc38610e485999e9143611182
+Overload fixed. Hard synchronization also enabled at the last bit of
+--- a/rtl/verilog/can_acf.v
++++ b/rtl/verilog/can_acf.v
+@@ -328,9 +332,9 @@ begin
+         begin
+           if (acceptance_filter_mode)       // dual filter
+             begin
+-              if (ide)                        // extended frame message
++              if (ide)                      // extended frame message
+                 id_ok <=#Tp match_df_ext;
+-              else                            // standard frame message
++              else                          // standard frame message
+                 id_ok <=#Tp match_df_std;
+             end           
+           else                              // single filter
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@OR to OR
+        UPD HdlValueId@@go_rx_idle to go_rx_inter
+
+
+CommitId: dfcafc464d66320b3ad82a16c9bbd7ed820e3099
+Interrupt is always cleared for one clock after the irq register is read.
+--- a/rtl/verilog/can_registers.v
++++ b/rtl/verilog/can_registers.v
+@@ -1224,6 +1229,15 @@ assign irq_reg = {bus_error_irq, arbitration_lost_irq, error_passive_irq, 1'b0,
+ assign irq = data_overrun_irq | transmit_irq | receive_irq | error_irq | bus_error_irq | arbitration_lost_irq | error_passive_irq;
+ 
+ 
++always @ (posedge clk or posedge rst)
++begin
++  if (rst)
++    irq_n <= 1'b1;
++  else if (read_irq_reg)
++    irq_n <=#Tp 1'b1;
++  else if (irq)
++    irq_n <=#Tp 1'b0;
++end
+ 
+ 
+ 
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+        HdlOp: RISING
+            list: ops
+                HdlValueId: rst
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: rst
+                HdlStmAssign: if_true
+                    HdlValueInt: 1
+                    HdlValueId: irq_n
+                list: elifs
+                    tuple
+                        HdlValueId: read_irq_reg
+                        HdlStmAssign
+                            HdlValueInt: 1
+                            HdlValueId: irq_n
+                            HdlValueId: Tp
+                    tuple
+                        HdlValueId: irq
+                        HdlStmAssign
+                            HdlValueInt: 0
+                            HdlValueId: irq_n
+                            HdlValueId: Tp
+
+
+CommitId: e8a58c4368e2a93f746081c68e1318167740de08
+Fixed according to the linter.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -588,7 +591,7 @@ wire          bit_err;
+ wire          ack_err;
+ wire          stuff_err;
+                                     // of intermission, it starts reading the identifier (and transmitting its own).
+-wire          overload_needed = 0;  // When receiver is busy, it needs to send overload frame. Only 2 overload frames are allowed to
++wire          overload_needed =1'b0;// When receiver is busy, it needs to send overload frame. Only 2 overload frames are allowed to
+                                     // be send in a row. This is not implemented because host can not send an overload request.
+ 
+ wire          id_ok;                // If received ID matches ID set in registers
+
+ParseResult:
+DEL HdlIdDef@@bit_stuff_cnt_tx_en from objs
+HdlIdDef: bit_stuff_cnt_tx_en
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+
+CommitId: e8a58c4368e2a93f746081c68e1318167740de08
+Fixed according to the linter.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -673,20 +676,20 @@ assign bit_de_stuff_set   = go_rx_id1 & (~go_error_frame);
+ assign bit_de_stuff_reset = go_rx_ack | reset_mode | go_error_frame | go_overload_frame;
+ 
+ assign remote_rq = ((~ide) & rtr1) | (ide & rtr2);
+-assign limited_data_len = (data_len < 8)? data_len : 4'h8;
++assign limited_data_len = (data_len < 4'h8)? data_len : 4'h8;
+ 
+ assign ack_err = rx_ack & sample_point & sampled_bit & tx_state & (~self_test_mode);
+ assign bit_err = (tx_state | error_frame | overload_frame | rx_ack) & sample_point & (tx != sampled_bit) & (~bit_err_exc1) & (~bit_err_exc2) & (~bit_err_exc3) & (~bit_err_exc4) & (~bit_err_exc5);
+ assign bit_err_exc1 = tx_state & arbitration_field & tx;
+ assign bit_err_exc2 = rx_ack & tx;
+-assign bit_err_exc3 = error_frame & node_error_passive & (error_cnt1 < 7);
+-assign bit_err_exc4 = (error_frame & (error_cnt1 == 7) & (~enable_error_cnt2)) | (overload_frame & (overload_cnt1 == 7) & (~enable_overload_cnt2));
+-assign bit_err_exc5 = (error_frame & (error_cnt2 == 7)) | (overload_frame & (overload_cnt2 == 7));
++assign bit_err_exc3 = error_frame & node_error_passive & (error_cnt1 < 3'd7);
++assign bit_err_exc4 = (error_frame & (error_cnt1 == 3'd7) & (~enable_error_cnt2)) | (overload_frame & (overload_cnt1 == 3'd7) & (~enable_overload_cnt2));
++assign bit_err_exc5 = (error_frame & (error_cnt2 == 3'd7)) | (overload_frame & (overload_cnt2 == 3'd7));
+ 
+ assign arbitration_field = rx_id1 | rx_rtr1 | rx_ide | rx_id2 | rx_rtr2;
+ 
+-assign last_bit_of_inter = rx_inter & (bit_cnt == 2);
+-assign not_first_bit_of_inter = rx_inter & (bit_cnt != 0);
++assign last_bit_of_inter = rx_inter & (bit_cnt[1:0] == 2'd2);
++assign not_first_bit_of_inter = rx_inter & (bit_cnt[1:0] != 2'd0);
+ 
+ 
+ // Rx idle state
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@EQ to EQ
+            INS HdlOp@@INDEX to ops
+            UPD HdlOp@@INDEX to INDEX
+                INS list@@ops to INDEX
+                INS HdlOp@@DOWNTO to ops
+                HdlOp: DOWNTO
+                    list: ops
+                        HdlValueInt: 3
+                        HdlValueInt: 0
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@EQ to EQ
+            INS HdlOp@@INDEX to ops
+            UPD HdlOp@@INDEX to INDEX
+                INS list@@ops to INDEX
+                INS HdlOp@@DOWNTO to ops
+                HdlOp: DOWNTO
+                    list: ops
+                        HdlValueInt: 4
+                        HdlValueInt: 0
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@EQ to EQ
+            INS HdlOp@@INDEX to ops
+            UPD HdlOp@@INDEX to INDEX
+                INS list@@ops to INDEX
+                INS HdlOp@@DOWNTO to ops
+                HdlOp: DOWNTO
+                    list: ops
+                        HdlValueInt: 3
+                        HdlValueInt: 0
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@EQ to EQ
+            MOV HdlValueId@@bit_cnt to ops
+            HdlValueId: bit_cnt
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@EQ to EQ
+            MOV HdlValueId@@bit_cnt to ops
+            HdlValueId: bit_cnt
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@EQ to EQ
+            MOV HdlValueId@@bit_cnt to ops
+            HdlValueId: bit_cnt
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@AND to AND
+            UPD HdlOp@@AND to AND
+                UPD HdlOp@@EQ to EQ
+                    INS HdlOp@@INDEX to ops
+                    UPD HdlOp@@INDEX to INDEX
+                        INS list@@ops to INDEX
+                        INS HdlOp@@DOWNTO to ops
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 1
+                                HdlValueInt: 0
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@OR to OR
+            UPD HdlOp@@AND to AND
+                UPD HdlOp@@EQ to EQ
+                    INS HdlOp@@INDEX to ops
+                    UPD HdlOp@@INDEX to INDEX
+                        INS list@@ops to INDEX
+                        INS HdlOp@@DOWNTO to ops
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 5
+                                HdlValueInt: 0
+            UPD HdlOp@@AND to AND
+                UPD HdlOp@@AND to AND
+                    UPD HdlOp@@EQ to EQ
+                        INS HdlOp@@INDEX to ops
+                        UPD HdlOp@@INDEX to INDEX
+                            INS list@@ops to INDEX
+                            INS HdlOp@@DOWNTO to ops
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 1
+                                    HdlValueInt: 0
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@AND to AND
+            UPD HdlOp@@AND to AND
+                UPD HdlOp@@EQ to EQ
+                    MOV HdlValueId@@bit_cnt to ops
+                    HdlValueId: bit_cnt
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@OR to OR
+            UPD HdlOp@@AND to AND
+                UPD HdlOp@@EQ to EQ
+                    MOV HdlValueId@@bit_cnt to ops
+                    HdlValueId: bit_cnt
+            UPD HdlOp@@AND to AND
+                UPD HdlOp@@AND to AND
+                    UPD HdlOp@@EQ to EQ
+                        MOV HdlValueId@@bit_cnt to ops
+                        HdlValueId: bit_cnt
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@OR to OR
+            UPD HdlOp@@OR to OR
+                UPD HdlOp@@AND to AND
+                    UPD HdlOp@@LT to LT
+                        INS HdlOp@@INDEX to ops
+                        UPD HdlOp@@INDEX to INDEX
+                            INS list@@ops to INDEX
+                            INS HdlOp@@DOWNTO to ops
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 1
+                                    HdlValueInt: 0
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@OR to OR
+            UPD HdlOp@@OR to OR
+                UPD HdlOp@@AND to AND
+                    UPD HdlOp@@LT to LT
+                        MOV HdlValueId@@bit_cnt to ops
+                        HdlValueId: bit_cnt
+
+
+CommitId: e8a58c4368e2a93f746081c68e1318167740de08
+Fixed according to the linter.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -1226,8 +1225,8 @@ can_crc i_can_crc_rx
+ 
+ 
+ 
+-assign no_byte0 = rtr1 | (data_len<1);
+-assign no_byte1 = rtr1 | (data_len<2);
++assign no_byte0 = rtr1 | (data_len<4'h1);
++assign no_byte1 = rtr1 | (data_len<4'h2);
+ 
+ can_acf i_can_acf
+ (
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+
+INS HdlStmIf@@ to body
+
+
+CommitId: e8a58c4368e2a93f746081c68e1318167740de08
+Fixed according to the linter.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -1462,9 +1443,9 @@ end
+ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+-    error_cnt2 <= 0;
++    error_cnt2 <= 3'd0;
+   else if (reset_mode | error_frame_ended | go_error_frame | go_overload_frame)
+-    error_cnt2 <=#Tp 0;
++    error_cnt2 <=#Tp 3'd0;
+   else if (enable_error_cnt2 & tx_point)
+     error_cnt2 <=#Tp error_cnt2 + 1'b1;
+ end
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: ide
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmCase: header_cnt
+                            HdlStmCaseType: CASE
+                            HdlValueId: header_cnt
+                            list: cases
+                                tuple
+                                    HdlValueInt: 0
+                                    HdlStmAssign
+                                        HdlOp: CONCAT
+                                            list: ops
+                                                HdlOp: CONCAT
+                                                    list: ops
+                                                        HdlOp: CONCAT
+                                                            list: ops
+                                                                HdlValueInt: 1
+                                                                HdlValueId: rtr2
+                                                        HdlValueInt: 0
+                                                HdlValueId: data_len
+                                        HdlValueId: data_for_fifo
+                                tuple
+                                    HdlValueInt: 1
+                                    HdlStmAssign
+                                        HdlOp: INDEX
+                                            list: ops
+                                                HdlValueId: id
+                                                HdlOp: DOWNTO
+                                                    list: ops
+                                                        HdlValueInt: 28
+                                                        HdlValueInt: 21
+                                        HdlValueId: data_for_fifo
+                                tuple
+                                    HdlValueInt: 2
+                                    HdlStmAssign
+                                        HdlOp: INDEX
+                                            list: ops
+                                                HdlValueId: id
+                                                HdlOp: DOWNTO
+                                                    list: ops
+                                                        HdlValueInt: 20
+                                                        HdlValueInt: 13
+                                        HdlValueId: data_for_fifo
+                                tuple
+                                    HdlValueInt: 3
+                                    HdlStmAssign
+                                        HdlOp: INDEX
+                                            list: ops
+                                                HdlValueId: id
+                                                HdlOp: DOWNTO
+                                                    list: ops
+                                                        HdlValueInt: 12
+                                                        HdlValueInt: 5
+                                        HdlValueId: data_for_fifo
+                                tuple
+                                    HdlValueInt: 4
+                                    HdlStmAssign
+                                        HdlOp: CONCAT
+                                            list: ops
+                                                HdlOp: INDEX
+                                                    list: ops
+                                                        HdlValueId: id
+                                                        HdlOp: DOWNTO
+                                                            list: ops
+                                                                HdlValueInt: 4
+                                                                HdlValueInt: 0
+                                                HdlValueInt: 0
+                                        HdlValueId: data_for_fifo
+                list: elifs
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmCase: header_cnt
+                            HdlStmCaseType: CASE
+                            HdlValueId: header_cnt
+                            list: cases
+                                tuple
+                                    HdlValueInt: 0
+                                    HdlStmAssign
+                                        HdlOp: CONCAT
+                                            list: ops
+                                                HdlOp: CONCAT
+                                                    list: ops
+                                                        HdlOp: CONCAT
+                                                            list: ops
+                                                                HdlValueInt: 0
+                                                                HdlValueId: rtr1
+                                                        HdlValueInt: 0
+                                                HdlValueId: data_len
+                                        HdlValueId: data_for_fifo
+                                tuple
+                                    HdlValueInt: 1
+                                    HdlStmAssign
+                                        HdlOp: INDEX
+                                            list: ops
+                                                HdlValueId: id
+                                                HdlOp: DOWNTO
+                                                    list: ops
+                                                        HdlValueInt: 10
+                                                        HdlValueInt: 3
+                                        HdlValueId: data_for_fifo
+                                tuple
+                                    HdlValueInt: 2
+                                    HdlStmAssign
+                                        HdlOp: CONCAT
+                                            list: ops
+                                                HdlOp: INDEX
+                                                    list: ops
+                                                        HdlValueId: id
+                                                        HdlOp: DOWNTO
+                                                            list: ops
+                                                                HdlValueInt: 2
+                                                                HdlValueInt: 0
+                                                HdlValueInt: 0
+                                        HdlValueId: data_for_fifo
+    MOV HdlValueId@@extended_mode to 
+    HdlValueId: extended_mode
+    DEL list@@elifs from 
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL list@@body from SEQ
+    DEL HdlStmBlock@@SEQ from 
+
+INS HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': [{'__class__': 'HdlOp',           'fn': 'CONCAT',           'ops': [{'__class__': 'HdlOp',                    'fn': 'CONCAT',                    'ops': ['storing_header', 'extended_mode']},                   'ide']},          'header_cnt']}  to body
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': [{'__class__': 'HdlOp',           'fn': 'CONCAT',           'ops': [{'__class__': 'HdlOp',                    'fn': 'CONCAT',                    'ops': ['storing_header', 'extended_mode']},                   'ide']},          'header_cnt']}  to {'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': [{'__class__': 'HdlOp',           'fn': 'CONCAT',           'ops': [{'__class__': 'HdlOp',                    'fn': 'CONCAT',                    'ops': ['storing_header', 'extended_mode']},                   'ide']},          'header_cnt']} 
+    INS HdlStmCaseType@@CASEX to {'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': [{'__class__': 'HdlOp',           'fn': 'CONCAT',           'ops': [{'__class__': 'HdlOp',                    'fn': 'CONCAT',                    'ops': ['storing_header', 'extended_mode']},                   'ide']},          'header_cnt']} 
+    INS HdlOp@@CONCAT to {'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': [{'__class__': 'HdlOp',           'fn': 'CONCAT',           'ops': [{'__class__': 'HdlOp',                    'fn': 'CONCAT',                    'ops': ['storing_header', 'extended_mode']},                   'ide']},          'header_cnt']} 
+    INS HdlOp@@ASSIGN to {'__class__': 'HdlOp',  'fn': 'CONCAT',  'ops': [{'__class__': 'HdlOp',           'fn': 'CONCAT',           'ops': [{'__class__': 'HdlOp',                    'fn': 'CONCAT',                    'ops': ['storing_header', 'extended_mode']},                   'ide']},          'header_cnt']} 
+    UPD HdlOp@@CONCAT to CONCAT
+        INS list@@ops to CONCAT
+        INS HdlOp@@CONCAT to ops
+        UPD HdlOp@@CONCAT to CONCAT
+            INS list@@ops to CONCAT
+            INS HdlOp@@CONCAT to ops
+            UPD HdlOp@@CONCAT to CONCAT
+                INS list@@ops to CONCAT
+    UPD HdlOp@@ASSIGN to ASSIGN
+        INS list@@ops to ASSIGN
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlOp@@SUB to SUB
+                INS HdlOp@@CONCAT to ops
+                UPD HdlOp@@CONCAT to CONCAT
+                    INS list@@ops to CONCAT
+                    INS HdlValueInt@@0 to ops
+    INS HdlOp@@ASSIGN to 
+    INS HdlOp@@ASSIGN to 
+    INS HdlOp@@ASSIGN to 
+    INS HdlOp@@ASSIGN to 
+    INS HdlOp@@ASSIGN to 
+    INS HdlOp@@ASSIGN to 
+    INS HdlOp@@ASSIGN to 
+    INS HdlOp@@ASSIGN to 
+    INS HdlOp@@ASSIGN to 
+    INS HdlOp@@ASSIGN to 
+    UPD HdlOp@@ASSIGN to ASSIGN
+        INS list@@ops to ASSIGN
+        INS HdlValueId@@data_for_fifo to ops
+    UPD HdlOp@@ASSIGN to ASSIGN
+        INS list@@ops to ASSIGN
+        INS HdlValueId@@data_for_fifo to ops
+    UPD HdlOp@@ASSIGN to ASSIGN
+        INS list@@ops to ASSIGN
+    UPD HdlOp@@ASSIGN to ASSIGN
+        INS list@@ops to ASSIGN
+    UPD HdlOp@@ASSIGN to ASSIGN
+        INS list@@ops to ASSIGN
+    UPD HdlOp@@ASSIGN to ASSIGN
+        INS list@@ops to ASSIGN
+        INS HdlValueId@@data_for_fifo to ops
+    UPD HdlOp@@ASSIGN to ASSIGN
+        INS list@@ops to ASSIGN
+        INS HdlValueId@@data_for_fifo to ops
+    UPD HdlOp@@ASSIGN to ASSIGN
+        INS list@@ops to ASSIGN
+    UPD HdlOp@@ASSIGN to ASSIGN
+        INS list@@ops to ASSIGN
+
+UPD HdlStmCase@@header_cnt to header_cnt
+    MOV list@@cases to header_cnt
+    list: cases
+        tuple
+            HdlValueInt: 0
+            HdlStmAssign
+                HdlOp: CONCAT
+                    list: ops
+                        HdlOp: CONCAT
+                            list: ops
+                                HdlOp: CONCAT
+                                    list: ops
+                                        HdlValueInt: 1
+                                        HdlValueId: rtr2
+                                HdlValueInt: 0
+                        HdlValueId: data_len
+                HdlValueId: data_for_fifo
+        tuple
+            HdlValueInt: 1
+            HdlStmAssign
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: id
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 28
+                                HdlValueInt: 21
+                HdlValueId: data_for_fifo
+        tuple
+            HdlValueInt: 2
+            HdlStmAssign
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: id
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 20
+                                HdlValueInt: 13
+                HdlValueId: data_for_fifo
+        tuple
+            HdlValueInt: 3
+            HdlStmAssign
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: id
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 12
+                                HdlValueInt: 5
+                HdlValueId: data_for_fifo
+        tuple
+            HdlValueInt: 4
+            HdlStmAssign
+                HdlOp: CONCAT
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: id
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 4
+                                        HdlValueInt: 0
+                        HdlValueInt: 0
+                HdlValueId: data_for_fifo
+    MOV HdlValueId@@header_cnt to header_cnt
+    HdlValueId: header_cnt
+    UPD HdlValueInt@@0 to 111000
+    UPD HdlValueInt@@1 to 111001
+    UPD HdlValueInt@@2 to 111010
+    UPD HdlValueInt@@3 to 111011
+    UPD HdlValueInt@@4 to 111100
+    DEL HdlStmCaseType@@CASE from header_cnt
+
+UPD HdlStmCase@@header_cnt to header_cnt
+    MOV tuple@@ to cases
+    tuple
+        HdlValueInt: 0
+        HdlStmAssign
+            HdlOp: CONCAT
+                list: ops
+                    HdlOp: CONCAT
+                        list: ops
+                            HdlOp: CONCAT
+                                list: ops
+                                    HdlValueInt: 0
+                                    HdlValueId: rtr1
+                            HdlValueInt: 0
+                    HdlValueId: data_len
+            HdlValueId: data_for_fifo
+    MOV tuple@@ to cases
+    tuple
+        HdlValueInt: 2
+        HdlStmAssign
+            HdlOp: CONCAT
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: id
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 2
+                                    HdlValueInt: 0
+                    HdlValueInt: 0
+            HdlValueId: data_for_fifo
+    MOV tuple@@ to cases
+    tuple
+        HdlValueInt: 1
+        HdlStmAssign
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: id
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 10
+                            HdlValueInt: 3
+            HdlValueId: data_for_fifo
+    UPD HdlValueInt@@0 to 110000
+    UPD HdlValueInt@@2 to 110010
+    UPD HdlValueInt@@1 to 10x000
+    DEL HdlStmCaseType@@CASE from header_cnt
+    DEL HdlValueId@@header_cnt from header_cnt
+    DEL list@@cases from header_cnt
+
+UPD HdlStmIf@@ to 
+    MOV HdlValueId@@ide to 
+    HdlValueId: ide
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL list@@body from SEQ
+    DEL HdlStmBlock@@SEQ from 
+    DEL list@@elifs from 
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL list@@body from SEQ
+    DEL HdlStmBlock@@SEQ from 
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@CONCAT to 
+    HdlOp: CONCAT
+        list: ops
+            HdlOp: CONCAT
+                list: ops
+                    HdlOp: CONCAT
+                        list: ops
+                            HdlValueInt: 1
+                            HdlValueId: rtr2
+                    HdlValueInt: 0
+            HdlValueId: data_len
+    DEL HdlValueId@@data_for_fifo from 
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@INDEX to 
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: id
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 28
+                    HdlValueInt: 21
+    MOV HdlValueId@@data_for_fifo to 
+    HdlValueId: data_for_fifo
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@INDEX to 
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: id
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 20
+                    HdlValueInt: 13
+    MOV HdlValueId@@data_for_fifo to 
+    HdlValueId: data_for_fifo
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@INDEX to 
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: id
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 12
+                    HdlValueInt: 5
+    MOV HdlValueId@@data_for_fifo to 
+    HdlValueId: data_for_fifo
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@CONCAT to 
+    HdlOp: CONCAT
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: id
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 4
+                            HdlValueInt: 0
+            HdlValueInt: 0
+    MOV HdlValueId@@data_for_fifo to 
+    HdlValueId: data_for_fifo
+
+UPD HdlStmIf@@ to 
+    MOV HdlValueId@@storing_header to 
+    HdlValueId: storing_header
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL list@@body from SEQ
+    DEL HdlStmBlock@@SEQ from 
+    DEL list@@elifs from 
+
+DEL HdlStmAssign@@ from 
+
+DEL HdlStmAssign@@ from 
+
+DEL HdlStmAssign@@ from 
+
+DEL HdlStmAssign@@ from 
+
+DEL HdlStmAssign@@ from 
+
+DEL HdlStmCase@@header_cnt from body
+
+DEL HdlStmCase@@header_cnt from body
+
+DEL HdlStmIf@@ from body
+
+DEL HdlStmIf@@ from body
+
+DEL HdlStmIf@@ from body
+
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL list@@body from SEQ
+    DEL HdlStmBlock@@SEQ from 
+
+
+CommitId: e8a58c4368e2a93f746081c68e1318167740de08
+Fixed according to the linter.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -1473,10 +1454,10 @@ end
+ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+-    delayed_dominant_cnt <= 0;
++    delayed_dominant_cnt <= 3'h0;
+   else if (reset_mode | enable_error_cnt2 | go_error_frame | enable_overload_cnt2 | go_overload_frame)
+-    delayed_dominant_cnt <=#Tp 0;
+-  else if (sample_point & (~sampled_bit) & ((error_cnt1 == 7) | (overload_cnt1 == 7)))
++    delayed_dominant_cnt <=#Tp 3'h0;
++  else if (sample_point & (~sampled_bit) & ((error_cnt1 == 3'd7) | (overload_cnt1 == 3'd7)))
+     delayed_dominant_cnt <=#Tp delayed_dominant_cnt + 1'b1;
+ end
+ 
+
+ParseResult:
+UPD HdlStmCase@@header_cnt to header_cnt
+    MOV tuple@@ to cases
+    tuple
+        HdlValueInt: 0
+        HdlStmAssign
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: id
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 10
+                            HdlValueInt: 3
+            HdlValueId: data_for_fifo
+    MOV tuple@@ to cases
+    tuple
+        HdlValueInt: 1
+        HdlStmAssign
+            HdlOp: CONCAT
+                list: ops
+                    HdlOp: CONCAT
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: id
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 2
+                                            HdlValueInt: 0
+                            HdlValueId: rtr1
+                    HdlValueId: data_len
+            HdlValueId: data_for_fifo
+    UPD HdlValueInt@@0 to 110001
+    UPD HdlValueInt@@1 to 10x001
+    UPD list@@cases to ops
+    MOV list@@cases to header_cnt
+    list: cases
+        tuple
+            HdlValueInt: 0
+            HdlStmAssign
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: id
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 10
+                                HdlValueInt: 3
+                HdlValueId: data_for_fifo
+        tuple
+            HdlValueInt: 1
+            HdlStmAssign
+                HdlOp: CONCAT
+                    list: ops
+                        HdlOp: CONCAT
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: id
+                                        HdlOp: DOWNTO
+                                            list: ops
+                                                HdlValueInt: 2
+                                                HdlValueInt: 0
+                                HdlValueId: rtr1
+                        HdlValueId: data_len
+                HdlValueId: data_for_fifo
+    DEL HdlStmCaseType@@CASE from header_cnt
+    DEL HdlValueId@@header_cnt from header_cnt
+
+UPD HdlStmAssign@@ to 
+    MOV HdlValueId@@data_for_fifo to 
+    HdlValueId: data_for_fifo
+    MOV HdlOp@@CONCAT to 
+    HdlOp: CONCAT
+        list: ops
+            HdlOp: CONCAT
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: id
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 2
+                                    HdlValueInt: 0
+                    HdlValueId: rtr1
+            HdlValueId: data_len
+
+UPD HdlStmAssign@@if_false to if_false
+    MOV HdlOp@@INDEX to if_false
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: tmp_fifo
+            HdlOp: SUB
+                list: ops
+                    HdlValueId: data_cnt
+                    HdlValueId: header_len
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@SUB to SUB
+            MOV HdlValueId@@header_len to ops
+            HdlValueId: header_len
+    DEL HdlValueId@@data_for_fifo from if_false
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@CONCAT to 
+    HdlOp: CONCAT
+        list: ops
+            HdlOp: CONCAT
+                list: ops
+                    HdlOp: CONCAT
+                        list: ops
+                            HdlValueInt: 0
+                            HdlValueId: rtr1
+                    HdlValueInt: 0
+            HdlValueId: data_len
+    DEL HdlValueId@@data_for_fifo from 
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@INDEX to 
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: id
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 10
+                    HdlValueInt: 3
+    MOV HdlValueId@@data_for_fifo to 
+    HdlValueId: data_for_fifo
+
+UPD HdlStmAssign@@ to 
+    MOV HdlValueId@@data_for_fifo to 
+    HdlValueId: data_for_fifo
+    MOV HdlOp@@INDEX to 
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: id
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 10
+                    HdlValueInt: 3
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@CONCAT to 
+    HdlOp: CONCAT
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: id
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 2
+                            HdlValueInt: 0
+            HdlValueInt: 0
+    DEL HdlValueId@@data_for_fifo from 
+
+DEL HdlStmAssign@@ from 
+
+DEL HdlStmAssign@@ from 
+
+DEL HdlStmAssign@@ from 
+
+DEL HdlStmAssign@@ from 
+
+DEL HdlStmAssign@@ from 
+
+DEL HdlStmCase@@header_cnt from body
+
+DEL HdlStmAssign@@if_false from 
+
+
+CommitId: e8a58c4368e2a93f746081c68e1318167740de08
+Fixed according to the linter.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -1485,15 +1466,15 @@ end
+ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+-    passive_cnt <= 0;
++    passive_cnt <= 3'h0;
+   else if (reset_mode | error_frame_ended | go_error_frame | go_overload_frame)
+-    passive_cnt <=#Tp 0;
+-  else if (sample_point & (passive_cnt < 5))
++    passive_cnt <=#Tp 3'h0;
++  else if (sample_point & (passive_cnt < 3'h5))
+     begin
+       if (error_frame_q & (~enable_error_cnt2) & (sampled_bit == sampled_bit_q))
+         passive_cnt <=#Tp passive_cnt + 1'b1;
+       else
+-        passive_cnt <=#Tp 0;
++        passive_cnt <=#Tp 3'h0;
+     end
+ end
+ 
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+        HdlOp: RISING
+            list: ops
+                HdlValueId: rst
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: rst
+                HdlStmAssign: if_true
+                    HdlValueInt: 0
+                    HdlValueId: error_frame_q
+                    HdlValueId: Tp
+                list: elifs
+                    tuple
+                        HdlValueId: sample_point
+                        HdlStmAssign
+                            HdlValueId: error_frame
+                            HdlValueId: error_frame_q
+                            HdlValueId: Tp
+
+
+CommitId: e8a58c4368e2a93f746081c68e1318167740de08
+Fixed according to the linter.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -1514,15 +1495,15 @@ end
+ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+-    overload_cnt1 <= 1'b0;
++    overload_cnt1 <= 3'd0;
+   else if (reset_mode | overload_frame_ended | go_error_frame | go_overload_frame)
+-    overload_cnt1 <=#Tp 1'b0;
+-  else if (overload_frame & tx_point & (overload_cnt1 < 7))
++    overload_cnt1 <=#Tp 3'd0;
++  else if (overload_frame & tx_point & (overload_cnt1 < 3'd7))
+     overload_cnt1 <=#Tp overload_cnt1 + 1'b1;
+ end
+ 
+ 
+-assign overload_flag_over = sample_point & (overload_cnt1 == 7) & (~enable_overload_cnt2);
++assign overload_flag_over = sample_point & (overload_cnt1 == 3'd7) & (~enable_overload_cnt2);
+ 
+ 
+ always @ (posedge clk or posedge rst)
+
+ParseResult:
+DEL HdlStmProcess@@ from objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: sample_point
+                HdlStmAssign: if_true
+                    HdlValueId: error_frame
+                    HdlValueId: error_frame_q
+                    HdlValueId: Tp
+                list: elifs
+
+
+CommitId: e8a58c4368e2a93f746081c68e1318167740de08
+Fixed according to the linter.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -1676,23 +1662,23 @@ begin
+     end
+ end
+ 
+-assign rst_tx_pointer = ((~bit_de_stuff_tx) & tx_point & (~rx_data) &   extended_mode  &   r_tx_data_0[0]   & tx_pointer == 38                      ) |   // arbitration + control for extended format
+-                        ((~bit_de_stuff_tx) & tx_point & (~rx_data) &   extended_mode  & (~r_tx_data_0[0])  & tx_pointer == 18                      ) |   // arbitration + control for extended format
+-                        ((~bit_de_stuff_tx) & tx_point & (~rx_data) & (~extended_mode)                      & tx_pointer == 18                      ) |   // arbitration + control for standard format
+-                        ((~bit_de_stuff_tx) & tx_point &   rx_data  &   extended_mode                       & tx_pointer == (8 * tx_data_0[3:0] - 1)) |   // data
+-                        ((~bit_de_stuff_tx) & tx_point &   rx_data  & (~extended_mode)                      & tx_pointer == (8 * tx_data_1[3:0] - 1)) |   // data
+-                        (                     tx_point &   rx_crc_lim                                                                               ) |   // crc
+-                        (go_rx_idle                                                                                                                 ) |   // at the end
+-                        (reset_mode                                                                                                                 ) |
+-                        (overload_frame                                                                                                             ) |
+-                        (error_frame                                                                                                                ) ;
++assign rst_tx_pointer = ((~bit_de_stuff_tx) & tx_point & (~rx_data) &   extended_mode  &   r_tx_data_0[0]   & tx_pointer == 6'd38                       ) |   // arbitration + control for extended format
++                        ((~bit_de_stuff_tx) & tx_point & (~rx_data) &   extended_mode  & (~r_tx_data_0[0])  & tx_pointer == 6'd18                       ) |   // arbitration + control for extended format
++                        ((~bit_de_stuff_tx) & tx_point & (~rx_data) & (~extended_mode)                      & tx_pointer == 6'd18                       ) |   // arbitration + control for standard format
++                        ((~bit_de_stuff_tx) & tx_point &   rx_data  &   extended_mode                       & tx_pointer == ((tx_data_0[3:0]<<3) - 1'b1)) |   // data       (overflow is OK here)
++                        ((~bit_de_stuff_tx) & tx_point &   rx_data  & (~extended_mode)                      & tx_pointer == ((tx_data_1[3:0]<<3) - 1'b1)) |   // data       (overflow is OK here)
++                        (                     tx_point &   rx_crc_lim                                                                                   ) |   // crc
++                        (go_rx_idle                                                                                                                     ) |   // at the end
++                        (reset_mode                                                                                                                     ) |
++                        (overload_frame                                                                                                                 ) |
++                        (error_frame                                                                                                                    ) ;
+ 
+ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+-    tx_pointer <= 'h0;
++    tx_pointer <= 6'h0;
+   else if (rst_tx_pointer)
+-    tx_pointer <=#Tp 'h0;
++    tx_pointer <=#Tp 6'h0;
+   else if (go_early_tx | (tx_point & tx_state & (~bit_de_stuff_tx)))
+     tx_pointer <=#Tp tx_pointer + 1'b1;
+ end
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@OR to OR
+        UPD HdlOp@@OR to OR
+            UPD HdlOp@@OR to OR
+                UPD HdlOp@@OR to OR
+                    UPD HdlOp@@OR to OR
+                        UPD HdlOp@@OR to OR
+                            UPD HdlOp@@AND to AND
+                                UPD HdlOp@@EQ to EQ
+                                    UPD HdlOp@@SUB to SUB
+                                        UPD HdlOp@@MUL to SLL
+                                        UPD HdlOp@@MUL to MUL
+                                            DEL HdlValueInt@@8 from ops
+                            UPD HdlOp@@OR to OR
+                                UPD HdlOp@@AND to AND
+                                    UPD HdlOp@@EQ to EQ
+                                        UPD HdlOp@@SUB to SUB
+                                            UPD HdlOp@@MUL to SLL
+                                            UPD HdlOp@@MUL to MUL
+                                                DEL HdlValueInt@@8 from ops
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@OR to OR
+        UPD HdlOp@@OR to OR
+            UPD HdlOp@@OR to OR
+                UPD HdlOp@@OR to OR
+                    UPD HdlOp@@OR to OR
+                        UPD HdlOp@@OR to OR
+                            UPD HdlOp@@AND to AND
+                                UPD HdlOp@@EQ to EQ
+                                    UPD HdlOp@@SUB to SUB
+                                        UPD HdlOp@@SLL to SLL
+                                            INS HdlValueInt@@3 to ops
+                            UPD HdlOp@@OR to OR
+                                UPD HdlOp@@AND to AND
+                                    UPD HdlOp@@EQ to EQ
+                                        UPD HdlOp@@SUB to SUB
+                                            UPD HdlOp@@SLL to SLL
+                                                INS HdlValueInt@@3 to ops
+
+
+CommitId: e8a58c4368e2a93f746081c68e1318167740de08
+Fixed according to the linter.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -1742,9 +1728,12 @@ begin
+     tx_state <=#Tp 1'b1;
+ end
+ 
+-always @ (posedge clk)
++always @ (posedge clk or posedge rst)
+ begin
+-  tx_state_q <=#Tp tx_state;
++  if (rst)
++    tx_state_q <=#Tp 1'b0;
++  else
++    tx_state_q <=#Tp tx_state;
+ end
+ 
+ 
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+        HdlOp: RISING
+            list: ops
+                HdlValueId: rst
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: rst
+                HdlStmAssign: if_true
+                    HdlValueInt: 0
+                    HdlValueId: tx_state_q
+                    HdlValueId: Tp
+                list: elifs
+                HdlStmAssign: if_false
+                    HdlValueId: tx_state
+                    HdlValueId: tx_state_q
+                    HdlValueId: Tp
+
+DEL HdlStmProcess@@ from objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueId: tx_state
+                HdlValueId: tx_state_q
+                HdlValueId: Tp
+
+
+CommitId: e8a58c4368e2a93f746081c68e1318167740de08
+Fixed according to the linter.
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -1879,29 +1871,29 @@ end
+ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+-    rx_err_cnt <= 'h0;
++    rx_err_cnt <= 9'h0;
+   else if (we_rx_err_cnt & (~node_bus_off))
+     rx_err_cnt <=#Tp {1'b0, data_in};
+   else if (set_reset_mode)
+-    rx_err_cnt <=#Tp 'h0;
++    rx_err_cnt <=#Tp 9'h0;
+   else
+     begin
+       if (~listen_only_mode)
+         begin
+-          if ((~transmitter) & rx_ack & (~err) & (rx_err_cnt > 0))
++          if ((~transmitter) & rx_ack & (~err) & (rx_err_cnt > 9'h0))
+             begin
+-              if (rx_err_cnt > 127)
+-                rx_err_cnt <=#Tp 127;
++              if (rx_err_cnt > 9'd127)
++                rx_err_cnt <=#Tp 9'd127;
+               else
+                 rx_err_cnt <=#Tp rx_err_cnt - 1'b1;
+             end
+-          else if ((rx_err_cnt < 248) & (~transmitter))   // 248 + 8 = 256
++          else if ((rx_err_cnt < 9'd248) & (~transmitter))   // 248 + 8 = 256
+             begin
+               if (go_error_frame & (~rule5))                                                                            // 1  (rule 5 is just the opposite then rule 1 exception
+                 rx_err_cnt <=#Tp rx_err_cnt + 1'b1;
+-              else if ( (error_frame & sample_point & (~sampled_bit) & (error_cnt1 == 7) & (~rx_err_cnt_blocked)  ) |   // 2
++              else if ( (error_frame & sample_point & (~sampled_bit) & (error_cnt1 == 3'd7) & (~rx_err_cnt_blocked)  ) |   // 2
+                         (go_error_frame & rule5                                                                   ) |   // 5
+-                        (error_frame & sample_point & (~sampled_bit) & (delayed_dominant_cnt == 7)                )     // 6
++                        (error_frame & sample_point & (~sampled_bit) & (delayed_dominant_cnt == 3'h7)                )     // 6
+                       )
+                 rx_err_cnt <=#Tp rx_err_cnt + 4'h8;
+             end
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+        HdlOp: RISING
+            list: ops
+                HdlValueId: rst
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: rst
+                HdlStmAssign: if_true
+                    HdlValueInt: 0
+                    HdlValueId: arbitration_lost_q
+                    HdlValueId: Tp
+                list: elifs
+                HdlStmAssign: if_false
+                    HdlValueId: arbitration_lost
+                    HdlValueId: arbitration_lost_q
+                    HdlValueId: Tp
+
+DEL HdlStmProcess@@ from objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueId: arbitration_lost
+                HdlValueId: arbitration_lost_q
+                HdlValueId: Tp
+
+
+CommitId: 246875e0d90e8315ccdf4cac61dc6121cc697aea
+Bosch license warning added. Error counters finished. Overload frames
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -373,13 +448,14 @@ assign go_rx_crc_lim  = (~bit_de_stuff) & sample_point &  rx_crc  & (bit_cnt ==
+ assign go_rx_ack      =                   sample_point &  rx_crc_lim;
+ assign go_rx_ack_lim  =                   sample_point &  rx_ack;
+ assign go_rx_eof      =                   sample_point &  rx_ack_lim  | (~reset_mode) & reset_mode_q;
+-assign go_rx_inter    =                 ((sample_point &  rx_eof  & (eof_cnt == 6)) | error_frame_ended) & (~overload_needed);
++assign go_rx_inter    =                 ((sample_point &  rx_eof  & (eof_cnt == 6)) | error_frame_ended) & (~go_overload_frame) & (~overload_frame);
+ 
+-assign go_error_frame = form_error | stuff_error | bit_error | acknowledge_error | (crc_error & go_rx_eof);
++assign go_error_frame = (form_err | stuff_err | bit_err | ack_err | (crc_err & go_rx_eof));
+ assign error_frame_ended = (error_cnt2 == 7) & tx_point;
++assign overload_frame_ended = error_frame_ended & (~error_frame_q);
+ 
+ assign go_overload_frame = ((sample_point &  rx_eof  & (eof_cnt == 6)) | error_frame_ended) & overload_needed | 
+-                             sample_point & (~sampled_bit) & rx_inter & ((bit_cnt == 0) | (bit_cnt == 1))     |
++                             sample_point & (~sampled_bit) & rx_inter & (bit_cnt < 2)                         |
+                              sample_point & (~sampled_bit) & (error_cnt2 == 7)
+                             ;
+ 
+
+ParseResult:
+MOV HdlIdDef@@crc_error to objs
+HdlIdDef: crc_error
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@set_form_error to objs
+HdlIdDef: set_form_error
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@error_frame_ended to objs
+HdlIdDef: error_frame_ended
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@overload_needed to objs
+HdlIdDef: overload_needed
+    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@id_ok to objs
+HdlIdDef: id_ok
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@no_byte0 to objs
+HdlIdDef: no_byte0
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@no_byte1 to objs
+HdlIdDef: no_byte1
+    HdlDirection: INTERNAL
+
+UPD HdlIdDef@@crc_error to error_flag_over_blocked
+
+INS HdlIdDef@@stuff_err to objs
+HdlIdDef: stuff_err
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@err to objs
+HdlIdDef: err
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@tx_successful to objs
+HdlIdDef: tx_successful
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@recessive_cnt_ok to objs
+HdlIdDef: recessive_cnt_ok
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@arbitration_field to objs
+HdlIdDef: arbitration_field
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@form_error from objs
+HdlIdDef: form_error
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@bit_error from objs
+HdlIdDef: bit_error
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@acknowledge_error from objs
+HdlIdDef: acknowledge_error
+    HdlDirection: INTERNAL
+
+
+CommitId: 246875e0d90e8315ccdf4cac61dc6121cc697aea
+Bosch license warning added. Error counters finished. Overload frames
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -393,9 +469,14 @@ assign bit_de_stuff_reset = go_rx_crc_lim | reset_mode | go_error_frame;
+ assign remote_rq = ((~ide) & rtr1) | (ide & rtr2);
+ assign limited_data_len = (data_len < 8)? data_len : 4'h8;
+ 
+-assign acknowledge_error = rx_ack & sample_point & sampled_bit & tx_state;
+-assign bit_error = tx_state & sample_point & tx & (~sampled_bit) & (~rx_ack) & (~rx_id1) & (~rx_rtr1) & (~rx_ide) & (~rx_id2) & (~rx_rtr2);
++assign ack_err = rx_ack & sample_point & sampled_bit & tx_state;
++assign bit_err = (tx_state | error_frame | overload_frame | rx_ack) & sample_point & (tx !== sampled_bit) & (~bit_err_exc1) & (~bit_err_exc2) & (~bit_err_exc3) & (~bit_err_exc4);
++assign bit_err_exc1 = tx_state & arbitration_field & tx;
++assign bit_err_exc2 = rx_ack & tx;
++assign bit_err_exc3 = error_frame & node_error_passive & (error_cnt1 < 7);
++assign bit_err_exc4 = (error_frame | overload_frame) & (error_cnt1 == 7) & (~enable_error_cnt2);
+ 
++assign arbitration_field = rx_id1 | rx_rtr1 | rx_ide | rx_id2 | rx_rtr2;
+ 
+ 
+ 
+
+ParseResult:
+INS HdlIdDef@@send_ack to objs
+HdlIdDef: send_ack
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@bit_err_exc1 to objs
+HdlIdDef: bit_err_exc1
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@bit_err_exc2 to objs
+HdlIdDef: bit_err_exc2
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@bit_err_exc3 to objs
+HdlIdDef: bit_err_exc3
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@bit_err_exc4 to objs
+HdlIdDef: bit_err_exc4
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@error_flag_over to objs
+HdlIdDef: error_flag_over
+    HdlDirection: INTERNAL
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@AND to 
+    HdlOp: AND
+        list: ops
+            HdlOp: OR
+                list: ops
+                    HdlOp: AND
+                        list: ops
+                            HdlOp: AND
+                                list: ops
+                                    HdlValueId: sample_point
+                                    HdlValueId: rx_eof
+                            HdlOp: EQ
+                                list: ops
+                                    HdlValueId: eof_cnt
+                                    HdlValueInt: 6
+                    HdlValueId: error_frame_ended
+            HdlOp: NEG
+                list: ops
+                    HdlValueId: overload_needed
+    UPD HdlOp@@AND to AND
+        UPD HdlOp@@NEG to NEG
+            UPD HdlValueId@@overload_needed to go_overload_frame
+
+
+CommitId: 246875e0d90e8315ccdf4cac61dc6121cc697aea
+Bosch license warning added. Error counters finished. Overload frames
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -898,7 +1070,8 @@ assign header_len[2:0] = extended_mode ? (ide? (3'h5) : (3'h3)) : 3'h2;
+ assign storing_header = header_cnt < header_len;
+ assign limited_data_len_minus1[3:0] = remote_rq? 4'hf : ((data_len < 8)? (data_len -1'b1) : 4'h7);   // - 1 because counter counts from 0
+ assign reset_wr_fifo = (data_cnt == (limited_data_len_minus1 + header_len)) | reset_mode;
+-assign no_error = (~crc_error) & (~form_error) & (~stuff_error);
++
++assign err = form_err | stuff_err | bit_err | ack_err | form_err_latched | stuff_err_latched | bit_err_latched | ack_err_latched | crc_err;
+ 
+ 
+ 
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+        HdlOp: RISING
+            list: ops
+                HdlValueId: rst
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: rst
+                HdlStmAssign: if_true
+                    HdlValueInt: 0
+                    HdlValueId: rule5
+                list: elifs
+                    tuple
+                        HdlOp: OR
+                            list: ops
+                                HdlValueId: reset_mode
+                                HdlValueId: error_flag_over
+                        HdlStmAssign
+                            HdlValueInt: 0
+                            HdlValueId: rule5
+                            HdlValueId: Tp
+                    tuple
+                        HdlOp: AND
+                            list: ops
+                                HdlOp: AND
+                                    list: ops
+                                        HdlOp: AND
+                                            list: ops
+                                                HdlOp: AND
+                                                    list: ops
+                                                        HdlOp: OR
+                                                            list: ops
+                                                                HdlValueId: error_frame
+                                                                HdlValueId: overload_frame
+                                                        HdlOp: NEG
+                                                            list: ops
+                                                                HdlValueId: node_error_passive
+                                                HdlOp: LT
+                                                    list: ops
+                                                        HdlValueId: error_cnt1
+                                                        HdlValueInt: 7
+                                        HdlValueId: bit_err
+                                HdlOp: NEG
+                                    list: ops
+                                        HdlValueId: bit_err_latched
+                        HdlStmAssign
+                            HdlValueInt: 1
+                            HdlValueId: rule5
+                            HdlValueId: Tp
+
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+        HdlOp: RISING
+            list: ops
+                HdlValueId: rst
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: rst
+                HdlStmAssign: if_true
+                    HdlValueInt: 0
+                    HdlValueId: rule3_exc1_1
+                list: elifs
+                    tuple
+                        HdlOp: OR
+                            list: ops
+                                HdlOp: OR
+                                    list: ops
+                                        HdlValueId: reset_mode
+                                        HdlValueId: error_flag_over
+                                HdlValueId: rule3_exc1_2
+                        HdlStmAssign
+                            HdlValueInt: 0
+                            HdlValueId: rule3_exc1_1
+                            HdlValueId: Tp
+                    tuple
+                        HdlOp: AND
+                            list: ops
+                                HdlOp: AND
+                                    list: ops
+                                        HdlValueId: transmitter
+                                        HdlValueId: node_error_passive
+                                HdlValueId: ack_err
+                        HdlStmAssign
+                            HdlValueInt: 1
+                            HdlValueId: rule3_exc1_1
+                            HdlValueId: Tp
+
+
+CommitId: 246875e0d90e8315ccdf4cac61dc6121cc697aea
+Bosch license warning added. Error counters finished. Overload frames
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -1088,13 +1306,13 @@ begin
+     begin
+       if (tx_state)                                                             // Transmitting message
+         tx <=#Tp ((~bit_de_stuff_tx) & tx_bit) | (bit_de_stuff_tx & (~tx_q));
+-      else if ((~tx_state) & rx_ack & no_error)                                 // Acknowledge
++      else if (send_ack)                                                        // Acknowledge
+         tx <=#Tp 1'b0;
+-      else if (error_frame)                                                     // Transmitting error frame
++      else if (error_frame | overload_frame)                                    // Transmitting error frame
+         begin
+           if (error_cnt1 < 6)
+             begin
+-              if (node_error_passive)
++              if (node_error_passive & (~overload_frame))
+                 tx <=#Tp 1'b1;
+               else
+                 tx <=#Tp 1'b0;
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: sample_point
+                HdlStmAssign: if_true
+                    HdlValueId: error_frame
+                    HdlValueId: error_frame_q
+                    HdlValueId: Tp
+                list: elifs
+
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueId: go_error_frame
+                HdlValueId: go_error_frame_q
+                HdlValueId: Tp
+
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+        HdlOp: RISING
+            list: ops
+                HdlValueId: rst
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlValueId: rst
+                HdlStmAssign: if_true
+                    HdlValueInt: 0
+                    HdlValueId: overload_frame
+                list: elifs
+                    tuple
+                        HdlOp: OR
+                            list: ops
+                                HdlValueId: reset_mode
+                                HdlValueId: overload_frame_ended
+                        HdlStmAssign
+                            HdlValueInt: 0
+                            HdlValueId: overload_frame
+                            HdlValueId: Tp
+                    tuple
+                        HdlValueId: go_overload_frame
+                        HdlStmAssign
+                            HdlValueInt: 1
+                            HdlValueId: overload_frame
+                            HdlValueId: Tp
+
+UPD HdlStmProcess@@ to 
+    INS list@@sensitivity to 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+        HdlOp: RISING
+            list: ops
+                HdlValueId: rst
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@rst to 
+    INS list@@elifs to 
+    INS tuple@@ to elifs
+    tuple
+        HdlValueId: stuff_err
+        HdlStmAssign
+            HdlValueInt: 1
+            HdlValueId: stuff_err_latched
+            HdlValueId: Tp
+
+
+CommitId: 246875e0d90e8315ccdf4cac61dc6121cc697aea
+Bosch license warning added. Error counters finished. Overload frames
+--- a/rtl/verilog/can_bsp.v
++++ b/rtl/verilog/can_bsp.v
+@@ -1202,21 +1421,23 @@ begin
+ end
+ 
+ 
+-wire rst_need_to_tx = go_rx_inter & (~error_frame) & (~priority_lost);
++assign tx_successful = transmitter & go_rx_inter & (~error_frame) & (~priority_lost);
++
++
+ always @ (posedge clk or posedge rst)
+ begin
+   if (rst)
+     need_to_tx <= 1'b0;
+-  else if (rst_need_to_tx)
+-    need_to_tx <=#Tp 'h0;
++  else if (tx_successful)
++    need_to_tx <=#Tp 1'h0;
+   else if (tx_request)
+     need_to_tx <=#Tp 1'b1;
+ end
+ 
+ 
+ 
+-assign go_early_tx = need_to_tx & (~tx_state) & sample_point & (~sampled_bit) & (rx_idle | rx_inter & (bit_cnt == 2));
+-assign go_tx       = need_to_tx & (~tx_state) & sample_point & (go_early_tx | sampled_bit & rx_idle);
++assign go_early_tx = need_to_tx & (~tx_state) & (~suspend) & sample_point & (~sampled_bit) & (rx_idle | rx_inter & (bit_cnt == 2));
++assign go_tx       = need_to_tx & (~tx_state) & (~suspend) & (go_early_tx | rx_idle);
+ 
+ 
+ // Tx state
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@OR to 
+    HdlOp: OR
+        list: ops
+            HdlOp: OR
+                list: ops
+                    HdlOp: OR
+                        list: ops
+                            HdlOp: OR
+                                list: ops
+                                    HdlOp: OR
+                                        list: ops
+                                            HdlOp: OR
+                                                list: ops
+                                                    HdlOp: OR
+                                                        list: ops
+                                                            HdlOp: AND
+                                                                list: ops
+                                                                    HdlOp: AND
+                                                                        list: ops
+                                                                            HdlOp: AND
+                                                                                list: ops
+                                                                                    HdlOp: AND
+                                                                                        list: ops
+                                                                                            HdlOp: NEG
+                                                                                                list: ops
+                                                                                                    HdlValueId: bit_de_stuff_tx
+                                                                                            HdlValueId: tx_point
+                                                                                    HdlOp: NEG
+                                                                                        list: ops
+                                                                                            HdlValueId: rx_data
+                                                                            HdlValueId: extended_mode
+                                                                    HdlOp: EQ
+                                                                        list: ops
+                                                                            HdlValueId: tx_pointer
+                                                                            HdlValueInt: 38
+                                                            HdlOp: AND
+                                                                list: ops
+                                                                    HdlOp: AND
+                                                                        list: ops
+                                                                            HdlOp: AND
+                                                                                list: ops
+                                                                                    HdlOp: AND
+                                                                                        list: ops
+                                                                                            HdlOp: NEG
+                                                                                                list: ops
+                                                                                                    HdlValueId: bit_de_stuff_tx
+                                                                                            HdlValueId: tx_point
+                                                                                    HdlOp: NEG
+                                                                                        list: ops
+                                                                                            HdlValueId: rx_data
+                                                                            HdlOp: NEG
+                                                                                list: ops
+                                                                                    HdlValueId: extended_mode
+                                                                    HdlOp: EQ
+                                                                        list: ops
+                                                                            HdlValueId: tx_pointer
+                                                                            HdlValueInt: 18
+                                                    HdlOp: AND
+                                                        list: ops
+                                                            HdlOp: AND
+                                                                list: ops
+                                                                    HdlOp: AND
+                                                                        list: ops
+                                                                            HdlOp: AND
+                                                                                list: ops
+                                                                                    HdlOp: NEG
+                                                                                        list: ops
+                                                                                            HdlValueId: bit_de_stuff_tx
+                                                                                    HdlValueId: tx_point
+                                                                            HdlValueId: rx_data
+                                                                    HdlValueId: extended_mode
+                                                            HdlOp: EQ
+                                                                list: ops
+                                                                    HdlValueId: tx_pointer
+                                                                    HdlOp: SUB
+                                                                        list: ops
+                                                                            HdlOp: MUL
+                                                                                list: ops
+                                                                                    HdlValueInt: 8
+                                                                                    HdlOp: INDEX
+                                                                                        list: ops
+                                                                                            HdlValueId: tx_data_0
+                                                                                            HdlOp: DOWNTO
+                                                                                                list: ops
+                                                                                                    HdlValueInt: 3
+                                                                                                    HdlValueInt: 0
+                                                                            HdlValueInt: 1
+                                            HdlOp: AND
+                                                list: ops
+                                                    HdlOp: AND
+                                                        list: ops
+                                                            HdlOp: AND
+                                                                list: ops
+                                                                    HdlOp: AND
+                                                                        list: ops
+                                                                            HdlOp: NEG
+                                                                                list: ops
+                                                                                    HdlValueId: bit_de_stuff_tx
+                                                                            HdlValueId: tx_point
+                                                                    HdlValueId: rx_data
+                                                            HdlOp: NEG
+                                                                list: ops
+                                                                    HdlValueId: extended_mode
+                                                    HdlOp: EQ
+                                                        list: ops
+                                                            HdlValueId: tx_pointer
+                                                            HdlOp: SUB
+                                                                list: ops
+                                                                    HdlOp: MUL
+                                                                        list: ops
+                                                                            HdlValueInt: 8
+                                                                            HdlOp: INDEX
+                                                                                list: ops
+                                                                                    HdlValueId: tx_data_1
+                                                                                    HdlOp: DOWNTO
+                                                                                        list: ops
+                                                                                            HdlValueInt: 3
+                                                                                            HdlValueInt: 0
+                                                                    HdlValueInt: 1
+                                    HdlOp: AND
+                                        list: ops
+                                            HdlValueId: tx_point
+                                            HdlValueId: rx_crc_lim
+                            HdlValueId: go_rx_idle
+                    HdlValueId: reset_mode
+            HdlValueId: error_frame
+    UPD HdlOp@@OR to OR
+        UPD HdlValueId@@error_frame to overload_frame
+
+

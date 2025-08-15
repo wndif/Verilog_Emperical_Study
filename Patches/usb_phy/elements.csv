@@ -1,4 +1,4 @@
-,HdlOp-InfixExpression,HdlOp-PrefixExpression,HdlOp-Assignment,HdlOp-MemberAccessing
-insert,6,3.0,5,
-update,23,1.0,1,8.0
-move,1,,1,
+,HdlOp-DOWNTO_HdlIdDef,HdlOp-InfixExpression_HdlStmIf,HdlOp-InfixExpression_HdlStmAssign,HdlOp-PrefixExpression_HdlStmIf,HdlOp-Assignment_HdlStmIf,HdlOp-PrefixExpression_HdlStmAssign,HdlOp-Assignment_HdlStmProcess,HdlOp-MemberAccessing_HdlStmAssign
+update,1.0,22.0,5,,1,1.0,,8.0
+insert,,3.0,3,3.0,3,,1.0,
+move,,,1,2.0,1,,,

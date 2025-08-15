@@ -392,77 +392,6 @@ Implemented the RxModule with RAM instead of register, which greatly reduced the
  	
 
 ParseResult:
-INS HdlModuleDef@@RxModule to objs
-
-INS HdlModuleDec@@RxModule to RxModule
-
-UPD HdlModuleDef@@RxModule to RxModule
-    INS list@@objs to RxModule
-
-UPD HdlModuleDec@@RxModule to RxModule
-    INS list@@params to RxModule
-    INS list@@objs to RxModule
-
-UPD HdlModuleDec@@RxModule to RxModule
-    MOV list@@ports to RxModule
-    list: ports
-        HdlIdDef: phy_rxd
-            HdlOp: PARAMETRIZATION
-                list: ops
-                    HdlValueId: wire
-                    HdlOp: DOWNTO
-                        list: ops
-                            HdlValueInt: 3
-                            HdlValueInt: 0
-            HdlDirection: IN
-        HdlIdDef: phy_rxen
-            HdlDirection: IN
-        HdlIdDef: phy_rxclk
-            HdlDirection: IN
-        HdlIdDef: phy_rxer
-            HdlDirection: IN
-        HdlIdDef: ff_clk
-            HdlDirection: IN
-        HdlIdDef: ff_data
-            HdlOp: PARAMETRIZATION
-                list: ops
-                    HdlValueId: reg
-            HdlDirection: OUT
-        HdlIdDef: ff_en
-            HdlOp: PARAMETRIZATION
-                list: ops
-                    HdlValueId: reg
-            HdlDirection: OUT
-        HdlIdDef: frameid
-            HdlOp: PARAMETRIZATION
-                list: ops
-                    HdlValueId: wire
-                    HdlOp: DOWNTO
-                        list: ops
-                            HdlOp: SUB
-                                list: ops
-                                    HdlValueInt: 24
-                                    HdlValueInt: 1
-                            HdlValueInt: 0
-            HdlDirection: OUT
-        HdlIdDef: start
-            HdlOp: PARAMETRIZATION
-                list: ops
-                    HdlValueId: reg
-            HdlValueInt: 0
-            HdlDirection: OUT
-    DEL list@@params from RxModule
-    list: params
-        HdlIdDef: transfer
-            HdlValueInt: 0
-            HdlDirection: INTERNAL
-        HdlIdDef: gap
-            HdlValueInt: 1
-            HdlDirection: INTERNAL
-    DEL list@@objs from RxModule
-
-DEL HdlModuleDec@@RxModule from RxModule
-
 DEL HdlIdDef@@ff_data_buf from objs
 HdlIdDef: ff_data_buf
     HdlOp: INDEX
@@ -488,10 +417,5 @@ HdlIdDef: ff_data_buf
                                     HdlValueInt: 2
                             HdlValueInt: 1
     HdlDirection: INTERNAL
-
-UPD HdlModuleDef@@RxModule to RxModule
-    DEL list@@objs from RxModule
-
-DEL HdlModuleDef@@RxModule from objs
 
 

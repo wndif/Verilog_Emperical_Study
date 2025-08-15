@@ -1,2 +1,3 @@
-,HdlIdDef
-delete,1
+,HdlIdDef,HdlStmIf,HdlStmCase
+delete,1.0,,
+update,,4.0,4.0

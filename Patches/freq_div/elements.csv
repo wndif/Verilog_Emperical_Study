@@ -1,2 +1,2 @@
-,HdlOp-PrefixExpression,HdlOp-MemberAccessing,HdlOp-InfixExpression
-update,3,8,9
+,HdlOp-MemberAccessing_HdlStmAssign,HdlOp-InfixExpression_HdlStmAssign,HdlOp-InfixExpression_HdlStmIf
+update,7,1,1

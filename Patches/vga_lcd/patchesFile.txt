@@ -1,3 +1,38 @@
+CommitId: de9bd31b0e79e918627cd98275efbd547bfafa1d
+Fixed some bugs discovered by modified testbench
+--- a/rtl/verilog/vga_fifo.v
++++ b/rtl/verilog/vga_fifo.v
+@@ -134,6 +134,7 @@ module vga_fifo (clk, aclr, sclr, d, wreq, q, rreq, empty, hfull, full);
+ 
+ 	// status flags
+ 	assign empty = !(|fifo_cnt);
+-	assign hfull = fifo_cnt[AWIDTH -1];
++	assign hfull = fifo_cnt[AWIDTH -1] | fifo_cnt[AWIDTH];
+ 	assign full  = fifo_cnt[AWIDTH];
+ endmodule
++
+ParseResult:
+UPD HdlStmAssign@@ to 
+    INS HdlOp@@OR to 
+    UPD HdlOp@@OR to OR
+        INS list@@ops to OR
+        INS HdlOp@@INDEX to ops
+        HdlOp: INDEX
+            list: ops
+                HdlValueId: fifo_cnt
+                HdlValueId: AWIDTH
+
+UPD HdlStmAssign@@ to 
+    MOV HdlOp@@INDEX to 
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: fifo_cnt
+            HdlOp: SUB
+                list: ops
+                    HdlValueId: AWIDTH
+                    HdlValueInt: 1
+
+
 CommitId: e4c20e903fe9ca7c51a2e959d48d6b36de84fbee
 Added CLUT bank switching.
 --- a/vga.vhd
@@ -288,8 +323,6 @@ INS HdlIdDef@@dvi_de_o to ports
 HdlIdDef: dvi_de_o
     HdlDirection: OUT
 
-UPD HdlIdDef@@hsync_pad_o to dvi_d_o
-
 INS HdlIdDef@@clk_p_o to ports
 HdlIdDef: clk_p_o
     HdlDirection: OUT
@@ -298,10 +331,6 @@ INS HdlIdDef@@hsync_pad_o to ports
 HdlIdDef: hsync_pad_o
     HdlDirection: OUT
 
-UPD HdlIdDef@@hsync_pad_o to hsync_pad_o
-    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
-        UPD HdlValueId@@reg to wire
-
 UPD HdlIdDef@@dvi_d_o to dvi_d_o
     UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
         INS HdlOp@@DOWNTO to ops
@@ -309,17 +338,6 @@ UPD HdlIdDef@@dvi_d_o to dvi_d_o
             list: ops
                 HdlValueInt: 11
                 HdlValueInt: 0
-
-UPD HdlIdDef@@wbm_cti_o to wbm_cti_o
-    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
-        UPD HdlOp@@DOWNTO to DOWNTO
-            UPD HdlValueInt@@3 to 2
-
-UPD HdlIdDef@@vsync_pad_o to vsync_pad_o
-    DEL HdlOp@@PARAMETRIZATION from vsync_pad_o
-    HdlOp: PARAMETRIZATION
-        list: ops
-            HdlValueId: reg
 
 UPD HdlIdDef@@csync_pad_o to csync_pad_o
     DEL HdlOp@@PARAMETRIZATION from csync_pad_o
@@ -412,6 +430,178 @@ HdlIdDef: cursor_adr
 INS HdlIdDef@@wmb_busy to objs
 HdlIdDef: wmb_busy
     HdlDirection: INTERNAL
+
+
+CommitId: 357061cc0e45597c228c583b49595f6505fe11fd
+Fixed a potential reset bug in the hint & vint generation.
+--- a/rtl/verilog/vga_pgen.v
++++ b/rtl/verilog/vga_pgen.v
+@@ -119,15 +124,28 @@ module vga_pgen (mclk, pclk, ctrl_ven, ctrl_HSyncL, Thsync, Thgdel, Thgate, Thle
+ 	reg dseol, dseof; // delayed seol, seof
+ 
+ 	always@(posedge mclk)
+-		begin
+-			seol  <= eol;
+-			dseol <= seol;
++		if (!ctrl_ven)
++			begin
++				seol  <= #1 1'b0;
++				dseol <= #1 1'b0;
++
++				seof  <= #1 1'b0;
++				dseof <= #1 1'b0;
+ 
+-			seof  <= eof;
+-			dseof <= seof;
++				eoh   <= #1 1'b0;
++				eov   <= #1 1'b0;
++			end
++		else
++			begin
++				seol  <= #1 eol;
++				dseol <= #1 seol;
+ 
+-			eoh <= seol & !dseol;
+-			eov <= seof & !dseof;
+-		end
++				seof  <= #1 eof;
++				dseof <= #1 seof;
++
++				eoh   <= #1 seol & !dseol;
++				eov   <= #1 seof & !dseof;
++			end
+ 
+ endmodule
++
+ParseResult:
+INS HdlStmIf@@body to 
+
+UPD HdlStmProcess@@ to 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueId: eol
+                HdlValueId: seol
+            HdlStmAssign
+                HdlValueId: seol
+                HdlValueId: dseol
+            HdlStmAssign
+                HdlValueId: eof
+                HdlValueId: seof
+            HdlStmAssign
+                HdlValueId: seof
+                HdlValueId: dseof
+            HdlStmAssign
+                HdlOp: AND
+                    list: ops
+                        HdlValueId: seol
+                        HdlOp: NEG_LOG
+                            list: ops
+                                HdlValueId: dseol
+                HdlValueId: eoh
+            HdlStmAssign
+                HdlOp: AND
+                    list: ops
+                        HdlValueId: seof
+                        HdlOp: NEG_LOG
+                            list: ops
+                                HdlValueId: dseof
+                HdlValueId: eov
+
+
+CommitId: c42eb1fc8bd767d0771011d2c6445a909c924a1c
+Some minor bug-fixes.
+--- a/rtl/verilog/vga_wb_master.v
++++ b/rtl/verilog/vga_wb_master.v
+@@ -488,7 +502,7 @@ module vga_wb_master (clk_i, rst_i, nrst_i, cyc_o, stb_o, cab_o, we_o, adr_o, se
+ 		if (scursor0_ld)
+ 			scursor0_xy <= #1 cursor0_xy;
+ 
+-	vga_ssel ssel_and_hw_cursor0 (
++	vga_curproc hw_cursor0 (
+ 		.clk(clk_i),
+ 		.rst_i(sclr),
+ 		.Thgate(Thgate),
+
+ParseResult:
+DEL HdlIdDef@@sddImDoneFifoQ from objs
+HdlIdDef: sddImDoneFifoQ
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@sdImDoneFifoQ from objs
+HdlIdDef: sdImDoneFifoQ
+    HdlDirection: INTERNAL
+
+
+CommitId: 3a123759abaf9bc4638b781590368567c03f3ef0
+Added hardware cursor support to wishbone master.
+--- a/rtl/verilog/vga_cur_cregs.v
++++ b/rtl/verilog/vga_cur_cregs.v
+@@ -87,7 +90,7 @@ module vga_cur_cregs (
+ 	//
+ 	// variable declarations
+ 	//
+-	reg  [31:0] cregs [2:0];  // color registers
++	reg  [31:0] cregs [7:0];  // color registers
+ 	wire [31:0] temp_cdat;
+ 
+ 	//
+
+ParseResult:
+UPD HdlIdDef@@cregs to cregs
+    UPD HdlOp@@INDEX to INDEX
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueInt@@2 to 7
+
+
+CommitId: 3a123759abaf9bc4638b781590368567c03f3ef0
+Added hardware cursor support to wishbone master.
+--- a/rtl/verilog/vga_cur_cregs.v
++++ b/rtl/verilog/vga_cur_cregs.v
+@@ -99,9 +102,7 @@ module vga_cur_cregs (
+ 	// generate host interface
+ 
+ 	// write section
+-	always@(posedge clk_i or negedge arst_i)
+-		if (~arst_i)
+-			
++	always@(posedge clk_i)
+ 		if (hsel_i & hwe_i)
+ 			cregs[hadr_i] <= #1 hdat_i;
+ 
+ParseResult:
+UPD HdlStmIf@@if_true to body
+
+MOV HdlStmIf@@if_true to body
+HdlStmIf: if_true
+    HdlOp: AND
+        list: ops
+            HdlValueId: hsel_i
+            HdlValueId: hwe_i
+    HdlStmAssign: if_true
+        HdlValueId: hdat_i
+        HdlOp: INDEX
+            list: ops
+                HdlValueId: cregs
+                HdlValueId: hadr_i
+        HdlValueInt: 1
+    list: elifs
+
+UPD HdlStmProcess@@ to 
+    DEL HdlOp@@FALLING from sensitivity
+    HdlOp: FALLING
+        list: ops
+            HdlValueId: arst_i
+
+UPD HdlStmIf@@body to body
+    DEL HdlOp@@NEG from body
+    HdlOp: NEG
+        list: ops
+            HdlValueId: arst_i
+    DEL list@@elifs from body
+
+DEL HdlStmIf@@body from 
 
 
 CommitId: 6b5e57be543e4493d94418f7994f6b860cbb332f
@@ -1617,60 +1807,6 @@ HdlStmProcess
             list: ops
                 HdlValueId: clk_i
     HdlStmIf: body
-        HdlValueId: sclr
-        HdlStmBlock: SEQ
-            list: body
-                HdlStmAssign
-                    HdlValueInt: 0
-                    HdlValueId: ld_cursor0
-                    HdlValueInt: 1
-                HdlStmAssign
-                    HdlValueInt: 0
-                    HdlValueId: ld_cursor1
-                    HdlValueInt: 1
-        list: elifs
-        HdlStmBlock: SEQ
-            list: body
-                HdlStmAssign
-                    HdlOp: OR
-                        list: ops
-                            HdlValueId: cursor0_ld
-                            HdlOp: AND
-                                list: ops
-                                    HdlValueId: ld_cursor0
-                                    HdlOp: NEG_LOG
-                                        list: ops
-                                            HdlOp: AND
-                                                list: ops
-                                                    HdlValueId: cur_done
-                                                    HdlValueId: cur_acc_sel
-                    HdlValueId: ld_cursor0
-                    HdlValueInt: 1
-                HdlStmAssign
-                    HdlOp: OR
-                        list: ops
-                            HdlValueId: cursor1_ld
-                            HdlOp: AND
-                                list: ops
-                                    HdlValueId: ld_cursor1
-                                    HdlOp: NEG_LOG
-                                        list: ops
-                                            HdlOp: AND
-                                                list: ops
-                                                    HdlValueId: cur_done
-                                                    HdlOp: NEG_LOG
-                                                        list: ops
-                                                            HdlValueId: cur_acc_sel
-                    HdlValueId: ld_cursor1
-                    HdlValueInt: 1
-
-INS HdlStmProcess@@ to objs
-HdlStmProcess
-    list: sensitivity
-        HdlOp: RISING
-            list: ops
-                HdlValueId: clk_i
-    HdlStmIf: body
         HdlOp: NEG_LOG
             list: ops
                 HdlValueId: cur_acc
@@ -2381,10 +2517,6 @@ Fixed some bugs discovered by modified testbench
  			// fill data buffer
 
 ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlValueId@@pixel_buffer_empty to vdat_buffer_empty
-    UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
-
 UPD HdlStmIf@@ to 
     INS HdlOp@@AND_LOG to 
     UPD HdlOp@@AND_LOG to AND_LOG
@@ -2455,10 +2587,6 @@ Fixed some bugs discovered by modified testbench
  						nxt_state = idle;
 
 ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlValueId@@pixel_buffer_empty to vdat_buffer_empty
-    UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
-
 UPD HdlStmIf@@if_true to 
 
 MOV HdlStmIf@@if_true to 
@@ -2545,21 +2673,9 @@ Fixed some bugs discovered by modified testbench
  						nxt_state = idle;
 
 ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlValueId@@pixel_buffer_empty to vdat_buffer_empty
-    UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
-
 UPD HdlStmIf@@ to 
     UPD HdlOp@@NEG_LOG to NEG_LOG
         UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
-
-UPD HdlStmIf@@ to 
-    UPD HdlOp@@NEG_LOG to NEG_LOG
-        UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
-
-UPD HdlStmIf@@if_true to if_true
-    UPD HdlOp@@NEG_LOG to NEG_LOG
-        UPD HdlValueId@@pixel_buffer_empty to vdat_buffer_empty
 
 UPD HdlStmIf@@if_true to if_true
     UPD HdlOp@@NEG_LOG to NEG_LOG
@@ -2583,21 +2699,9 @@ Fixed some bugs discovered by modified testbench
  						nxt_state = idle;
 
 ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlValueId@@pixel_buffer_empty to vdat_buffer_empty
-    UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
-
 UPD HdlStmIf@@ to 
     UPD HdlOp@@NEG_LOG to NEG_LOG
         UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
-
-UPD HdlStmIf@@ to 
-    UPD HdlOp@@NEG_LOG to NEG_LOG
-        UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
-
-UPD HdlStmIf@@if_true to if_true
-    UPD HdlOp@@NEG_LOG to NEG_LOG
-        UPD HdlValueId@@pixel_buffer_empty to vdat_buffer_empty
 
 UPD HdlStmIf@@if_true to if_true
     UPD HdlOp@@NEG_LOG to NEG_LOG
@@ -2678,13 +2782,6 @@ Fixed some bugs discovered by modified testbench
  			//
 
 ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlValueId@@pixel_buffer_empty to vdat_buffer_empty
-    UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@pixelbuf_rreq to ivdat_buf_rreq
-
 UPD HdlStmCase@@c_state to c_state
     INS tuple@@ to cases
     INS HdlStmBlock@@SEQ to 
@@ -2903,148 +3000,6 @@ Fixed some bugs discovered by modified testbench
  				iR[7:3] = DataBuffer[31:27];
 
 ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlValueId@@pixel_buffer_empty to vdat_buffer_empty
-    UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@pixelbuf_rreq to ivdat_buf_rreq
-
-UPD HdlStmCase@@c_state to c_state
-    INS tuple@@ to cases
-    INS HdlStmBlock@@SEQ to 
-    INS HdlValueId@@fill_buf to 
-    INS HdlStmBlock@@SEQ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS list@@body to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: RGBbuf_wreq
-                HdlValueId: clut_ack
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iR
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 23
-                                HdlValueInt: 16
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iG
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 15
-                                HdlValueInt: 8
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iB
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 7
-                                HdlValueInt: 0
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS list@@body to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: RGBbuf_wreq
-                HdlValueId: clut_ack
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iG
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 15
-                                HdlValueInt: 8
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iB
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 7
-                                HdlValueInt: 0
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: RGBbuf_wreq
-                HdlValueId: clut_ack
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iR
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 23
-                                HdlValueInt: 16
-        INS HdlOp@@ASSIGN to body
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS list@@ops to ASSIGN
-            INS HdlOp@@OR_LOG to ops
-            UPD HdlOp@@OR_LOG to OR_LOG
-                INS list@@ops to OR_LOG
-                INS HdlOp@@XOR to ops
-                HdlOp: XOR
-                    list: ops
-                        HdlOp: INDEX
-                            list: ops
-                                HdlValueId: colcnt
-                                HdlValueInt: 1
-                        HdlOp: INDEX
-                            list: ops
-                                HdlValueId: colcnt
-                                HdlValueInt: 0
-
-UPD HdlStmCase@@c_state to c_state
-    UPD HdlStmBlock@@SEQ to SEQ
-        MOV HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iR
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 23
-                                HdlValueInt: 16
-        UPD HdlOp@@ASSIGN to ASSIGN
-            MOV HdlValueId@@iclut_req to ops
-            HdlValueId: iclut_req
-            UPD HdlOp@@NEG to NEG_LOG
-            MOV HdlOp@@NEG to ops
-            HdlOp: NEG
-                list: ops
-                    HdlValueId: RGB_fifo_full
-            UPD HdlOp@@NEG to NEG
-                UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
-            DEL list@@ops from ASSIGN
-        DEL HdlOp@@ASSIGN from body
-
 UPD HdlStmIf@@ to 
     UPD HdlOp@@NEG_LOG to NEG_LOG
         UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
@@ -3072,148 +3027,6 @@ Fixed some bugs discovered by modified testbench
  				iR[7:3] = DataBuffer[15:11];
 
 ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlValueId@@pixel_buffer_empty to vdat_buffer_empty
-    UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@pixelbuf_rreq to ivdat_buf_rreq
-
-UPD HdlStmCase@@c_state to c_state
-    INS tuple@@ to cases
-    INS HdlStmBlock@@SEQ to 
-    INS HdlValueId@@fill_buf to 
-    INS HdlStmBlock@@SEQ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS list@@body to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: RGBbuf_wreq
-                HdlValueId: clut_ack
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iR
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 23
-                                HdlValueInt: 16
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iG
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 15
-                                HdlValueInt: 8
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iB
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 7
-                                HdlValueInt: 0
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS list@@body to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: RGBbuf_wreq
-                HdlValueId: clut_ack
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iG
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 15
-                                HdlValueInt: 8
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iB
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 7
-                                HdlValueInt: 0
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: RGBbuf_wreq
-                HdlValueId: clut_ack
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iR
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 23
-                                HdlValueInt: 16
-        INS HdlOp@@ASSIGN to body
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS list@@ops to ASSIGN
-            INS HdlOp@@OR_LOG to ops
-            UPD HdlOp@@OR_LOG to OR_LOG
-                INS list@@ops to OR_LOG
-                INS HdlOp@@XOR to ops
-                HdlOp: XOR
-                    list: ops
-                        HdlOp: INDEX
-                            list: ops
-                                HdlValueId: colcnt
-                                HdlValueInt: 1
-                        HdlOp: INDEX
-                            list: ops
-                                HdlValueId: colcnt
-                                HdlValueInt: 0
-
-UPD HdlStmCase@@c_state to c_state
-    UPD HdlStmBlock@@SEQ to SEQ
-        MOV HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iR
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 23
-                                HdlValueInt: 16
-        UPD HdlOp@@ASSIGN to ASSIGN
-            MOV HdlValueId@@iclut_req to ops
-            HdlValueId: iclut_req
-            UPD HdlOp@@NEG to NEG_LOG
-            MOV HdlOp@@NEG to ops
-            HdlOp: NEG
-                list: ops
-                    HdlValueId: RGB_fifo_full
-            UPD HdlOp@@NEG to NEG
-                UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
-            DEL list@@ops from ASSIGN
-        DEL HdlOp@@ASSIGN from body
-
 UPD HdlStmIf@@ to 
     UPD HdlOp@@NEG_LOG to NEG_LOG
         UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
@@ -3247,148 +3060,6 @@ Fixed some bugs discovered by modified testbench
  
 
 ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlValueId@@pixel_buffer_empty to vdat_buffer_empty
-    UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@pixelbuf_rreq to ivdat_buf_rreq
-
-UPD HdlStmCase@@c_state to c_state
-    INS tuple@@ to cases
-    INS HdlStmBlock@@SEQ to 
-    INS HdlValueId@@fill_buf to 
-    INS HdlStmBlock@@SEQ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS list@@body to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: RGBbuf_wreq
-                HdlValueId: clut_ack
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iR
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 23
-                                HdlValueInt: 16
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iG
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 15
-                                HdlValueInt: 8
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iB
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 7
-                                HdlValueInt: 0
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS list@@body to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: RGBbuf_wreq
-                HdlValueId: clut_ack
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iG
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 15
-                                HdlValueInt: 8
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iB
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 7
-                                HdlValueInt: 0
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: RGBbuf_wreq
-                HdlValueId: clut_ack
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iR
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 23
-                                HdlValueInt: 16
-        INS HdlOp@@ASSIGN to body
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS list@@ops to ASSIGN
-            INS HdlOp@@OR_LOG to ops
-            UPD HdlOp@@OR_LOG to OR_LOG
-                INS list@@ops to OR_LOG
-                INS HdlOp@@XOR to ops
-                HdlOp: XOR
-                    list: ops
-                        HdlOp: INDEX
-                            list: ops
-                                HdlValueId: colcnt
-                                HdlValueInt: 1
-                        HdlOp: INDEX
-                            list: ops
-                                HdlValueId: colcnt
-                                HdlValueInt: 0
-
-UPD HdlStmCase@@c_state to c_state
-    UPD HdlStmBlock@@SEQ to SEQ
-        MOV HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iR
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 23
-                                HdlValueInt: 16
-        UPD HdlOp@@ASSIGN to ASSIGN
-            MOV HdlValueId@@iclut_req to ops
-            HdlValueId: iclut_req
-            UPD HdlOp@@NEG to NEG_LOG
-            MOV HdlOp@@NEG to ops
-            HdlOp: NEG
-                list: ops
-                    HdlValueId: RGB_fifo_full
-            UPD HdlOp@@NEG to NEG
-                UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
-            DEL list@@ops from ASSIGN
-        DEL HdlOp@@ASSIGN from body
-
 UPD HdlStmIf@@ to 
     UPD HdlOp@@NEG_LOG to NEG_LOG
         UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
@@ -3423,148 +3094,6 @@ Fixed some bugs discovered by modified testbench
  				iR[7:0] = DataBuffer[23:16];
 
 ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlValueId@@pixel_buffer_empty to vdat_buffer_empty
-    UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@pixelbuf_rreq to ivdat_buf_rreq
-
-UPD HdlStmCase@@c_state to c_state
-    INS tuple@@ to cases
-    INS HdlStmBlock@@SEQ to 
-    INS HdlValueId@@fill_buf to 
-    INS HdlStmBlock@@SEQ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS list@@body to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: RGBbuf_wreq
-                HdlValueId: clut_ack
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iR
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 23
-                                HdlValueInt: 16
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iG
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 15
-                                HdlValueInt: 8
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iB
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 7
-                                HdlValueInt: 0
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS list@@body to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: RGBbuf_wreq
-                HdlValueId: clut_ack
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iG
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 15
-                                HdlValueInt: 8
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iB
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 7
-                                HdlValueInt: 0
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: RGBbuf_wreq
-                HdlValueId: clut_ack
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iR
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 23
-                                HdlValueInt: 16
-        INS HdlOp@@ASSIGN to body
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS list@@ops to ASSIGN
-            INS HdlOp@@OR_LOG to ops
-            UPD HdlOp@@OR_LOG to OR_LOG
-                INS list@@ops to OR_LOG
-                INS HdlOp@@XOR to ops
-                HdlOp: XOR
-                    list: ops
-                        HdlOp: INDEX
-                            list: ops
-                                HdlValueId: colcnt
-                                HdlValueInt: 1
-                        HdlOp: INDEX
-                            list: ops
-                                HdlValueId: colcnt
-                                HdlValueInt: 0
-
-UPD HdlStmCase@@c_state to c_state
-    UPD HdlStmBlock@@SEQ to SEQ
-        MOV HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iR
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 23
-                                HdlValueInt: 16
-        UPD HdlOp@@ASSIGN to ASSIGN
-            MOV HdlValueId@@iclut_req to ops
-            HdlValueId: iclut_req
-            UPD HdlOp@@NEG to NEG_LOG
-            MOV HdlOp@@NEG to ops
-            HdlOp: NEG
-                list: ops
-                    HdlValueId: RGB_fifo_full
-            UPD HdlOp@@NEG to NEG
-                UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
-            DEL list@@ops from ASSIGN
-        DEL HdlOp@@ASSIGN from body
-
 UPD HdlStmIf@@ to 
     UPD HdlOp@@NEG_LOG to NEG_LOG
         UPD HdlValueId@@RGB_fifo_full to rgb_fifo_full
@@ -3644,115 +3173,6 @@ HdlStmIf
                 HdlValueInt: 1
     list: elifs
 
-UPD HdlStmCase@@c_state to c_state
-    INS tuple@@ to cases
-    INS HdlStmBlock@@SEQ to 
-    INS HdlValueId@@fill_buf to 
-    INS HdlStmBlock@@SEQ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS list@@body to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: RGBbuf_wreq
-                HdlValueId: clut_ack
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iR
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 23
-                                HdlValueInt: 16
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iG
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 15
-                                HdlValueInt: 8
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iB
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 7
-                                HdlValueInt: 0
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS list@@body to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: RGBbuf_wreq
-                HdlValueId: clut_ack
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iG
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 15
-                                HdlValueInt: 8
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iB
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 7
-                                HdlValueInt: 0
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: RGBbuf_wreq
-                HdlValueId: clut_ack
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iR
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 23
-                                HdlValueInt: 16
-        INS HdlOp@@ASSIGN to body
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS list@@ops to ASSIGN
-            INS HdlOp@@OR_LOG to ops
-            UPD HdlOp@@OR_LOG to OR_LOG
-                INS list@@ops to OR_LOG
-                INS HdlOp@@XOR to ops
-                HdlOp: XOR
-                    list: ops
-                        HdlOp: INDEX
-                            list: ops
-                                HdlValueId: colcnt
-                                HdlValueInt: 1
-                        HdlOp: INDEX
-                            list: ops
-                                HdlValueId: colcnt
-                                HdlValueInt: 0
-
 DEL HdlStmAssign@@ from body
 HdlStmAssign
     HdlValueId: iR
@@ -3799,147 +3219,7 @@ Fixed some bugs discovered by modified testbench
  	end
 
 ParseResult:
-INS HdlStmProcess@@ to objs
-
-UPD HdlStmProcess@@ to 
-    MOV list@@sensitivity to 
-    list: sensitivity
-        HdlOp: RISING
-            list: ops
-                HdlValueId: clk
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL list@@body from SEQ
-    DEL HdlStmBlock@@SEQ from 
-
-MOV HdlStmIf@@ to body
-HdlStmIf
-    HdlValueId: RGBbuf_wreq
-    HdlStmBlock: SEQ
-        list: body
-            HdlStmAssign
-                HdlValueId: iRa
-                HdlValueId: Ra
-                HdlValueInt: 1
-            HdlStmAssign
-                HdlValueId: iBa
-                HdlValueId: Ba
-                HdlValueInt: 1
-            HdlStmAssign
-                HdlValueId: iGa
-                HdlValueId: Ga
-                HdlValueInt: 1
-    list: elifs
-
 INS HdlStmIf@@ to body
-
-UPD HdlStmCase@@c_state to c_state
-    INS tuple@@ to cases
-    INS HdlStmBlock@@SEQ to 
-    INS HdlValueId@@fill_buf to 
-    INS HdlStmBlock@@SEQ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS list@@body to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: RGBbuf_wreq
-                HdlValueId: clut_ack
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iR
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 23
-                                HdlValueInt: 16
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iG
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 15
-                                HdlValueInt: 8
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iB
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 7
-                                HdlValueInt: 0
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS list@@body to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: RGBbuf_wreq
-                HdlValueId: clut_ack
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iG
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 15
-                                HdlValueInt: 8
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iB
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 7
-                                HdlValueInt: 0
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: RGBbuf_wreq
-                HdlValueId: clut_ack
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: iR
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: clut_q
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 23
-                                HdlValueInt: 16
-        INS HdlOp@@ASSIGN to body
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS list@@ops to ASSIGN
-            INS HdlOp@@OR_LOG to ops
-            UPD HdlOp@@OR_LOG to OR_LOG
-                INS list@@ops to OR_LOG
-                INS HdlOp@@XOR to ops
-                HdlOp: XOR
-                    list: ops
-                        HdlOp: INDEX
-                            list: ops
-                                HdlValueId: colcnt
-                                HdlValueInt: 1
-                        HdlOp: INDEX
-                            list: ops
-                                HdlValueId: colcnt
-                                HdlValueInt: 0
 
 INS HdlStmAssign@@ to body
 HdlStmAssign
@@ -4012,8 +3292,6 @@ HdlStmAssign
     HdlValueInt: 1
 
 DEL HdlStmIf@@ from body
-
-DEL HdlStmProcess@@ from objs
 
 
 CommitId: de9bd31b0e79e918627cd98275efbd547bfafa1d
@@ -4867,9 +4145,6 @@ UPD HdlStmAssign@@ to
             UPD HdlOp@@NEG_LOG to NEG_LOG
                 INS list@@ops to NEG_LOG
 
-UPD HdlStmIf@@ to 
-    UPD HdlValueId@@reg_acc to reg_wacc
-
 DEL HdlStmAssign@@ from body
 HdlStmAssign
     HdlValueInt: 0
@@ -5376,6 +4651,391 @@ UPD HdlStmAssign@@ to
                         UPD HdlValueId@@VINT to vint
 
 DEL HdlStmCase@@ADR_I from 
+
+DEL HdlStmProcess@@ from objs
+
+
+CommitId: de9bd31b0e79e918627cd98275efbd547bfafa1d
+Fixed some bugs discovered by modified testbench
+--- a/rtl/verilog/vga_wb_master.v
++++ b/rtl/verilog/vga_wb_master.v
+@@ -49,9 +49,12 @@
+ //               $Log: not supported by cvs2svn $
+ 
+ `include "timescale.v"
++`include "vga_defines.v"
+ 
+ module vga_wb_master (clk_i, rst_i, nrst_i, cyc_o, stb_o, cab_o, we_o, adr_o, sel_o, ack_i, err_i, dat_i, sint,
+-	ctrl_ven, ctrl_cd, ctrl_pc, ctrl_vbl, ctrl_vbsw, ctrl_cbsw, VBAa, VBAb, Thgate, Tvgate,
++	ctrl_ven, ctrl_cd, ctrl_pc, ctrl_vbl, ctrl_vbsw, ctrl_cbsw, 
++	cursor0_en, cursor0_xy, cursor0_ba, cursor0_ld, cursor1_en, cursor1_xy, cursor1_ba, cursor1_ld,
++	VBAa, VBAb, Thgate, Tvgate,
+ 	stat_avmp, stat_acmp, vmem_switch, clut_switch, line_fifo_wreq, line_fifo_d, line_fifo_full,
+ 	clut_req, clut_ack, clut_adr, clut_q);
+ 
+
+ParseResult:
+INS HdlIdDef@@cursor0_en to ports
+HdlIdDef: cursor0_en
+    HdlDirection: IN
+
+INS HdlIdDef@@cursor0_xy to ports
+HdlIdDef: cursor0_xy
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 31
+                    HdlValueInt: 0
+    HdlDirection: IN
+
+INS HdlIdDef@@cursor0_ba to ports
+HdlIdDef: cursor0_ba
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 31
+                    HdlValueInt: 11
+    HdlDirection: IN
+
+INS HdlIdDef@@cursor0_ld to ports
+HdlIdDef: cursor0_ld
+    HdlDirection: IN
+
+INS HdlIdDef@@cursor1_en to ports
+HdlIdDef: cursor1_en
+    HdlDirection: IN
+
+INS HdlIdDef@@cursor1_xy to ports
+HdlIdDef: cursor1_xy
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 31
+                    HdlValueInt: 0
+    HdlDirection: IN
+
+INS HdlIdDef@@cursor1_ba to ports
+HdlIdDef: cursor1_ba
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 31
+                    HdlValueInt: 11
+    HdlDirection: IN
+
+INS HdlIdDef@@cursor1_ld to ports
+HdlIdDef: cursor1_ld
+    HdlDirection: IN
+
+
+CommitId: de9bd31b0e79e918627cd98275efbd547bfafa1d
+Fixed some bugs discovered by modified testbench
+--- a/rtl/verilog/vga_wb_master.v
++++ b/rtl/verilog/vga_wb_master.v
+@@ -116,28 +128,28 @@ module vga_wb_master (clk_i, rst_i, nrst_i, cyc_o, stb_o, cab_o, we_o, adr_o, se
+ 
+ 	reg vmem_acc;                 // video memory access
+ 	wire nvmem_req, vmem_ack;     // NOT video memory access request // video memory access acknowledge
+-	reg  dvmem_ack;               // delayed video memory acknowledge
+ 
+-//	wire  ImDone;                 // Done reading image from video mem 
+-	reg  ImDone;                 // Done reading image from video mem 
++	wire ImDone;                  // Done reading image from video mem 
+ 	reg  dImDone;                 // delayed ImDone
+ 	wire  ImDoneStrb;             // image done (strobe signal)
+ 	reg  dImDoneStrb;             // delayed ImDoneStrb
+ 
+ 	wire data_fifo_rreq, data_fifo_empty, data_fifo_hfull;
+ 	wire [31:0] data_fifo_q;
+-	wire rgb_fifo_wreq, rgb_fifo_empty, rgb_fifo_full, rgb_ffull, rgb_fifo_rreq;
+-	reg  fill_rgb_fifo;
+-	wire [23:0] rgb_fifo_d;
++	wire [23:0] color_proc_q, ssel1_q, rgb_fifo_d;
++	wire        color_proc_wreq, ssel1_wreq, rgb_fifo_wreq;
++	wire rgb_fifo_empty, rgb_fifo_full, rgb_fifo_rreq;
+ 	wire ImDoneFifoQ;
+-	reg  dImDoneFifoQ;
+-	reg  [2:0] ImDoneCpQ;
+-	reg        dImDoneCpQ;
++	reg  dImDoneFifoQ, ddImDoneFifoQ;
++	reg  [2:0] ImDoneCursorQ;
+ 
+ 	reg sclr; // synchronous clear
+ 
+ 	wire [7:0] clut_offs; // color lookup table offset
+ 
++	reg [8:0] cursor_adr;
++	reg       cursor0_we, cursor1_we;
++
+ 	//
+ 	// module body
+ 	//
+
+ParseResult:
+MOV HdlIdDef@@rgb_fifo_d to objs
+HdlIdDef: rgb_fifo_d
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: wire
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 23
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@fill_rgb_fifo to objs
+HdlIdDef: fill_rgb_fifo
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@dImDoneCpQ to objs
+HdlIdDef: dImDoneCpQ
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+MOV HdlIdDef@@ImDone to objs
+HdlIdDef: ImDone
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@ImDone to objs
+HdlIdDef: ImDone
+    HdlDirection: INTERNAL
+
+UPD HdlIdDef@@fill_rgb_fifo to ddImDoneFifoQ
+
+UPD HdlIdDef@@ImDoneCpQ to ImDoneCursorQ
+
+UPD HdlIdDef@@dImDoneCpQ to cursor0_we
+
+UPD HdlIdDef@@ImDone to cursor1_we
+
+DEL HdlIdDef@@dvmem_ack from objs
+HdlIdDef: dvmem_ack
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@rgb_ffull from objs
+HdlIdDef: rgb_ffull
+    HdlDirection: INTERNAL
+
+
+CommitId: de9bd31b0e79e918627cd98275efbd547bfafa1d
+Fixed some bugs discovered by modified testbench
+--- a/rtl/verilog/vga_wb_master.v
++++ b/rtl/verilog/vga_wb_master.v
+@@ -175,18 +187,14 @@ module vga_wb_master (clk_i, rst_i, nrst_i, cyc_o, stb_o, cab_o, we_o, adr_o, se
+ 
+ 	assign stat_avmp = sel_VBA; // assign output
+ 
+-	// select active clut page
+-
+-	// clut bank switch delay1; push ImDoneStrb into fifo. Account for data_fifo delay
+-	always@(posedge clk_i)
+-		dvmem_ack <= #1 vmem_ack;
+-
++	// selecting active clut page / cursor data
++	// delay image done same amount as video-memory data
+ 	vga_fifo #(4, 1) clut_sw_fifo (
+ 		.clk(clk_i),
+ 		.aclr(1'b1),
+ 		.sclr(sclr),
+ 		.d(ImDone),
+-		.wreq(dvmem_ack),
++		.wreq(vmem_ack),
+ 		.q(ImDoneFifoQ),
+ 		.rreq(data_fifo_rreq),
+ 		.empty(),
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    MOV list@@sensitivity to 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk_i
+
+DEL HdlStmAssign@@body from 
+HdlStmAssign: body
+    HdlValueId: vmem_ack
+    HdlValueId: dvmem_ack
+    HdlValueInt: 1
+
+DEL HdlStmProcess@@ from objs
+
+
+CommitId: de9bd31b0e79e918627cd98275efbd547bfafa1d
+Fixed some bugs discovered by modified testbench
+--- a/rtl/verilog/vga_wb_master.v
++++ b/rtl/verilog/vga_wb_master.v
+@@ -194,26 +202,20 @@ module vga_wb_master (clk_i, rst_i, nrst_i, cyc_o, stb_o, cab_o, we_o, adr_o, se
+ 		.full()
+ 	);
+ 
+-	// clut bank switch delay2: Account for ColorProcessor DataBuffer delay
++	// clut bank switch / cursor data delay2: Account for ColorProcessor DataBuffer delay
+ 	always@(posedge clk_i)
+-		if (data_fifo_rreq)
++		if (sclr)
++			dImDoneFifoQ <= #1 1'b0;
++		else	if (data_fifo_rreq)
+ 			dImDoneFifoQ <= #1 ImDoneFifoQ;
+ 
+-	// clut bank switch delay3; Account for ColorProcessor internal delay
+ 	always@(posedge clk_i)
+ 		if (sclr)
+-			begin
+-				ImDoneCpQ  <= #1 4'h0;
+-				dImDoneCpQ <= #1 1'b0;
+-			end
+-		else
+-			begin
+-				dImDoneCpQ <= #1 ImDoneCpQ[2];
+-				if (rgb_fifo_wreq)
+-					ImDoneCpQ <= #1 { ImDoneCpQ[2:0], dImDoneFifoQ };
+-			end
++			ddImDoneFifoQ <= #1 1'b0;
++		else			
++			ddImDoneFifoQ <= #1 dImDoneFifoQ;
+ 
+-	assign clut_switch = ImDoneCpQ[2] & !dImDoneCpQ;
++	assign clut_switch = ddImDoneFifoQ & !dImDoneFifoQ;
+ 
+ 	always@(posedge clk_i)
+ 		if (sclr)
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    MOV list@@sensitivity to 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk_i
+
+DEL HdlStmIf@@body from 
+HdlStmIf: body
+    HdlValueId: data_fifo_rreq
+    HdlStmAssign: if_true
+        HdlValueId: ImDoneFifoQ
+        HdlValueId: dImDoneFifoQ
+        HdlValueInt: 1
+    list: elifs
+
+DEL HdlStmProcess@@ from objs
+
+DEL HdlStmProcess@@ from objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk_i
+    HdlStmIf: body
+        HdlValueId: sclr
+        HdlStmBlock: SEQ
+            list: body
+                HdlStmAssign
+                    HdlValueInt: 0
+                    HdlValueId: ImDoneCpQ
+                    HdlValueInt: 1
+                HdlStmAssign
+                    HdlValueInt: 0
+                    HdlValueId: dImDoneCpQ
+                    HdlValueInt: 1
+        list: elifs
+        HdlStmBlock: SEQ
+            list: body
+                HdlStmAssign
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: ImDoneCpQ
+                            HdlValueInt: 2
+                    HdlValueId: dImDoneCpQ
+                    HdlValueInt: 1
+                HdlStmIf
+                    HdlValueId: rgb_fifo_wreq
+                    HdlStmAssign: if_true
+                        HdlOp: CONCAT
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: ImDoneCpQ
+                                        HdlOp: DOWNTO
+                                            list: ops
+                                                HdlValueInt: 2
+                                                HdlValueInt: 0
+                                HdlValueId: dImDoneFifoQ
+                        HdlValueId: ImDoneCpQ
+                        HdlValueInt: 1
+                    list: elifs
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlOp: AND
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: ImDoneCpQ
+                    HdlValueInt: 2
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlValueId: dImDoneCpQ
+    HdlValueId: clut_switch
+
+
+CommitId: de9bd31b0e79e918627cd98275efbd547bfafa1d
+Fixed some bugs discovered by modified testbench
+--- a/rtl/verilog/vga_wb_master.v
++++ b/rtl/verilog/vga_wb_master.v
+@@ -318,10 +320,8 @@ module vga_wb_master (clk_i, rst_i, nrst_i, cyc_o, stb_o, cab_o, we_o, adr_o, se
+ 		else if (hdone)
+ 			vgate_cnt <= #1 vgate_cnt_val[15:0];
+ 
+-	always@(posedge clk_i)
+-		ImDone <= #1 hdone & vdone;
++	assign ImDone = hdone & vdone;
+ 
+-//	assign ImDone = hdone & vdone;
+ 	assign ImDoneStrb = ImDone & !dImDone;
+ 
+ 	always@(posedge clk_i)
+
+ParseResult:
+UPD HdlStmAssign@@body to 
+
+MOV HdlStmAssign@@body to 
+HdlStmAssign: body
+    HdlOp: AND
+        list: ops
+            HdlValueId: hdone
+            HdlValueId: vdone
+    HdlValueId: ImDone
+    HdlValueInt: 1
+
+UPD HdlStmAssign@@body to body
+    DEL HdlValueInt@@1 from body
+
+UPD HdlStmProcess@@ to 
+    DEL list@@sensitivity from 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk_i
 
 DEL HdlStmProcess@@ from objs
 
@@ -6134,12 +5794,6 @@ Major revisions throughout the core.
  			//
 
 ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlValueId@@wb_di to clut_q
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@clut_acc to iclut_req
-
 UPD HdlStmCase@@c_state to c_state
     UPD HdlStmBlock@@SEQ to SEQ
         UPD HdlOp@@ASSIGN to ASSIGN

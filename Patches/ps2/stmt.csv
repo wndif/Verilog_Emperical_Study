@@ -1,2 +1,5 @@
-,HdlStmCase
-update,1
+,HdlIdDef,HdlFunctionDef,HdlStmWhile,HdlStmProcess,HdlStmIf,HdlStmWait,HdlStmNop,HdlStmAssign,HdlStmCase
+update,1.0,2.0,1.0,2.0,10,4.0,,,1.0
+insert,,,,1.0,1,1.0,1.0,1.0,
+move,,,,,2,,,,
+delete,,,,,1,,1.0,,

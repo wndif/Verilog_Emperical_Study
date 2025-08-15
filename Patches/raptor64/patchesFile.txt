@@ -172,72 +172,6 @@ CommitId: 9315b3e2b88b6aa4a3acd5e250a6a5cead734c2d
  		TLBPhysPage1[i] <= HTLBPhysPage1;
 
 ParseResult:
-INS HdlIdDef@@m1UnmappedDataArea to objs
-HdlIdDef: m1UnmappedDataArea
-    HdlOp: OR_LOG
-        list: ops
-            HdlOp: OR_LOG
-                list: ops
-                    HdlOp: OR_LOG
-                        list: ops
-                            HdlOp: EQ
-                                list: ops
-                                    HdlOp: INDEX
-                                        list: ops
-                                            HdlValueId: pea
-                                            HdlOp: DOWNTO
-                                                list: ops
-                                                    HdlValueInt: 63
-                                                    HdlValueInt: 52
-                                    HdlValueInt: ffd
-                            HdlOp: EQ
-                                list: ops
-                                    HdlOp: INDEX
-                                        list: ops
-                                            HdlValueId: pea
-                                            HdlOp: DOWNTO
-                                                list: ops
-                                                    HdlValueInt: 63
-                                                    HdlValueInt: 52
-                                    HdlValueInt: ffe
-                    HdlOp: EQ
-                        list: ops
-                            HdlOp: INDEX
-                                list: ops
-                                    HdlValueId: pea
-                                    HdlOp: DOWNTO
-                                        list: ops
-                                            HdlValueInt: 63
-                                            HdlValueInt: 52
-                            HdlValueInt: fff
-            HdlOp: EQ
-                list: ops
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: pea
-                            HdlOp: DOWNTO
-                                list: ops
-                                    HdlValueInt: 63
-                                    HdlValueInt: 52
-                    HdlValueInt: 000
-    HdlDirection: INTERNAL
-
-UPD HdlIdDef@@unmappedDataArea to unmappedDataArea
-    INS HdlOp@@OR_LOG to unmappedDataArea
-    UPD HdlOp@@OR_LOG to OR_LOG
-        INS list@@ops to OR_LOG
-        INS HdlOp@@EQ to ops
-        HdlOp: EQ
-            list: ops
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: ea
-                        HdlOp: DOWNTO
-                            list: ops
-                                HdlValueInt: 63
-                                HdlValueInt: 52
-                HdlValueInt: 000
-
 UPD HdlIdDef@@unmappedDataArea to unmappedDataArea
     MOV HdlOp@@OR_LOG to unmappedDataArea
     HdlOp: OR_LOG
@@ -291,6 +225,1454 @@ HdlIdDef: m1UnmappedDataArea
                             HdlValueInt: 13
             HdlValueInt: ffd
     HdlDirection: INTERNAL
+
+
+CommitId: 1c08ecd18900c5bd15022cbf33f4991ec9dc631e
+- fix: assert byte select lines during burst access
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -126,11 +128,10 @@ reg [4:0] cstate;
+ reg dbranch_taken,xbranch_taken;
+ reg [63:0] mutex_gate;
+ reg [63:0] TBA;		// Trap Base Address
+-reg [1:0] dhwxtype,xhwxtype,m1hwxtype,m2hwxtype,whwxtype;
+ reg [8:0] dextype,xextype,m1extype,m2extype,wextype,textype;
+ reg [3:0] epat [0:255];
+ reg [7:0] eptr;
+-reg [3:0] dAXC,xAXC,m1AXC,m2AXC;
++reg [3:0] dAXC,xAXC,m1AXC,m2AXC,wAXC;
+ wire [3:0] AXC = epat[eptr];
+ reg dtinit;
+ reg dcache_on;
+
+ParseResult:
+UPD HdlIdDef@@EPC to EPC
+    INS HdlOp@@INDEX to EPC
+    UPD HdlOp@@INDEX to INDEX
+        INS list@@ops to INDEX
+        INS HdlOp@@DOWNTO to ops
+        HdlOp: DOWNTO
+            list: ops
+                HdlValueInt: 0
+                HdlValueInt: 15
+
+UPD HdlIdDef@@IPC to IPC
+    INS HdlOp@@INDEX to IPC
+    UPD HdlOp@@INDEX to INDEX
+        INS list@@ops to INDEX
+        INS HdlOp@@DOWNTO to ops
+        HdlOp: DOWNTO
+            list: ops
+                HdlValueInt: 0
+                HdlValueInt: 15
+
+UPD HdlIdDef@@EPC to EPC
+    MOV HdlOp@@PARAMETRIZATION to EPC
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 63
+                    HdlValueInt: 0
+
+UPD HdlIdDef@@IPC to IPC
+    MOV HdlOp@@PARAMETRIZATION to IPC
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 63
+                    HdlValueInt: 0
+
+
+CommitId: 1c08ecd18900c5bd15022cbf33f4991ec9dc631e
+- fix: assert byte select lines during burst access
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -393,6 +395,7 @@ reg wrhit;
+ reg wr_dcache;
+ 
+ // cache RAM 32Kb
++// Xilinx Core Generator Component
+ Raptor64_dcache_ram u10
+ (
+ 	.clka(clk), // input clka
+
+ParseResult:
+UPD HdlStmCase@@xOpcode to xOpcode
+    DEL HdlStmCaseType@@CASEX from xOpcode
+    DEL HdlValueId@@xOpcode from xOpcode
+
+
+CommitId: 1c08ecd18900c5bd15022cbf33f4991ec9dc631e
+- fix: assert byte select lines during burst access
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -407,17 +410,19 @@ Raptor64_dcache_ram u10
+ );
+ 
+ 
++// Xilinx Core Generator Component
++// tag RAM 512 b
+ Raptor64_dcache_tagram u11
+ (
+ 	.clka(clk), // input clka
+ 	.ena(dtinit | (adr_o[5:3]==3'b111)), // input ena
+ 	.wea(dtinit | (dcaccess & ack_i)), // input [0 : 0] wea
+-	.addra({1'b0,adr_o[14:6]}), // input [9 : 0] addra
+-	.dina(dtinit ? {1'b0,adr_o[63:15]} : {1'b1,adr_o[63:15]}), // input [48 : 0] dina
++	.addra(adr_o[14:6]), // input [8 : 0] addra
++	.dina({~dtinit,adr_o[63:15]}), // input [49 : 0] dina
+ 
+ 	.clkb(~clk), // input clkb
+-	.addrb({1'b0,pea[14:6]}), // input [9 : 0] addrb
+-	.doutb(dtgout) // output [48 : 0] doutb
++	.addrb(pea[14:6]), // input [8 : 0] addrb
++	.doutb(dtgout) // output [49 : 0] doutb
+ );
+ 
+ assign dhit = (dtgout=={1'b1,pea[63:15]});
+
+ParseResult:
+UPD HdlStmCase@@xOpcode to xOpcode
+    INS HdlStmCaseType@@CASEX to xOpcode
+    INS HdlValueId@@xOpcode to xOpcode
+    INS tuple@@ to cases
+    tuple
+        HdlValueInt: 54
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: xData1
+                HdlOp: ADD
+                    list: ops
+                        HdlValueId: a
+                        HdlValueId: imm
+
+UPD HdlStmCase@@xFunc6 to xFunc6
+    INS tuple@@ to cases
+    tuple
+        HdlValueInt: 14
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: xData1
+                HdlOp: CONCAT
+                    list: ops
+                        HdlOp: CONCAT
+                            list: ops
+                                HdlOp: CONCAT
+                                    list: ops
+                                        HdlOp: CONCAT
+                                            list: ops
+                                                HdlOp: CONCAT
+                                                    list: ops
+                                                        HdlOp: CONCAT
+                                                            list: ops
+                                                                HdlOp: CONCAT
+                                                                    list: ops
+                                                                        HdlOp: INDEX
+                                                                            list: ops
+                                                                                HdlValueId: a
+                                                                                HdlOp: DOWNTO
+                                                                                    list: ops
+                                                                                        HdlValueInt: 7
+                                                                                        HdlValueInt: 0
+                                                                        HdlOp: INDEX
+                                                                            list: ops
+                                                                                HdlValueId: a
+                                                                                HdlOp: DOWNTO
+                                                                                    list: ops
+                                                                                        HdlValueInt: 15
+                                                                                        HdlValueInt: 8
+                                                                HdlOp: INDEX
+                                                                    list: ops
+                                                                        HdlValueId: a
+                                                                        HdlOp: DOWNTO
+                                                                            list: ops
+                                                                                HdlValueInt: 23
+                                                                                HdlValueInt: 16
+                                                        HdlOp: INDEX
+                                                            list: ops
+                                                                HdlValueId: a
+                                                                HdlOp: DOWNTO
+                                                                    list: ops
+                                                                        HdlValueInt: 31
+                                                                        HdlValueInt: 24
+                                                HdlOp: INDEX
+                                                    list: ops
+                                                        HdlValueId: a
+                                                        HdlOp: DOWNTO
+                                                            list: ops
+                                                                HdlValueInt: 39
+                                                                HdlValueInt: 32
+                                        HdlOp: INDEX
+                                            list: ops
+                                                HdlValueId: a
+                                                HdlOp: DOWNTO
+                                                    list: ops
+                                                        HdlValueInt: 47
+                                                        HdlValueInt: 40
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: a
+                                        HdlOp: DOWNTO
+                                            list: ops
+                                                HdlValueInt: 55
+                                                HdlValueInt: 48
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: a
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 63
+                                        HdlValueInt: 56
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['xIR',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '11'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['xIR',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '11'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
+    UPD HdlOp@@ASSIGN to ASSIGN
+        MOV HdlValueId@@EPC to ops
+        HdlValueId: EPC
+    UPD HdlOp@@ASSIGN to ASSIGN
+        MOV HdlValueId@@IPC to ops
+        HdlValueId: IPC
+
+
+CommitId: 1c08ecd18900c5bd15022cbf33f4991ec9dc631e
+- fix: assert byte select lines during burst access
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -535,6 +540,7 @@ wire fpmul_uf,fpaddsub_uf,fpdiv_uf;
+ 
+ 
+ `ifdef FLOATING_POINT
++// Xilinx Core Generator Components
+ 
+ Raptor64_fpCmp u60
+ (
+
+ParseResult:
+UPD HdlIdDef@@illegal_insn to illegal_insn
+    INS HdlOp@@OR_LOG to illegal_insn
+    UPD HdlOp@@OR_LOG to OR_LOG
+        INS list@@ops to OR_LOG
+        INS HdlOp@@OR_LOG to ops
+        INS HdlOp@@EQ to ops
+        HdlOp: EQ
+            list: ops
+                HdlValueId: xOpcode
+                HdlValueInt: 127
+        UPD HdlOp@@OR_LOG to OR_LOG
+            INS list@@ops to OR_LOG
+            INS HdlOp@@OR_LOG to ops
+            INS HdlOp@@EQ to ops
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: xOpcode
+                    HdlValueInt: 126
+            UPD HdlOp@@OR_LOG to OR_LOG
+                INS list@@ops to OR_LOG
+                INS HdlOp@@OR_LOG to ops
+                INS HdlOp@@EQ to ops
+                HdlOp: EQ
+                    list: ops
+                        HdlValueId: xOpcode
+                        HdlValueInt: 125
+                UPD HdlOp@@OR_LOG to OR_LOG
+                    INS list@@ops to OR_LOG
+                    INS HdlOp@@EQ to ops
+                    HdlOp: EQ
+                        list: ops
+                            HdlValueId: xOpcode
+                            HdlValueInt: 124
+                    UPD HdlOp@@OR_LOG to OR_LOG
+                        UPD HdlOp@@OR_LOG to OR_LOG
+                            UPD HdlOp@@OR_LOG to OR_LOG
+                                UPD HdlOp@@OR_LOG to OR_LOG
+                                    UPD HdlOp@@OR_LOG to OR_LOG
+                                        UPD HdlOp@@OR_LOG to OR_LOG
+                                            UPD HdlOp@@OR_LOG to OR_LOG
+                                                UPD HdlOp@@OR_LOG to OR_LOG
+                                                    UPD HdlOp@@OR_LOG to OR_LOG
+                                                        UPD HdlOp@@OR_LOG to OR_LOG
+                                                            INS HdlOp@@OR_LOG to ops
+                                                            UPD HdlOp@@OR_LOG to OR_LOG
+                                                                INS list@@ops to OR_LOG
+                                                                INS HdlOp@@OR_LOG to ops
+                                                                UPD HdlOp@@OR_LOG to OR_LOG
+                                                                    INS list@@ops to OR_LOG
+                                                                    INS HdlOp@@OR_LOG to ops
+                                                                    INS HdlOp@@EQ to ops
+                                                                    HdlOp: EQ
+                                                                        list: ops
+                                                                            HdlValueId: xOpcode
+                                                                            HdlValueInt: 31
+                                                                    UPD HdlOp@@OR_LOG to OR_LOG
+                                                                        INS list@@ops to OR_LOG
+                                                                        INS HdlOp@@OR_LOG to ops
+                                                                        INS HdlOp@@EQ to ops
+                                                                        HdlOp: EQ
+                                                                            list: ops
+                                                                                HdlValueId: xOpcode
+                                                                                HdlValueInt: 30
+                                                                        UPD HdlOp@@OR_LOG to OR_LOG
+                                                                            INS list@@ops to OR_LOG
+                                                                            INS HdlOp@@OR_LOG to ops
+                                                                            INS HdlOp@@EQ to ops
+                                                                            HdlOp: EQ
+                                                                                list: ops
+                                                                                    HdlValueId: xOpcode
+                                                                                    HdlValueInt: 29
+                                                                            UPD HdlOp@@OR_LOG to OR_LOG
+                                                                                INS list@@ops to OR_LOG
+                                                                                INS HdlOp@@EQ to ops
+                                                                                HdlOp: EQ
+                                                                                    list: ops
+                                                                                        HdlValueId: xOpcode
+                                                                                        HdlValueInt: 28
+                                                                                UPD HdlOp@@OR_LOG to OR_LOG
+                                                                                    INS HdlOp@@EQ to ops
+                                                                                    HdlOp: EQ
+                                                                                        list: ops
+                                                                                            HdlValueId: xOpcode
+                                                                                            HdlValueInt: 20
+
+
+CommitId: 1c08ecd18900c5bd15022cbf33f4991ec9dc631e
+- fix: assert byte select lines during burst access
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -609,13 +615,13 @@ else begin
+ 	end
+ 	if (advanceX) begin
+ 		if (xOpcode==`FP) begin
+-			if (xFunc6==6'b000000)	// FDADD
++			if (xFunc6==`FDADD)	// FDADD
+ 				fltctr <= 6'd12;
+-			else if (xFunc6==6'b000001)	// FDSUB
++			else if (xFunc6==`FDSUB)	// FDSUB
+ 				fltctr <= 6'd12;
+-			else if (xFunc6==6'b000010)	// FDMUL
++			else if (xFunc6==`FDMUL)	// FDMUL
+ 				fltctr <= 6'd12;
+-			else if (xFunc6==6'b000011)	// FDDIV
++			else if (xFunc6==`FDDIV)	// FDDIV
+ 				fltctr <= 6'd12;
+ 			else if (xFunc6==6'b000100)	// unordered
+ 				fltctr <= 6'd2;
+
+ParseResult:
+UPD HdlIdDef@@xIsStore to xIsStore
+    UPD HdlOp@@OR_LOG to OR_LOG
+        INS HdlOp@@OR_LOG to ops
+        UPD HdlOp@@OR_LOG to OR_LOG
+            INS list@@ops to OR_LOG
+            INS HdlOp@@EQ to ops
+            HdlOp: EQ
+                list: ops
+                    HdlValueId: xOpcode
+                    HdlValueInt: 54
+
+
+CommitId: 1c08ecd18900c5bd15022cbf33f4991ec9dc631e
+- fix: assert byte select lines during burst access
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -799,7 +805,7 @@ wire [15:0] bcdmulo;
+ Raptor64_addsub u21 (xIR,a,b,imm,xAddsubo);
+ Raptor64_logic   u9 (xIR,a,b,imm,xLogico);
+ Raptor64_set    u15 (xIR,a,b,imm,xSeto);
+-Raptor64_bitfield u16(xIR, rolo, b, xBitfieldo, masko);
++Raptor64_bitfield u16(xIR, a, b, xBitfieldo, masko);
+ Raptor64_shift  u17 (xIR, a, b, masko, xShifto, rolo);
+ BCDMul2 u22 (a[7:0],b[7:0],bcdmulo);
+ 
+
+ParseResult:
+UPD HdlStmIf@@body to body
+    INS HdlValueId@@rst_i to body
+    INS list@@elifs to body
+
+UPD HdlStmIf@@body to body
+    DEL HdlValueId@@rst_i from body
+    DEL list@@elifs from body
+
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 00
+    HdlValueId: dhwxtype
+
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 00
+    HdlValueId: xhwxtype
+
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 00
+    HdlValueId: m1hwxtype
+
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 00
+    HdlValueId: m2hwxtype
+
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 00
+    HdlValueId: whwxtype
+
+
+CommitId: 1c08ecd18900c5bd15022cbf33f4991ec9dc631e
+- fix: assert byte select lines during burst access
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -832,6 +838,7 @@ casex(xOpcode)
+ 	`MOV:	xData1 = a;
+ 	`SQRT:	xData1 = sqrt_out;
+ 	`SWAP:	xData1 = {a[31:0],a[63:32]};
++	`RBO:	xData1 = {a[7:0],a[15:8],a[23:16],a[31:24],a[39:32],a[47:40],a[55:48],a[63:56]};
+ 	
+ 	`REDOR:		xData1 = |a;
+ 	`REDAND:	xData1 = &a;
+
+ParseResult:
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: xAXC
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: m1AXC
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: m2AXC
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: wAXC
+
+
+CommitId: 1c08ecd18900c5bd15022cbf33f4991ec9dc631e
+- fix: assert byte select lines during burst access
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -877,8 +884,8 @@ casex(xOpcode)
+ `endif
+ 		`ASID:			xData1 = ASID;
+ 		`Tick:			xData1 = tick;
+-		`EPC:			xData1 = EPC;
+-		`IPC:			xData1 = IPC;
++		`EPC:			xData1 = EPC[xAXC];
++		`IPC:			xData1 = IPC[xAXC];
+ 		`TBA:			xData1 = TBA;
+ 		`ERRADR:		xData1 = errorAddress;
+ 		`AXC:			xData1 = xAXC;
+
+ParseResult:
+UPD HdlStmCase@@state to state
+    DEL HdlStmCaseType@@CASE from state
+    DEL HdlValueId@@state from state
+    DEL HdlValueId@@RUN from 
+
+
+CommitId: 1c08ecd18900c5bd15022cbf33f4991ec9dc631e
+- fix: assert byte select lines during burst access
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -945,7 +952,7 @@ casex(xOpcode)
+ 		xData1 = a + imm;
+ `LW,`LH,`LC,`LB,`LHU,`LCU,`LBU,`LWR,`LF,`LFD,`LP,`LFP,`LFDP,`LEA:
+ 		xData1 = a + imm;
+-`SW,`SH,`SC,`SB,`SWC,`SF,`SFD,`SP,`SFP,`SFDP:
++`SW,`SH,`SC,`SB,`SWC,`SF,`SFD,`SP,`SFP,`SFDP,`STBC:
+ 		xData1 = a + imm;
+ `MEMNDX:
+ 		xData1 = a + (b << scale) + imm;
+
+ParseResult:
+UPD HdlStmCase@@state to state
+    INS HdlStmCaseType@@CASE to state
+    INS HdlValueId@@state to state
+    INS HdlValueId@@RUN to 
+
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@advanceI to 
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['insn',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '31'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '25'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['insn',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '31'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '25'}]}]} 
+    MOV tuple@@ to cases
+    tuple
+        HdlValueInt: 48
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: insn
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 19
+                                HdlValueInt: 15
+                HdlOp: CONCAT
+                    list: ops
+                        HdlOp: REPL_CONCAT
+                            list: ops
+                                HdlValueInt: 49
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: insn
+                                        HdlValueInt: 24
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: insn
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 14
+                                        HdlValueInt: 0
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: insn
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 24
+                                HdlValueInt: 20
+    UPD HdlValueInt@@49 to 48
+    UPD HdlValueInt@@50 to 49
+    UPD HdlValueInt@@51 to 50
+    UPD HdlValueInt@@77 to 51
+    UPD HdlValueInt@@32 to 77
+    UPD HdlValueInt@@37 to 32
+    UPD HdlValueInt@@33 to 37
+    UPD HdlValueInt@@38 to 33
+    UPD HdlValueInt@@34 to 38
+    UPD HdlValueInt@@39 to 34
+    UPD HdlValueInt@@48 to 39
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    UPD HdlOp@@CALL to CALL
+        UPD HdlOp@@CONCAT to CONCAT
+            UPD HdlOp@@REPL_CONCAT to REPL_CONCAT
+                UPD HdlOp@@INDEX to INDEX
+                    UPD HdlValueInt@@24 to 14
+    DEL HdlStmCaseType@@CASEX from {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['insn',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '31'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '25'}]}]} 
+    DEL tuple@@ from cases
+    tuple
+        HdlValueInt: 26
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@OR to OR
+        UPD HdlOp@@OR to OR_UNARY
+        UPD HdlOp@@OR to OR
+            DEL HdlOp@@OR_UNARY from ops
+            HdlOp: OR_UNARY
+                list: ops
+                    HdlValueId: dhwxtype
+
+UPD HdlStmIf@@ to 
+    DEL HdlValueId@@advanceI from 
+
+
+CommitId: 1c08ecd18900c5bd15022cbf33f4991ec9dc631e
+- fix: assert byte select lines during burst access
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -1046,7 +1080,7 @@ wire xIsDiv = (xOpcode==`RR && (xFunc6==`DIVU || xFunc6==`DIVS || xFunc6==`MODU
+ wire xIsCnt = xOpcode==`R && (xFunc6==`CTLZ || xFunc6==`CTLO || xFunc6==`CTPOP);
+ reg m1IsCnt,m2IsCnt;
+ 
+-
++// Have to set the xIsLoad/xIsStore flag to false when xIR is nopped out
+ wire xIsLoad =
+ 	xOpcode==`LW || xOpcode==`LH || xOpcode==`LB || xOpcode==`LWR ||
+ 	xOpcode==`LHU || xOpcode==`LBU ||
+
+ParseResult:
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['insn',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '31'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '25'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['insn',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '31'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '25'}]}]} 
+    INS HdlStmCaseType@@CASEX to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['insn',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '31'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '25'}]}]} 
+    INS tuple@@ to cases
+    tuple
+        HdlValueInt: 15
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: insn
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 19
+                                HdlValueInt: 15
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: insn
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 24
+                                HdlValueInt: 20
+                HdlOp: CONCAT
+                    list: ops
+                        HdlValueInt: 0
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: insn
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 14
+                                        HdlValueInt: 0
+    INS tuple@@ to cases
+    tuple
+        HdlValueInt: 16
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: insn
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 19
+                                HdlValueInt: 15
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: insn
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 24
+                                HdlValueInt: 20
+                HdlOp: CONCAT
+                    list: ops
+                        HdlValueInt: 0
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: insn
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 14
+                                        HdlValueInt: 0
+    INS tuple@@ to cases
+    tuple
+        HdlValueInt: 26
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: insn
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 19
+                                HdlValueInt: 15
+
+UPD HdlStmCase@@iOpcode to iOpcode
+    DEL HdlStmCaseType@@CASE from iOpcode
+    DEL HdlValueId@@iOpcode from iOpcode
+    DEL HdlValueInt@@0 from 
+    DEL tuple@@ from cases
+
+
+CommitId: 1c08ecd18900c5bd15022cbf33f4991ec9dc631e
+- fix: assert byte select lines during burst access
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -1062,11 +1096,10 @@ wire xIsLoad =
+ 	)) ||
+ 	(xOpcode==`MISC && (xFunc==`SYSCALL))
+ 	;
+-
+ wire xIsStore =
+ 	xOpcode==`SW || xOpcode==`SH || xOpcode==`SB || xOpcode==`SC || xOpcode==`SWC || xOpcode==`SM ||
+ 	xOpcode==`SF || xOpcode==`SFD || xOpcode==`SP || xOpcode==`SFP || xOpcode==`SFDP ||
+-	xOpcode==`SSH || xOpcode==`SSW ||
++	xOpcode==`SSH || xOpcode==`SSW || xOpcode==`STBC ||
+ 	(xOpcode==`MEMNDX && (
+ 		xFunc6==`SWX || xFunc6==`SHX || xFunc6==`SBX || xFunc6==`SCX || xFunc6==`SWCX ||
+ 		xFunc6==`SFX || xFunc6==`SFDX || xFunc6==`SPX ||
+
+ParseResult:
+UPD HdlStmCase@@iOpcode to iOpcode
+    INS HdlStmCaseType@@CASE to iOpcode
+    INS HdlValueId@@iOpcode to iOpcode
+
+INS HdlStmNop@@default to iOpcode
+
+DEL HdlStmNop@@default from iOpcode
+
+
+CommitId: 1c08ecd18900c5bd15022cbf33f4991ec9dc631e
+- fix: assert byte select lines during burst access
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -1283,15 +1322,9 @@ if (rst_i) begin
+ 	m1IsStore <= 1'b0;
+ 	m2IsStore <= 1'b0;
+ 	wIsStore <= 1'b0;
+-	m1IsIO <= 1'b0;
+ 	icaccess <= 1'b0;
+ 	dcaccess <= 1'b0;
+ 	prev_ihit <= 1'b0;
+-	dhwxtype <= 2'b00;
+-	xhwxtype <= 2'b00;
+-	m1hwxtype <= 2'b00;
+-	m2hwxtype <= 2'b00;
+-	whwxtype <= 2'b00;
+ 	wFip <= 1'b0;
+ 	m2Fip <= 1'b0;
+ 	m1Fip <= 1'b0;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@advanceX to 
+    INS list@@elifs to 
+    INS tuple@@ to elifs
+    INS HdlValueId@@advanceM1 to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+UPD HdlStmCase@@xOpcode to xOpcode
+    INS HdlStmCaseType@@CASE to xOpcode
+    INS HdlValueId@@xOpcode to xOpcode
+    INS tuple@@ to cases
+    tuple
+        HdlValueInt: 24
+        HdlStmNop
+
+UPD HdlStmIf@@ to 
+    DEL HdlValueId@@advanceX from 
+    DEL HdlValueId@@advanceM1 from 
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL list@@body from SEQ
+    DEL HdlStmBlock@@SEQ from 
+    DEL tuple@@ from elifs
+    DEL list@@elifs from 
+
+UPD HdlStmCase@@xOpcode to xOpcode
+    DEL HdlStmCaseType@@CASE from xOpcode
+    DEL HdlValueId@@xOpcode from xOpcode
+    DEL tuple@@ from cases
+    tuple
+        HdlValueInt: 24
+        HdlStmAssign
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: fnIncPC
+                    HdlValueId: xpc
+            HdlValueId: m1Data
+
+
+CommitId: 1c08ecd18900c5bd15022cbf33f4991ec9dc631e
+- fix: assert byte select lines during burst access
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -1668,6 +1717,7 @@ if (advanceX) begin
+ 				xpcv <= 1'b0;
+ 				dpcv <= 1'b0;
+ 				ea <= {TBA[63:12],xIR[15:7],3'b000};
++				LoadNOPs <= 1'b1;
+ 				$display("EX SYSCALL thru %h",{TBA[63:12],xIR[15:7],3'b000});
+ 			end
+ `ifdef TLB
+
+ParseResult:
+DEL HdlStmNop@@default from xOpcode
+
+
+CommitId: 1c08ecd18900c5bd15022cbf33f4991ec9dc631e
+- fix: assert byte select lines during burst access
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -1687,18 +1737,18 @@ if (advanceX) begin
+ 				dpcv <= 1'b0;
+ 			end
+ 		`MTSPR:
+-			case(xIR[12:7])
++			case(xIR[11:6])
+ `ifdef TLB
+ 			`PageTableAddr:	PageTableAddr <= a[63:13];
+ 			`BadVAddr:		BadVAddr <= a[63:13];
+ `endif
+ 			`ASID:			ASID <= a[7:0];
+-			`EPC:			EPC <= a;
++//			`EPC:			EPC <= a;
+ 			`TBA:			TBA <= {a[63:12],12'h000};
+ //			`AXC:			AXC <= a[3:0];
+ 			`NON_ICACHE_SEG:	nonICacheSeg <= a[63:32];
+ 			`FPCR:			rm <= a[31:30];
+-			`IPC:			IPC <= a;
++//			`IPC:			IPC <= a;
+ 			`SRAND1:		begin
+ 							m_z <= a;
+ 							end
+
+ParseResult:
+INS HdlStmNop@@default to xOpcode
+
+
+CommitId: 1c08ecd18900c5bd15022cbf33f4991ec9dc631e
+- fix: assert byte select lines during burst access
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -1864,6 +1914,7 @@ if (advanceX) begin
+ 			xRtZero <= 1'b1;
+ 			xpcv <= 1'b0;
+ 			dpcv <= 1'b0;
++			LoadNOPs <= 1'b1;
+ 		end
+ 
+ 	`INW:
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    DEL HdlValueId@@advanceM1 from 
+
+
+CommitId: 1c08ecd18900c5bd15022cbf33f4991ec9dc631e
+- fix: assert byte select lines during burst access
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -1906,7 +1957,7 @@ if (advanceX) begin
+ 			3'b110:	sel_o <= 8'b01000000;
+ 			3'b111:	sel_o <= 8'b10000000;
+ 			endcase
+-			adr_o <= xData;
++			adr_o <= xData1;
+ 			end
+ 	`OUTW:
+ 			begin
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@advanceM1 to 
+
+
+CommitId: aed3ba5feccb41cbc5ee6e854046d7eafc4813b1
+- most recent updates to
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -99,18 +99,11 @@ reg [63:0] dat_o;
+ input sys_adv;
+ input [63:5] sys_adr;
+ 
+-output advanceI;
+-output advanceR;
+-output advanceX;
+-output advanceM1;
+-output advanceM2;
+-output advanceW;
+-output advanceT;
+-
+ wire clk;	
+ reg [3:0] state;
+ reg [5:0] fltctr;
+ wire fltdone = fltctr==6'd0;
++reg inta;
+ reg bu_im;			// interrupt mask
+ reg im1;			// temporary interrupt mask for LM/SM
+ reg [7:0] ie_fuse;	// interrupt enable fuse
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlValueId@@pc to ppc
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlValueId@@pc to ppc
+
+
+CommitId: aed3ba5feccb41cbc5ee6e854046d7eafc4813b1
+- most recent updates to
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -128,10 +121,7 @@ reg [63:0] ErrorEPC;
+ reg [63:0] EPC [0:15];	// Exception return address
+ reg [63:0] IPC [0:15];	// Interrupt return address
+ `ifdef SEGMENTATION
+-reg [63:16] CS [0:15];	// Code segment
+-reg [63:16] DS [0:15];	// Data segment
+-reg [63:16] SS [0:15];	// Stack segment
+-reg [63:16] ES [0:15];	// BSS segment
++reg [63:12] segs [0:255];
+ `endif
+ reg dStatusHWI,xStatusHWI,m1StatusHWI,m2StatusHWI;
+ reg dIm,xIm,m1Im,m2Im;
+
+ParseResult:
+INS HdlIdDef@@inta to objs
+HdlIdDef: inta
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+
+CommitId: aed3ba5feccb41cbc5ee6e854046d7eafc4813b1
+- most recent updates to
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -274,37 +268,37 @@ reg [15:0] data16;
+ reg [31:0] data32;
+ reg [63:0] data64;
+ 
+-always @(sel_o or dat_i)
++always @(sel_o or dat_i1)
+ 	case(sel_o)
+-	8'b00000001:	data8 <= #1 dat_i[ 7: 0];
+-	8'b00000010:	data8 <= #1 dat_i[15: 8];
+-	8'b00000100:	data8 <= #1 dat_i[23:16];
+-	8'b00001000:	data8 <= #1 dat_i[31:24];
+-	8'b00010000:	data8 <= #1 dat_i[39:32];
+-	8'b00100000:	data8 <= #1 dat_i[47:40];
+-	8'b01000000:	data8 <= #1 dat_i[55:48];
+-	8'b10000000:	data8 <= #1 dat_i[63:56];
++	8'b00000001:	data8 <= #1 dat_i1[ 7: 0];
++	8'b00000010:	data8 <= #1 dat_i1[15: 8];
++	8'b00000100:	data8 <= #1 dat_i1[23:16];
++	8'b00001000:	data8 <= #1 dat_i1[31:24];
++	8'b00010000:	data8 <= #1 dat_i1[39:32];
++	8'b00100000:	data8 <= #1 dat_i1[47:40];
++	8'b01000000:	data8 <= #1 dat_i1[55:48];
++	8'b10000000:	data8 <= #1 dat_i1[63:56];
+ 	default:	data8 <= 8'h00;
+ 	endcase
+ 
+-always @(sel_o or dat_i)
++always @(sel_o or dat_i1)
+ 	case(sel_o)
+-	8'b00000011:	data16 <= #1 dat_i[15: 0];
+-	8'b00001100:	data16 <= #1 dat_i[31:16];
+-	8'b00110000:	data16 <= #1 dat_i[47:32];
+-	8'b11000000:	data16 <= #1 dat_i[63:48];
++	8'b00000011:	data16 <= #1 dat_i1[15: 0];
++	8'b00001100:	data16 <= #1 dat_i1[31:16];
++	8'b00110000:	data16 <= #1 dat_i1[47:32];
++	8'b11000000:	data16 <= #1 dat_i1[63:48];
+ 	default:	data16 <= #1 16'hDEAD;			
+ 	endcase
+ 
+-always @(sel_o or dat_i)
++always @(sel_o or dat_i1)
+ 	case(sel_o)
+-	8'b00001111:	data32 <= #1 dat_i[31: 0];
+-	8'b11110000:	data32 <= #1 dat_i[63:32];
++	8'b00001111:	data32 <= #1 dat_i1[31: 0];
++	8'b11110000:	data32 <= #1 dat_i1[63:32];
+ 	default:	data32 <= #1 32'hDEADDEAD;			
+ 	endcase
+ 
+-always @(sel_o or dat_i)
+-	data64 <= #1 dat_i;
++always @(sel_o or dat_i1)
++	data64 <= #1 dat_i1;
+ 
+ assign KernelMode = StatusEXL[xAXC]|StatusHWI;
+ 
+
+ParseResult:
+INS HdlStmAssign@@ to objs
+
+INS HdlStmProcess@@ to objs
+HdlStmProcess
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmFor
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmAssign
+                            HdlValueInt: 0
+                            HdlValueId: n
+                HdlOp: LT
+                    list: ops
+                        HdlValueId: n
+                        HdlValueInt: 256
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlOp: ASSIGN
+                            list: ops
+                                HdlValueId: n
+                                HdlOp: ADD
+                                    list: ops
+                                        HdlValueId: n
+                                        HdlValueInt: 1
+                HdlOp: ASSIGN
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: segs
+                                HdlValueId: n
+                        HdlValueInt: 0
+            HdlStmWait:
+                list: val
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: sea
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 63
+                    HdlValueInt: 28
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: pea
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 63
+                    HdlValueInt: 28
+
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: spc
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 63
+                    HdlValueInt: 28
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: ppc
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 63
+                    HdlValueInt: 28
+
+UPD HdlStmAssign@@default to default
+    UPD HdlOp@@CONCAT to CONCAT
+        UPD HdlOp@@INDEX to PARAMETRIZATION
+        MOV HdlOp@@INDEX to ops
+        HdlOp: INDEX
+            list: ops
+                HdlValueId: ea
+                HdlOp: DOWNTO
+                    list: ops
+                        HdlValueInt: 15
+                        HdlValueInt: 0
+        UPD HdlOp@@INDEX to INDEX
+            UPD HdlValueId@@ea to wire
+        DEL HdlOp@@ADD from ops
+        HdlOp: ADD
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: DS
+                                HdlValueId: xAXC
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 63
+                                HdlValueInt: 16
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: ea
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 59
+                                HdlValueInt: 16
+        DEL list@@ops from CONCAT
+    DEL HdlOp@@CONCAT from default
+    DEL HdlValueId@@sea from default
+
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        UPD HdlOp@@CONCAT to CONCAT
+            MOV HdlOp@@INDEX to ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: pc
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 15
+                            HdlValueInt: 0
+            UPD HdlOp@@INDEX to INDEX
+                UPD HdlValueId@@pc to dat_o
+            DEL HdlOp@@ADD from ops
+            HdlOp: ADD
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: CS
+                                    HdlValueId: AXC
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 63
+                                    HdlValueInt: 16
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: pc
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 59
+                                    HdlValueInt: 16
+            DEL list@@ops from CONCAT
+        UPD HdlOp@@EQ to CONCAT
+        MOV HdlOp@@EQ to ops
+        HdlOp: EQ
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: pc
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 63
+                                HdlValueInt: 60
+                HdlValueInt: f
+        UPD HdlOp@@EQ to EQ
+            DEL HdlValueInt@@f from ops
+        DEL HdlValueId@@pc from ops
+        DEL HdlOp@@CONCAT from ops
+        DEL list@@ops from TERNARY
+    DEL HdlOp@@TERNARY from 
+    DEL HdlValueId@@spc from 
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['ea',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '63'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '60'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['ea',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '63'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '60'}]}]} 
+    MOV HdlOp@@INDEX to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['ea',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '63'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '60'}]}]} 
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: ea
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 63
+                    HdlValueInt: 60
+    DEL HdlStmCaseType@@CASE from {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['ea',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '63'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '60'}]}]} 
+    DEL list@@cases from {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['ea',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '63'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '60'}]}]} 
+    list: cases
+        tuple
+            HdlValueInt: f
+            HdlStmAssign
+                HdlValueId: ea
+                HdlValueId: sea
+        tuple
+            HdlValueInt: e
+            HdlStmAssign
+                HdlOp: CONCAT
+                    list: ops
+                        HdlOp: ADD
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlOp: INDEX
+                                            list: ops
+                                                HdlValueId: SS
+                                                HdlValueId: xAXC
+                                        HdlOp: DOWNTO
+                                            list: ops
+                                                HdlValueInt: 63
+                                                HdlValueInt: 16
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: ea
+                                        HdlOp: DOWNTO
+                                            list: ops
+                                                HdlValueInt: 59
+                                                HdlValueInt: 16
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: ea
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 15
+                                        HdlValueInt: 0
+                HdlValueId: sea
+        tuple
+            HdlValueInt: d
+            HdlStmAssign
+                HdlOp: CONCAT
+                    list: ops
+                        HdlOp: ADD
+                            list: ops
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlOp: INDEX
+                                            list: ops
+                                                HdlValueId: ES
+                                                HdlValueId: xAXC
+                                        HdlOp: DOWNTO
+                                            list: ops
+                                                HdlValueInt: 63
+                                                HdlValueInt: 16
+                                HdlOp: INDEX
+                                    list: ops
+                                        HdlValueId: ea
+                                        HdlOp: DOWNTO
+                                            list: ops
+                                                HdlValueInt: 59
+                                                HdlValueInt: 16
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: ea
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 15
+                                        HdlValueInt: 0
+                HdlValueId: sea
+
+DEL HdlStmAssign@@ from objs
+
+UPD HdlStmProcess@@ to 
+    DEL list@@sensitivity from 
+    list: sensitivity
+        HdlValueId: ea
+        HdlValueId: KernelMode
+
+UPD HdlStmIf@@body to body
+    DEL HdlOp@@AND_LOG from body
+    HdlOp: AND_LOG
+        list: ops
+            HdlValueId: KernelMode
+            HdlOp: EQ
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: ea
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 63
+                                    HdlValueInt: 16
+                    HdlValueInt: 0
+    DEL list@@elifs from body
+
+DEL HdlStmAssign@@if_true from body
+HdlStmAssign: if_true
+    HdlValueId: ea
+    HdlValueId: sea
+
+DEL HdlStmAssign@@default from {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['ea',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '63'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '60'}]}]} 
+
+DEL HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['ea',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '63'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '60'}]}]}  from body
+
+DEL HdlStmIf@@body from 
+
+DEL HdlStmProcess@@ from objs
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlValueId: spc
+    HdlValueId: ppc
+
+DEL HdlStmAssign@@ from objs
+HdlStmAssign
+    HdlValueId: sea
+    HdlValueId: pea
+
+
+CommitId: aed3ba5feccb41cbc5ee6e854046d7eafc4813b1
+- most recent updates to
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -1536,7 +1550,7 @@ wire wForwardingActive = (wRt==dRa || wRt==dRb || wRt==dRc) & !wRtz;
+ wire m2ForwardingActive = (m2Rt==dRa || m2Rt==dRb || m2Rt==dRc) & !m2Rtz;
+ wire m1ForwardingActive = (m1Rt==dRa || m1Rt==dRb || m1Rt==dRc) & !m1Rtz;
+ wire xForwardingActive = (xRt==dRa || xRt==dRb || xRt==dRc) & !xRtz;
+-wire memCycleActive = ((iocyc_o & !(ack_i|err_i)) || (cyc_o & !(ack_i|err_i)));
++wire memCycleActive = ((iocyc_o & !(ack_i1|err_i)) || (cyc_o & !(ack_i1|err_i)));
+ wire StallI = 1'b0;
+ 
+ // Stall on SWC allows rsf flag to be loaded for the next instruction
+
+ParseResult:
+UPD HdlStmIf@@body to body
+    INS HdlValueId@@rst_i to body
+    INS list@@elifs to body
+
+UPD HdlStmCase@@state to state
+    INS HdlStmCaseType@@CASE to state
+    INS HdlValueId@@state to state
+    INS HdlValueId@@RUN to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@CALL to body
+        UPD HdlOp@@CALL to CALL
+            INS list@@ops to CALL
+            INS HdlValueId@@$display to ops
+            INS str@@ to ops
+            INS HdlOp@@INDEX to ops
+            UPD HdlOp@@INDEX to INDEX
+                INS list@@ops to INDEX
+                INS HdlValueId@@adr_o to ops
+                INS HdlOp@@DOWNTO to ops
+                UPD HdlOp@@DOWNTO to DOWNTO
+                    INS list@@ops to DOWNTO
+                    INS HdlValueInt@@6 to ops
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: tick
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 31
+                                HdlValueInt: 0
+
+UPD HdlStmIf@@body to body
+    DEL HdlValueId@@rst_i from body
+    DEL list@@elifs from body
+
+UPD HdlStmCase@@state to state
+    DEL HdlStmCaseType@@CASE from state
+    DEL HdlValueId@@state from state
+    DEL HdlValueId@@RUN from 
+
+
+CommitId: aed3ba5feccb41cbc5ee6e854046d7eafc4813b1
+- most recent updates to
+--- a/rtl/verilog/Raptor64sc.v
++++ b/rtl/verilog/Raptor64sc.v
+@@ -1558,9 +1572,9 @@ wire StallT = (tForwardingActive && ((m1IsLoad & m1IsCacheElement & !dhit) || me
+ 
+ assign advanceT = (state==RUN) && !StallT;
+ assign advanceW = advanceT & !StallW;
+-assign advanceM2 = advanceW && (cyc_o ? (ack_i|err_i) : 1'b1) && !StallM2;
++assign advanceM2 = advanceW && (cyc_o ? (ack_i1|err_i) : 1'b1) && !StallM2;
+ assign advanceM1 = advanceM2 &
+-					(iocyc_o ? (ack_i|err_i) : 1'b1) &
++					(iocyc_o ? (ack_i1|err_i) : 1'b1) &
+ 					((m1IsLoad & m1IsCacheElement) ? dhit : 1'b1) & 
+ 					!StallM1
+ 					;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@advanceX to 
+
+UPD HdlStmCase@@xOpcode to xOpcode
+    INS HdlStmCaseType@@CASE to xOpcode
+    INS HdlValueId@@xOpcode to xOpcode
+
+UPD HdlStmIf@@ to 
+    DEL HdlValueId@@advanceX from 
+
+UPD HdlStmCase@@xOpcode to xOpcode
+    DEL HdlStmCaseType@@CASE from xOpcode
+    DEL HdlValueId@@xOpcode from xOpcode
 
 
 CommitId: 1c08ecd18900c5bd15022cbf33f4991ec9dc631e

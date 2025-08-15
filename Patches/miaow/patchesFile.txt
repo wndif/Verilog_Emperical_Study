@@ -11646,9 +11646,6 @@ Merge pull request #8 from d1duarte/patch-1
          input wire [31:0] fpgamem2mb_addr,
 
 ParseResult:
-UPD HdlModuleDef@@axi_slave_v1_0_S00_AXI to axi_slave_v1_0_S00_AXI
-    INS list@@objs to axi_slave_v1_0_S00_AXI
-
 INS HdlIdDef@@peripheral_aresetn to ports
 HdlIdDef: peripheral_aresetn
     HdlOp: PARAMETRIZATION
@@ -11659,9 +11656,6 @@ HdlIdDef: peripheral_aresetn
                     HdlValueInt: 0
                     HdlValueInt: 0
     HdlDirection: OUT
-
-UPD HdlModuleDef@@axi_slave_v1_0_S00_AXI to axi_slave_v1_0_S00_AXI
-    DEL list@@objs from axi_slave_v1_0_S00_AXI
 
 
 CommitId: 3202bd28f7099cbf95e494d40feb46d1cdd1f2d4
@@ -11694,9 +11688,6 @@ Merge pull request #8 from d1duarte/patch-1
  reg mb2fpgamem_ack_reg;
 
 ParseResult:
-UPD HdlModuleDef@@axi_slave_v1_0_S00_AXI to axi_slave_v1_0_S00_AXI
-    INS list@@objs to axi_slave_v1_0_S00_AXI
-
 MOV HdlIdDef@@quadData3 to objs
 HdlIdDef: quadData3
     HdlOp: PARAMETRIZATION
@@ -12481,9 +12472,6 @@ HdlIdDef: mb2fpgamem_ack_reg
             HdlValueId: reg
     HdlDirection: INTERNAL
 
-UPD HdlModuleDef@@axi_slave_v1_0_S00_AXI to axi_slave_v1_0_S00_AXI
-    DEL list@@objs from axi_slave_v1_0_S00_AXI
-
 
 CommitId: 3202bd28f7099cbf95e494d40feb46d1cdd1f2d4
 Merge pull request #8 from d1duarte/patch-1
@@ -12501,9 +12489,6 @@ Merge pull request #8 from d1duarte/patch-1
  assign fpgamem2mb_op_net = {28'd0, fpgamem2mb_op}; 
 
 ParseResult:
-UPD HdlModuleDef@@axi_slave_v1_0_S00_AXI to axi_slave_v1_0_S00_AXI
-    INS list@@objs to axi_slave_v1_0_S00_AXI
-
 MOV HdlIdDef@@cycle_counter to objs
 HdlIdDef: cycle_counter
     HdlOp: PARAMETRIZATION
@@ -12563,9 +12548,6 @@ HdlStmAssign
             HdlValueId: fpgamem2mb_op
     HdlValueId: fpgamem2mb_op_net
 
-UPD HdlModuleDef@@axi_slave_v1_0_S00_AXI to axi_slave_v1_0_S00_AXI
-    DEL list@@objs from axi_slave_v1_0_S00_AXI
-
 
 CommitId: 3202bd28f7099cbf95e494d40feb46d1cdd1f2d4
 Merge pull request #8 from d1duarte/patch-1
@@ -12582,9 +12564,6 @@ Merge pull request #8 from d1duarte/patch-1
  assign quadData0_out = quadData0;
 
 ParseResult:
-UPD HdlModuleDef@@axi_slave_v1_0_S00_AXI to axi_slave_v1_0_S00_AXI
-    INS list@@objs to axi_slave_v1_0_S00_AXI
-
 MOV HdlStmAssign@@ to objs
 HdlStmAssign
     HdlValueId: waveCount
@@ -12623,9 +12602,6 @@ HdlStmAssign
     HdlValueId: quadData0
     HdlValueId: quadData0_out
 
-UPD HdlModuleDef@@axi_slave_v1_0_S00_AXI to axi_slave_v1_0_S00_AXI
-    DEL list@@objs from axi_slave_v1_0_S00_AXI
-
 
 CommitId: 3202bd28f7099cbf95e494d40feb46d1cdd1f2d4
 Merge pull request #8 from d1duarte/patch-1
@@ -12657,9 +12633,6 @@ Merge pull request #8 from d1duarte/patch-1
  
 
 ParseResult:
-UPD HdlModuleDef@@axi_slave_v1_0_S00_AXI to axi_slave_v1_0_S00_AXI
-    INS list@@objs to axi_slave_v1_0_S00_AXI
-
 MOV HdlStmAssign@@ to objs
 HdlStmAssign
     HdlValueId: quadData2
@@ -12889,9 +12862,6 @@ HdlStmAssign
     HdlValueId: executeStart
     HdlValueId: executeStart_out
 
-UPD HdlModuleDef@@axi_slave_v1_0_S00_AXI to axi_slave_v1_0_S00_AXI
-    DEL list@@objs from axi_slave_v1_0_S00_AXI
-
 
 CommitId: 3202bd28f7099cbf95e494d40feb46d1cdd1f2d4
 Merge pull request #8 from d1duarte/patch-1
@@ -12908,9 +12878,6 @@ Merge pull request #8 from d1duarte/patch-1
        end
 
 ParseResult:
-UPD HdlModuleDef@@axi_slave_v1_0_S00_AXI to axi_slave_v1_0_S00_AXI
-    INS list@@objs to axi_slave_v1_0_S00_AXI
-
 MOV HdlStmProcess@@ to objs
 HdlStmProcess
     list: sensitivity
@@ -12992,9 +12959,6 @@ UPD HdlStmIf@@ to
             HdlValueId: S_AXI_ARESETN
             HdlValueInt: 0
 
-UPD HdlModuleDef@@axi_slave_v1_0_S00_AXI to axi_slave_v1_0_S00_AXI
-    DEL list@@objs from axi_slave_v1_0_S00_AXI
-
 
 CommitId: 3202bd28f7099cbf95e494d40feb46d1cdd1f2d4
 Merge pull request #8 from d1duarte/patch-1
@@ -13016,9 +12980,6 @@ Merge pull request #8 from d1duarte/patch-1
        if(slv_reg_wren && ~slv_reg_wren_buffer && axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 7'h0A) begin
 
 ParseResult:
-UPD HdlModuleDef@@axi_slave_v1_0_S00_AXI to axi_slave_v1_0_S00_AXI
-    INS list@@objs to axi_slave_v1_0_S00_AXI
-
 MOV HdlStmProcess@@ to objs
 HdlStmProcess
     list: sensitivity
@@ -13213,9 +13174,6 @@ HdlStmProcess
                             HdlValueId: lsu2sgpr_dest_wr_en_reg
                 list: elifs
 
-UPD HdlModuleDef@@axi_slave_v1_0_S00_AXI to axi_slave_v1_0_S00_AXI
-    DEL list@@objs from axi_slave_v1_0_S00_AXI
-
 
 CommitId: 3202bd28f7099cbf95e494d40feb46d1cdd1f2d4
 Merge pull request #8 from d1duarte/patch-1
@@ -13234,9 +13192,6 @@ Merge pull request #8 from d1duarte/patch-1
                7'h0D: quadData1 <= S_AXI_WDATA;
 
 ParseResult:
-UPD HdlModuleDef@@axi_slave_v1_0_S00_AXI to axi_slave_v1_0_S00_AXI
-    INS list@@objs to axi_slave_v1_0_S00_AXI
-
 INS HdlStmProcess@@ to objs
 
 UPD HdlStmProcess@@ to 
@@ -13449,8 +13404,65 @@ DEL HdlStmIf@@ from body
 
 DEL HdlStmProcess@@ from objs
 
-UPD HdlModuleDef@@axi_slave_v1_0_S00_AXI to axi_slave_v1_0_S00_AXI
-    DEL list@@objs from axi_slave_v1_0_S00_AXI
+
+CommitId: 2403d18b58b5cd026783ac7c0c883817a266eeb4
+0.3-fpga tag source code fixes
+--- a/src/verilog/rtl/common/encoder.v
++++ b/src/verilog/rtl/common/encoder.v
+@@ -41,6 +41,6 @@ assign out =  (in[0]==1'b1)?6'd0:
+ 			  (in[36]==1'b1)?6'd36:
+ 			  (in[37]==1'b1)?6'd37:
+ 			  (in[38]==1'b1)?6'd38:
+-			  (in[30]==1'b1)?6'd39:
++			  (in[39]==1'b1)?6'd39:
+ 			  6'b000000;
+ endmodule
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlOp@@TERNARY to TERNARY
+        UPD HdlOp@@TERNARY to TERNARY
+            UPD HdlOp@@TERNARY to TERNARY
+                UPD HdlOp@@TERNARY to TERNARY
+                    UPD HdlOp@@TERNARY to TERNARY
+                        UPD HdlOp@@TERNARY to TERNARY
+                            UPD HdlOp@@TERNARY to TERNARY
+                                UPD HdlOp@@TERNARY to TERNARY
+                                    UPD HdlOp@@TERNARY to TERNARY
+                                        UPD HdlOp@@TERNARY to TERNARY
+                                            UPD HdlOp@@TERNARY to TERNARY
+                                                UPD HdlOp@@TERNARY to TERNARY
+                                                    UPD HdlOp@@TERNARY to TERNARY
+                                                        UPD HdlOp@@TERNARY to TERNARY
+                                                            UPD HdlOp@@TERNARY to TERNARY
+                                                                UPD HdlOp@@TERNARY to TERNARY
+                                                                    UPD HdlOp@@TERNARY to TERNARY
+                                                                        UPD HdlOp@@TERNARY to TERNARY
+                                                                            UPD HdlOp@@TERNARY to TERNARY
+                                                                                UPD HdlOp@@TERNARY to TERNARY
+                                                                                    UPD HdlOp@@TERNARY to TERNARY
+                                                                                        UPD HdlOp@@TERNARY to TERNARY
+                                                                                            UPD HdlOp@@TERNARY to TERNARY
+                                                                                                UPD HdlOp@@TERNARY to TERNARY
+                                                                                                    UPD HdlOp@@TERNARY to TERNARY
+                                                                                                        UPD HdlOp@@TERNARY to TERNARY
+                                                                                                            UPD HdlOp@@TERNARY to TERNARY
+                                                                                                                UPD HdlOp@@TERNARY to TERNARY
+                                                                                                                    UPD HdlOp@@TERNARY to TERNARY
+                                                                                                                        UPD HdlOp@@TERNARY to TERNARY
+                                                                                                                            UPD HdlOp@@TERNARY to TERNARY
+                                                                                                                                UPD HdlOp@@TERNARY to TERNARY
+                                                                                                                                    UPD HdlOp@@TERNARY to TERNARY
+                                                                                                                                        UPD HdlOp@@TERNARY to TERNARY
+                                                                                                                                            UPD HdlOp@@TERNARY to TERNARY
+                                                                                                                                                UPD HdlOp@@TERNARY to TERNARY
+                                                                                                                                                    UPD HdlOp@@TERNARY to TERNARY
+                                                                                                                                                        UPD HdlOp@@TERNARY to TERNARY
+                                                                                                                                                            UPD HdlOp@@TERNARY to TERNARY
+                                                                                                                                                                UPD HdlOp@@TERNARY to TERNARY
+                                                                                                                                                                    UPD HdlOp@@EQ to EQ
+                                                                                                                                                                        UPD HdlOp@@INDEX to INDEX
+                                                                                                                                                                            UPD HdlValueInt@@30 to 39
 
 
 CommitId: 0894af96584901a21f173aff36095ad44dd29fc3

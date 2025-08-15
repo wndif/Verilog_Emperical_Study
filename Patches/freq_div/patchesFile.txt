@@ -306,11 +306,6 @@ HdlStmAssign
     HdlValueId: N
     HdlValueId: old_N
 
-UPD HdlStmIf@@ to 
-    UPD HdlOp@@NE to NE
-        UPD HdlValueId@@P to N
-        UPD HdlValueId@@old_P to old_N
-
 DEL HdlStmAssign@@ from body
 HdlStmAssign
     HdlValueId: P

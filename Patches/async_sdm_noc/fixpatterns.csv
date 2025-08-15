@@ -1,7 +1,7 @@
 ,update,insert,delete
-HdlModuleDec-HdlModuleDef,26,,
+HdlModuleDec-HdlModuleDef,2,,
 HdlStmAssign-HdlModuleDef,5,6.0,6.0
-HdlOp-PrefixExpression-HdlStmAssign,2,,
+HdlOp-PrefixExpression_HdlStmAssign-HdlStmAssign,2,,
 HdlIdDef-HdlModuleDec,3,1.0,1.0
-HdlOp-InfixExpression-HdlStmAssign,10,,
+HdlOp-InfixExpression_HdlStmAssign-HdlStmAssign,10,,
 HdlStmAssign-HdlStmFor,7,,

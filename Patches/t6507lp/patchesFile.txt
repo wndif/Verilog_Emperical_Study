@@ -481,255 +481,6 @@ UPD HdlStmCase@@alu_opcode to alu_opcode
     INS HdlValueId@@alu_opcode to alu_opcode
 
 
-CommitId: 4ba0a7d3137990420941c29f33526a733f2c02f7
-$write and $finish primitives were removed from synthesizable blocks. Latches were removed. Top level were fixed (rw_mem and mem_rw should have the same name). All blocks were synthesized.
---- a/rtl/verilog/T6507LP_ALU.v
-+++ b/rtl/verilog/T6507LP_ALU.v
-@@ -412,8 +422,8 @@ always @ (*) begin
- 		// SBC - Subtract with Carry
- 		SBC_IMM, SBC_ZPG, SBC_ZPX, SBC_ABS, SBC_ABX, SBC_ABY, SBC_IDX, SBC_IDY :
- 		begin
--			temp1 = A;
--			temp2 = alu_a;
-+			//temp1 = A;
-+			//temp2 = alu_a;
- 			if (alu_status[D] == 1) begin
- 				if (A[3:0] > 9) begin
- 					temp1 = A + 6; // A = A - 10 and A = A + 16
-ParseResult:
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    UPD HdlStmBlock@@SEQ to SEQ
-        MOV HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp1
-                HdlValueId: A
-        MOV HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp2
-                HdlValueId: alu_a
-    DEL HdlStmCaseType@@CASE from alu_opcode
-    DEL HdlValueId@@alu_opcode from alu_opcode
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp1
-                HdlValueId: A
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp2
-                HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp1
-                HdlValueId: A
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp2
-                HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp1
-                HdlValueId: A
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp2
-                HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp1
-                HdlValueId: A
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp2
-                HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp1
-                HdlValueId: A
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp2
-                HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp1
-                HdlValueId: A
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp2
-                HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp1
-                HdlValueId: A
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp2
-                HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp1
-                HdlValueId: A
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp2
-                HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp1
-                HdlValueId: A
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp2
-                HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp1
-                HdlValueId: A
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp2
-                HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp1
-                HdlValueId: A
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp2
-                HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp1
-                HdlValueId: A
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp2
-                HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp1
-                HdlValueId: A
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp2
-                HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp1
-                HdlValueId: A
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp2
-                HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp1
-                HdlValueId: A
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: temp2
-                HdlValueId: alu_a
-
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: result
-                HdlValueId: alu_result
-        INS HdlOp@@ASSIGN to body
-        INS HdlOp@@ASSIGN to body
-        INS HdlOp@@ASSIGN to body
-        INS HdlOp@@ASSIGN to body
-        INS HdlOp@@ASSIGN to body
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS list@@ops to ASSIGN
-            INS HdlOp@@INDEX to ops
-            HdlOp: INDEX
-                list: ops
-                    HdlValueId: alu_status
-                    HdlValueId: C
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS list@@ops to ASSIGN
-            INS HdlOp@@INDEX to ops
-            HdlOp: INDEX
-                list: ops
-                    HdlValueId: alu_status
-                    HdlValueId: V
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS list@@ops to ASSIGN
-            INS HdlOp@@INDEX to ops
-            HdlOp: INDEX
-                list: ops
-                    HdlValueId: alu_status
-                    HdlValueId: B
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS list@@ops to ASSIGN
-            INS HdlOp@@INDEX to ops
-            HdlOp: INDEX
-                list: ops
-                    HdlValueId: alu_status
-                    HdlValueId: I
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS list@@ops to ASSIGN
-            INS HdlOp@@INDEX to ops
-            HdlOp: INDEX
-                list: ops
-                    HdlValueId: alu_status
-                    HdlValueId: D
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    INS HdlStmCaseType@@CASE to alu_opcode
-    INS HdlValueId@@alu_opcode to alu_opcode
-
-
 CommitId: 5f0a945a7ed79f70bd0d6e97d3ee5abd9c5f18d0
 Fixing bug #45
 --- a/rtl/verilog/t6507lp_fsm.v
@@ -743,71 +494,6 @@ Fixing bug #45
  			ir <= 8'h00;
  			temp_addr <= 13'h0000;
  			temp_data <= 8'h00;
-
-ParseResult:
-UPD HdlStmIf@@ to 
-    INS list@@elifs to 
-
-UPD HdlStmCase@@state to state
-    INS HdlStmCaseType@@CASE to state
-    INS HdlValueId@@state to state
-
-UPD HdlStmIf@@ to 
-    DEL list@@elifs from 
-
-UPD HdlStmCase@@state to state
-    DEL HdlStmCaseType@@CASE from state
-    DEL HdlValueId@@state from state
-
-
-CommitId: 5f0a945a7ed79f70bd0d6e97d3ee5abd9c5f18d0
-Fixing bug #45
---- a/rtl/verilog/t6507lp_fsm.v
-+++ b/rtl/verilog/t6507lp_fsm.v
-@@ -221,7 +223,7 @@ module t6507lp_fsm(clk, reset_n, alu_result, alu_status, data_in, alu_x, alu_y,
- 			case (state)
- 				RESET: begin	// The processor was reset
- 					rst_counter <= rst_counter + 1;
--					sp <= 9'b100000000; // this prevents flipflops with different drivers
-+					//sp <= 9'b111111111; // this prevents flipflops with different drivers
- 					//$write("under reset"); 
- 				end
- 				/*
-
-ParseResult:
-UPD HdlStmIf@@ to 
-    INS list@@elifs to 
-
-UPD HdlStmCase@@state to state
-    INS HdlStmCaseType@@CASE to state
-    INS HdlValueId@@state to state
-
-UPD HdlStmIf@@ to 
-    DEL list@@elifs from 
-
-UPD HdlStmCase@@state to state
-    DEL HdlStmCaseType@@CASE from state
-    DEL HdlValueId@@state from state
-
-
-CommitId: 5f0a945a7ed79f70bd0d6e97d3ee5abd9c5f18d0
-Fixing bug #45
---- a/rtl/verilog/t6507lp_fsm.v
-+++ b/rtl/verilog/t6507lp_fsm.v
-@@ -242,7 +244,12 @@ module t6507lp_fsm(clk, reset_n, alu_result, alu_status, data_in, alu_x, alu_y,
- 					if (accumulator || implied) begin
- 						pc <= pc; // is this better?
- 						address <= pc;
--						mem_rw <= MEM_READ; 
-+						mem_rw <= MEM_READ;
-+		
-+						if (txs) begin
-+							sp[7:0] <= data_in; 
-+						end
-+						//alu_a
- 					end
- 					else if (immediate || relative) begin
- 						pc <= next_pc;
 
 ParseResult:
 UPD HdlStmIf@@ to 
@@ -1268,351 +954,6 @@ UPD HdlStmCase@@alu_opcode to alu_opcode
     DEL HdlValueId@@alu_opcode from alu_opcode
 
 
-CommitId: eba5ea206983be29ad52130c0e97d22a41187d19
-Some bugs were fixed. Testbench were expecting wrong values sometimes.
---- a/rtl/verilog/t6507lp_alu.v
-+++ b/rtl/verilog/t6507lp_alu.v
-@@ -352,7 +354,9 @@ always @ (*) begin
- 
- 		// EOR - Exclusive OR
- 		EOR_IMM, EOR_ZPG, EOR_ZPX, EOR_ABS, EOR_ABX, EOR_ABY, EOR_IDX, EOR_IDY : begin
--			result = A ^ alu_a ;
-+			result = A ^ alu_a;
-+			$display("op1 ^ op2 = result");
-+			$display("%d  ^ %d  = %d", op1, op2, result);
- 		end
- 
- 		// LDA - Load Accumulator
-ParseResult:
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    INS HdlStmCaseType@@CASE to alu_opcode
-    INS HdlValueId@@alu_opcode to alu_opcode
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-                HdlValueId: op1
-                HdlValueId: op2
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: alu_status
-                        HdlValueId: C
-                HdlValueId: result
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: STATUS
-                        HdlValueId: C
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: STATUS
-                        HdlValueId: V
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-                HdlValueId: op1
-                HdlValueId: op2
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: alu_status
-                        HdlValueId: C
-                HdlValueId: result
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: STATUS
-                        HdlValueId: C
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: STATUS
-                        HdlValueId: V
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-                HdlValueId: op1
-                HdlValueId: op2
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: alu_status
-                        HdlValueId: C
-                HdlValueId: result
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: STATUS
-                        HdlValueId: C
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: STATUS
-                        HdlValueId: V
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-                HdlValueId: op1
-                HdlValueId: op2
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: alu_status
-                        HdlValueId: C
-                HdlValueId: result
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: STATUS
-                        HdlValueId: C
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: STATUS
-                        HdlValueId: V
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-                HdlValueId: op1
-                HdlValueId: op2
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: alu_status
-                        HdlValueId: C
-                HdlValueId: result
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: STATUS
-                        HdlValueId: C
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: STATUS
-                        HdlValueId: V
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-                HdlValueId: op1
-                HdlValueId: op2
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: alu_status
-                        HdlValueId: C
-                HdlValueId: result
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: STATUS
-                        HdlValueId: C
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: STATUS
-                        HdlValueId: V
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-                HdlValueId: op1
-                HdlValueId: op2
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: alu_status
-                        HdlValueId: C
-                HdlValueId: result
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: STATUS
-                        HdlValueId: C
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: STATUS
-                        HdlValueId: V
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-                HdlValueId: op1
-                HdlValueId: op2
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: alu_status
-                        HdlValueId: C
-                HdlValueId: result
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: STATUS
-                        HdlValueId: C
-                HdlOp: INDEX
-                    list: ops
-                        HdlValueId: STATUS
-                        HdlValueId: V
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-                HdlValueId: op1
-                HdlValueId: op2
-                HdlValueId: result
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-                HdlValueId: op1
-                HdlValueId: op2
-                HdlValueId: result
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-                HdlValueId: op1
-                HdlValueId: op2
-                HdlValueId: result
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-                HdlValueId: op1
-                HdlValueId: op2
-                HdlValueId: result
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-                HdlValueId: op1
-                HdlValueId: op2
-                HdlValueId: result
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-                HdlValueId: op1
-                HdlValueId: op2
-                HdlValueId: result
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-                HdlValueId: op1
-                HdlValueId: op2
-                HdlValueId: result
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-                HdlValueId: op1
-                HdlValueId: op2
-                HdlValueId: result
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    DEL HdlStmCaseType@@CASE from alu_opcode
-    DEL HdlValueId@@alu_opcode from alu_opcode
-
-
 CommitId: e97d2454d46de39ea963432f501070795417b1a9
 Fixed two warning messages at the FSM.
 --- a/rtl/verilog/t6507lp_fsm.v
@@ -1678,6 +1019,189 @@ UPD HdlStmIf@@ to
     DEL list@@elifs from 
 
 
+CommitId: 5ec08d2f78693bb81c664b667f28df098e82ab55
+ASL instruction fixed. For some reason the operator "<<" is not working properly.
+--- a/rtl/verilog/t6507lp_alu.v
++++ b/rtl/verilog/t6507lp_alu.v
+@@ -167,11 +167,10 @@ begin
+ 				alu_status[V] <= alu_a[6];
+ 				alu_status[N] <= alu_a[7];
+ 			end
+-			INC_ZPG, INC_ZPX, INC_ABS, INC_ABX, DEC_ZPG, DEC_ZPX, DEC_ABS, DEC_ABX :
++			INC_ZPG, INC_ZPX, INC_ABS, INC_ABX, DEC_ZPG, DEC_ZPX, DEC_ABS, DEC_ABX, ASL_ZPG, ASL_ZPX, ASL_ABS, ASL_ABX :
+ 			begin
+ 				alu_result <= result;
+ 				alu_status <= STATUS;
+-
+ 			end
+ 			default : begin
+ 				//$display("ERROR");
+
+ParseResult:
+UPD HdlStmCase@@alu_opcode to alu_opcode
+    INS HdlStmCaseType@@CASE to alu_opcode
+    INS HdlValueId@@alu_opcode to alu_opcode
+    INS tuple@@ to cases
+    tuple
+        HdlValueId: ASL_ZPG
+        HdlStmBlock: SEQ
+            list: body
+                HdlStmAssign
+                    HdlValueId: result
+                    HdlValueId: alu_result
+                HdlStmAssign
+                    HdlValueId: STATUS
+                    HdlValueId: alu_status
+    INS tuple@@ to cases
+    tuple
+        HdlValueId: ASL_ZPX
+        HdlStmBlock: SEQ
+            list: body
+                HdlStmAssign
+                    HdlValueId: result
+                    HdlValueId: alu_result
+                HdlStmAssign
+                    HdlValueId: STATUS
+                    HdlValueId: alu_status
+    INS tuple@@ to cases
+    tuple
+        HdlValueId: ASL_ABS
+        HdlStmBlock: SEQ
+            list: body
+                HdlStmAssign
+                    HdlValueId: result
+                    HdlValueId: alu_result
+                HdlStmAssign
+                    HdlValueId: STATUS
+                    HdlValueId: alu_status
+    INS tuple@@ to cases
+    tuple
+        HdlValueId: ASL_ABX
+        HdlStmBlock: SEQ
+            list: body
+                HdlStmAssign
+                    HdlValueId: result
+                    HdlValueId: alu_result
+                HdlStmAssign
+                    HdlValueId: STATUS
+                    HdlValueId: alu_status
+
+UPD HdlStmCase@@alu_opcode to alu_opcode
+    DEL HdlStmCaseType@@CASE from alu_opcode
+    DEL HdlValueId@@alu_opcode from alu_opcode
+
+
+CommitId: 5ec08d2f78693bb81c664b667f28df098e82ab55
+ASL instruction fixed. For some reason the operator "<<" is not working properly.
+--- a/rtl/verilog/t6507lp_alu.v
++++ b/rtl/verilog/t6507lp_alu.v
+@@ -391,18 +390,22 @@ always @ (*) begin
+ 
+ 		// ASL - Arithmetic Shift Left
+ 		ASL_ACC : begin
+-			{STATUS[C],result} = A << 1;
++			//{STATUS[C],result} = A << 1;
++			{STATUS[C],result} = {A,1'b0};
+ 		end
+ 		ASL_ZPG, ASL_ZPX, ASL_ABS, ASL_ABX : begin
+-			{STATUS[C],result} = alu_a << 1;
++			//{STATUS[C],result} = alu_a << 1;
++			{STATUS[C],result} = {alu_a,1'b0};
+ 		end
+ 
+ 		// LSR - Logical Shift Right
+ 		LSR_ACC: begin
+-			{result, STATUS[C]} = A >> 1;
++			//{result, STATUS[C]} = A >> 1;
++			{result,STATUS[C]} = {1'b0,A};
+ 		end
+ 		LSR_ZPG, LSR_ZPX, LSR_ABS, LSR_ABX : begin
+-			{result, STATUS[C]} = alu_a >> 1;
++			//{result, STATUS[C]} = alu_a >> 1;
++			{result,STATUS[C]} = {1'b0,alu_a};
+ 		end
+ 			
+ 		// ROL - Rotate Left
+ParseResult:
+UPD HdlStmCase@@alu_opcode to alu_opcode
+    INS HdlStmCaseType@@CASE to alu_opcode
+    INS HdlValueId@@alu_opcode to alu_opcode
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@CONCAT to CONCAT
+                INS HdlValueInt@@0 to ops
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@CONCAT to CONCAT
+                INS HdlValueInt@@0 to ops
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@CONCAT to CONCAT
+                INS HdlValueInt@@0 to ops
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@CONCAT to CONCAT
+                INS HdlValueInt@@0 to ops
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@CONCAT to CONCAT
+                INS HdlValueInt@@0 to ops
+
+UPD HdlStmCase@@alu_opcode to alu_opcode
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@SLL to CONCAT
+            UPD HdlOp@@SLL to SLL
+                UPD HdlValueInt@@1 to 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@SLL to CONCAT
+            UPD HdlOp@@SLL to SLL
+                UPD HdlValueInt@@1 to 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@SLL to CONCAT
+            UPD HdlOp@@SLL to SLL
+                UPD HdlValueInt@@1 to 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@SLL to CONCAT
+            UPD HdlOp@@SLL to SLL
+                UPD HdlValueInt@@1 to 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@SLL to CONCAT
+            UPD HdlOp@@SLL to SLL
+                UPD HdlValueInt@@1 to 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@SRL to CONCAT
+            UPD HdlOp@@SRL to SRL
+                DEL HdlValueInt@@1 from ops
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@SRL to CONCAT
+            UPD HdlOp@@SRL to SRL
+                DEL HdlValueInt@@1 from ops
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@SRL to CONCAT
+            UPD HdlOp@@SRL to SRL
+                DEL HdlValueInt@@1 from ops
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@SRL to CONCAT
+            UPD HdlOp@@SRL to SRL
+                DEL HdlValueInt@@1 from ops
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlOp@@SRL to CONCAT
+            UPD HdlOp@@SRL to SRL
+                DEL HdlValueInt@@1 from ops
+    DEL HdlStmCaseType@@CASE from alu_opcode
+    DEL HdlValueId@@alu_opcode from alu_opcode
+
+
 CommitId: 24b9afe2d29b15664e9177ccfe9c98cce3511217
 SBC and PHP fixed!
 --- a/rtl/verilog/t6507lp_alu.v
@@ -1729,88 +1253,6 @@ SBC and PHP fixed!
  				//$display("ERROR");
  			end
 
-ParseResult:
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    INS HdlStmCaseType@@CASE to alu_opcode
-    INS HdlValueId@@alu_opcode to alu_opcode
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    DEL HdlStmCaseType@@CASE from alu_opcode
-    DEL HdlValueId@@alu_opcode from alu_opcode
-
-
-CommitId: 24b9afe2d29b15664e9177ccfe9c98cce3511217
-SBC and PHP fixed!
---- a/rtl/verilog/t6507lp_alu.v
-+++ b/rtl/verilog/t6507lp_alu.v
-@@ -323,8 +325,11 @@ always @ (*) begin
- 		// TODO: verify synthesis for % operand
- 		ADC_IMM, ADC_ZPG, ADC_ZPX, ADC_ABS, ADC_ABX, ADC_ABY, ADC_IDX, ADC_IDY : begin
- 			if (alu_status[D] == 1) begin
-+				$display("MODO DECIMAL");
- 				AL = A[3:0] + alu_a[3:0] + alu_status[C];
- 				AH = A[7:4] + alu_a[7:4];
-+				$display("AL = %h", AL);
-+				$display("AH = %h", AH);
- 				if (AL > 9) begin
- 					bcdh = AH + (AL / 10);
- 					bcdl = AL % 10;
-
-ParseResult:
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    INS HdlStmCaseType@@CASE to alu_opcode
-    INS HdlValueId@@alu_opcode to alu_opcode
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    DEL HdlStmCaseType@@CASE from alu_opcode
-    DEL HdlValueId@@alu_opcode from alu_opcode
-
-
-CommitId: 24b9afe2d29b15664e9177ccfe9c98cce3511217
-SBC and PHP fixed!
---- a/rtl/verilog/t6507lp_alu.v
-+++ b/rtl/verilog/t6507lp_alu.v
-@@ -333,10 +338,15 @@ always @ (*) begin
- 					STATUS[C] = 1;
- 					bcdh2 = bcdh % 10;
- 				end
-+				$display("bcdh = %h", bcdh);
-+				$display("bcdl = %h", bcdl);
- 				result = {bcdh2[3:0],bcdl[3:0]};
-+				$display("result = %h", result);
- 			end
--			else
-+			else begin
-+				$display("MODO NORMAL");
- 				{STATUS[C],result} = op1 + op2 + alu_status[C];
-+			end
- 			
- 			if ((op1[7] == op2[7]) && (op1[7] != result[7]))
- 				STATUS[V] = 1;
-
-ParseResult:
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    INS HdlStmCaseType@@CASE to alu_opcode
-    INS HdlValueId@@alu_opcode to alu_opcode
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    DEL HdlStmCaseType@@CASE from alu_opcode
-    DEL HdlValueId@@alu_opcode from alu_opcode
-
-
-CommitId: 24b9afe2d29b15664e9177ccfe9c98cce3511217
-SBC and PHP fixed!
---- a/rtl/verilog/t6507lp_alu.v
-+++ b/rtl/verilog/t6507lp_alu.v
-@@ -434,7 +444,7 @@ always @ (*) begin
- 				result = {bcdh[3:0],bcdl[3:0]};
- 			end
- 			else
--				{STATUS[C],result} = op1 - op2 - ~alu_status[C];
-+				{STATUS[C],result} = op1 - op2 - ( 1 - alu_status[C]);
- 			
- 			if ((op1[7] == op2[7]) && (op1[7] != result[7]))
- 				STATUS[V] = 1;
 ParseResult:
 UPD HdlStmCase@@alu_opcode to alu_opcode
     INS HdlStmCaseType@@CASE to alu_opcode
@@ -1959,114 +1401,6 @@ SBC bug fixed. Borrow should be working properly.
  			end
 
 ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS list@@ops to ASSIGN
-            INS HdlValueId@@sign to ops
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    INS HdlStmCaseType@@CASE to alu_opcode
-    INS HdlValueId@@alu_opcode to alu_opcode
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    DEL HdlStmCaseType@@CASE from alu_opcode
-    DEL HdlValueId@@alu_opcode from alu_opcode
-
-
-CommitId: f300cd87a53a7c313c32d3e07367cc70051c6009
-SBC bug fixed. Borrow should be working properly.
---- a/rtl/verilog/t6507lp_alu.v
-+++ b/rtl/verilog/t6507lp_alu.v
-@@ -215,7 +218,7 @@ always @ (*) begin
- 	bcdh2 = 0;
- 	AL = 0;
- 	AH = 0;
--	
-+	sign = op2[7];
- 
- 	case (alu_opcode)
- 		// BIT - Bit Test
-
-ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS list@@ops to ASSIGN
-            INS HdlValueId@@sign to ops
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    INS HdlStmCaseType@@CASE to alu_opcode
-    INS HdlValueId@@alu_opcode to alu_opcode
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    DEL HdlStmCaseType@@CASE from alu_opcode
-    DEL HdlValueId@@alu_opcode from alu_opcode
-
-
-CommitId: f300cd87a53a7c313c32d3e07367cc70051c6009
-SBC bug fixed. Borrow should be working properly.
---- a/rtl/verilog/t6507lp_alu.v
-+++ b/rtl/verilog/t6507lp_alu.v
-@@ -448,7 +451,7 @@ always @ (*) begin
- 				STATUS[V] = 0;
- */
- 			if (alu_status[D] == 1) begin
--				bcdl = A[3:0] - alu_a[3:0] - ~alu_status[C];
-+				bcdl = A[3:0] - alu_a[3:0] - ( 1 - alu_status[C] );
- 				bcdh = A[7:4] - alu_a[7:4];
- 				if (bcdl > 9) begin
- 					bcdh = bcdh + bcdl[5:4];
-
-ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS list@@ops to ASSIGN
-            INS HdlValueId@@sign to ops
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    INS HdlStmCaseType@@CASE to alu_opcode
-    INS HdlValueId@@alu_opcode to alu_opcode
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    DEL HdlStmCaseType@@CASE from alu_opcode
-    DEL HdlValueId@@alu_opcode from alu_opcode
-
-
-CommitId: f300cd87a53a7c313c32d3e07367cc70051c6009
-SBC bug fixed. Borrow should be working properly.
---- a/rtl/verilog/t6507lp_alu.v
-+++ b/rtl/verilog/t6507lp_alu.v
-@@ -460,10 +463,14 @@ always @ (*) begin
- 				end
- 				result = {bcdh[3:0],bcdl[3:0]};
- 			end
--			else
--				{STATUS[C],result} = op1 - op2 - ( 1 - alu_status[C] );
-+			else begin
-+				op2 = ~alu_a;
-+				{C_aux,result} = op1 + op2 + alu_status[C];
-+				STATUS[C] = ~C_aux;
-+			end
-+				
- 			
--			if ((op1[7] == op2[7]) && (op1[7] != result[7]))
-+			if ((op1[7] == sign) && (op1[7] != result[7]))
- 				STATUS[V] = 1;
- 			else
- 				STATUS[V] = 0;
-ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS list@@ops to ASSIGN
-            INS HdlValueId@@sign to ops
-
 UPD HdlStmCase@@alu_opcode to alu_opcode
     INS HdlStmCaseType@@CASE to alu_opcode
     INS HdlValueId@@alu_opcode to alu_opcode
@@ -4269,6 +3603,52 @@ UPD HdlStmCase@@alu_opcode to alu_opcode
     DEL HdlValueId@@alu_opcode from alu_opcode
 
 
+CommitId: 9bbb9b6ccf39965fe00afe2e342a3dab6443a7e7
+Fixed the input parametric testing logic, removed a pad.
+--- a/rtl/verilog/t6507lp_io.v
++++ b/rtl/verilog/t6507lp_io.v
+@@ -194,11 +218,11 @@ module t6507lp_io(clk, reset_n, data_in, rw_mem, data_out, address);
+ 
+ 	ICP data_in_pad7(
+ 		.PAD	(data_in[7]), 
+-		.PI	(dummy_vdd),
+-		.GND5O	(dummy_gnd),
+-		.GND5R	(dummy_gnd),
+-		.VDD5O	(dummy_vdd),
+-		.VDD5R	(dummy_vdd),
++		.PI	(pipo0),
++		.GND5O	(gnd),
++		.GND5R	(gnd),
++		.VDD5O	(vdd),
++		.VDD5R	(vdd),
+ 		.CLAMPC	(dummy_clampc),
+ 		.PO	(pipo1),
+ 		.Y	(data_inIO[7])
+
+ParseResult:
+INS HdlIdDef@@scan_enable to ports
+HdlIdDef: scan_enable
+    HdlDirection: IN
+
+DEL HdlModuleDef@@FILLERP_110 from objs
+HdlModuleDef: FILLERP_110
+    HdlModuleDec: FILLERP_110
+        list: params
+        list: ports
+            HdlIdDef: GND5O
+                HdlDirection: IN
+            HdlIdDef: GND5R
+                HdlDirection: IN
+            HdlIdDef: VDD5O
+                HdlDirection: IN
+            HdlIdDef: VDD5R
+                HdlDirection: IN
+            HdlIdDef: CLAMPC
+                HdlDirection: IN
+        list: objs
+    list: objs
+
+
 CommitId: c94876a10f4edab47657db5048278dea7cc0a24c
 Bug #56: ZPX page crossing.
 --- a/rtl/verilog/t6507lp_fsm.v
@@ -4281,46 +3661,6 @@ Bug #56: ZPX page crossing.
  		end
  		else begin
  			state <= next_state;
-
-ParseResult:
-UPD HdlStmIf@@ to 
-    INS list@@elifs to 
-
-UPD HdlStmCase@@state to state
-    INS HdlStmCaseType@@CASE to state
-    INS HdlValueId@@state to state
-
-UPD HdlStmIf@@ to 
-    DEL list@@elifs from 
-
-UPD HdlStmCase@@state to state
-    DEL HdlStmCaseType@@CASE from state
-    DEL HdlValueId@@state from state
-
-
-CommitId: c94876a10f4edab47657db5048278dea7cc0a24c
-Bug #56: ZPX page crossing.
---- a/rtl/verilog/t6507lp_fsm.v
-+++ b/rtl/verilog/t6507lp_fsm.v
-@@ -242,6 +252,18 @@ module t6507lp_fsm(clk, reset_n, alu_result, alu_status, data_in, alu_x, alu_y,
- 				all instructions execute this cycle.
- 				*/
- 				FETCH_LOW: begin
-+					//$display("index_is_x = %b",index_is_x);
-+					if (index_is_x == 1'b1) begin
-+						index <= alu_x;
-+						//$display("alu_x = %d",alu_x);
-+					end
-+					else begin
-+						index <= alu_y;
-+						//$display("alu_y = %d",alu_y);
-+					end
-+					if (index_is_branch) begin
-+						index <= temp_data;
-+					end
- 					if (accumulator || implied || txs || tsx) begin
- 						pc <= pc; // is this better?
- 						address <= pc;
 
 ParseResult:
 UPD HdlStmIf@@ to 
@@ -4387,80 +3727,6 @@ UPD HdlStmProcess@@ to
                 HdlValueId: index_is_branch
                 HdlValueInt: 0
 
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: index
-                HdlValueInt: 00
-
-
-CommitId: c94876a10f4edab47657db5048278dea7cc0a24c
-Bug #56: ZPX page crossing.
---- a/rtl/verilog/t6507lp_fsm.v
-+++ b/rtl/verilog/t6507lp_fsm.v
-@@ -989,7 +1020,8 @@ module t6507lp_fsm(clk, reset_n, alu_result, alu_status, data_in, alu_x, alu_y,
- 			end
- 			BMI_REL: begin
- 				relative = 1'b1;
--				index = temp_data;
-+				index_is_branch = 1'b1;
-+				//index = temp_data;
- 				
- 				if (alu_status[N]) begin
- 					branch = 1'b1;
-
-ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: index_is_branch
-                HdlValueInt: 0
-
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: index
-                HdlValueInt: 00
-
-
-CommitId: c94876a10f4edab47657db5048278dea7cc0a24c
-Bug #56: ZPX page crossing.
---- a/rtl/verilog/t6507lp_fsm.v
-+++ b/rtl/verilog/t6507lp_fsm.v
-@@ -1000,7 +1032,8 @@ module t6507lp_fsm(clk, reset_n, alu_result, alu_status, data_in, alu_x, alu_y,
- 			end
- 			BVC_REL: begin
- 				relative = 1'b1;
--				index = temp_data;
-+				index_is_branch = 1'b1;
-+				//index = temp_data;
- 				
- 				if (!alu_status[V]) begin
- 					branch = 1'b1;
-
-ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: index_is_branch
-                HdlValueInt: 0
-
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: index
-                HdlValueInt: 00
-
 
 CommitId: c94876a10f4edab47657db5048278dea7cc0a24c
 Bug #56: ZPX page crossing.
@@ -4478,14 +3744,6 @@ Bug #56: ZPX page crossing.
  					branch = 1'b1;
 
 ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: index_is_branch
-                HdlValueInt: 0
-
 UPD HdlStmCase@@ir to ir
     UPD HdlStmBlock@@SEQ to SEQ
         UPD HdlOp@@ASSIGN to ASSIGN
@@ -4753,14 +4011,6 @@ UPD HdlStmCase@@ir to ir
             DEL HdlValueId@@alu_y from ops
     DEL HdlStmCaseType@@CASE from ir
     DEL HdlValueId@@ir from ir
-
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: index
-                HdlValueInt: 00
 
 
 CommitId: c94876a10f4edab47657db5048278dea7cc0a24c
@@ -4797,14 +4047,6 @@ Bug #56: ZPX page crossing.
  				absolute = 1'b1;
 
 ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: index_is_branch
-                HdlValueInt: 0
-
 UPD HdlStmCase@@ir to ir
     INS HdlStmCaseType@@CASE to ir
     INS HdlValueId@@ir to ir
@@ -5013,787 +4255,385 @@ UPD HdlStmCase@@ir to ir
         UPD HdlOp@@ASSIGN to ASSIGN
             INS HdlValueInt@@0 to ops
 
-UPD HdlStmCase@@ir to ir
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_branch
-            DEL HdlValueId@@temp_data from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_branch
-            DEL HdlValueId@@temp_data from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_branch
-            DEL HdlValueId@@temp_data from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_branch
-            DEL HdlValueId@@temp_data from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_branch
-            DEL HdlValueId@@temp_data from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_branch
-            DEL HdlValueId@@temp_data from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_branch
-            DEL HdlValueId@@temp_data from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_branch
-            DEL HdlValueId@@temp_data from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    DEL HdlStmCaseType@@CASE from ir
-    DEL HdlValueId@@ir from ir
 
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: index
-                HdlValueInt: 00
-
-
-CommitId: c94876a10f4edab47657db5048278dea7cc0a24c
-Bug #56: ZPX page crossing.
---- a/rtl/verilog/t6507lp_fsm.v
-+++ b/rtl/verilog/t6507lp_fsm.v
-@@ -1079,6 +1117,7 @@ module t6507lp_fsm(clk, reset_n, alu_result, alu_status, data_in, alu_x, alu_y,
- 				txs = 1'b1;
+CommitId: 7107bf51527ae837d02639e0b9566652f5ad91f4
+Bug 28 fixed. PHA was not coping the register to alu_a output
+--- a/rtl/verilog/t6507lp_alu.v
++++ b/rtl/verilog/t6507lp_alu.v
+@@ -123,6 +123,10 @@ begin
+ 			begin
+ 				alu_status <= STATUS;
  			end
- 			default: begin
-+				index_is_x = 1'b1;
- 				//$write("state : %b", state);
- 				if (reset_n == 1'b1 && state != FETCH_OP_FIX_PC) begin // the processor is NOT being reset neither it is fixing the pc
- 					//$write("\nunknown OPCODE!!!!! 0x%h\n", ir);
++			PHA_IMP :
++			begin
++				alu_result <= result;
++			end
+ 			SEC_IMP :
+ 			begin
+ 				alu_status[C] <= 1;
+
 ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: index_is_branch
-                HdlValueInt: 0
+UPD HdlStmCase@@alu_opcode to alu_opcode
+    INS HdlStmCaseType@@CASE to alu_opcode
+    INS HdlValueId@@alu_opcode to alu_opcode
+    INS tuple@@ to cases
+    tuple
+        HdlValueId: PHA_IMP
+        HdlStmBlock: SEQ
+            list: body
+                HdlStmAssign
+                    HdlValueId: result
+                    HdlValueId: alu_result
 
-UPD HdlStmCase@@ir to ir
-    INS HdlStmCaseType@@CASE to ir
-    INS HdlValueId@@ir to ir
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: index_is_x
-                HdlValueInt: 1
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@0 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@0 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@0 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@0 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@0 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@0 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@0 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@0 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@0 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@0 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@0 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@1 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@0 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@0 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@0 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@0 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@0 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@0 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@0 to ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            INS HdlValueInt@@0 to ops
+UPD HdlStmCase@@alu_opcode to alu_opcode
+    DEL HdlStmCaseType@@CASE from alu_opcode
+    DEL HdlValueId@@alu_opcode from alu_opcode
 
-UPD HdlStmCase@@ir to ir
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_branch
-            DEL HdlValueId@@temp_data from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_branch
-            DEL HdlValueId@@temp_data from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_branch
-            DEL HdlValueId@@temp_data from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_branch
-            DEL HdlValueId@@temp_data from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_branch
-            DEL HdlValueId@@temp_data from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_branch
-            DEL HdlValueId@@temp_data from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_branch
-            DEL HdlValueId@@temp_data from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_branch
-            DEL HdlValueId@@temp_data from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_x from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@index to index_is_x
-            DEL HdlValueId@@alu_y from ops
-    DEL HdlStmCaseType@@CASE from ir
-    DEL HdlValueId@@ir from ir
 
-UPD HdlStmProcess@@ to 
+CommitId: 7107bf51527ae837d02639e0b9566652f5ad91f4
+Bug 28 fixed. PHA was not coping the register to alu_a output
+--- a/rtl/verilog/t6507lp_alu.v
++++ b/rtl/verilog/t6507lp_alu.v
+@@ -331,8 +335,8 @@ always @ (*) begin
+ 				STATUS[V] = 1;
+ 			else
+ 				STATUS[V] = 0;
+-			$display("op1 + op2 + C = result + C (V)");
+-			$display("%d  + %d  + %b = %d + %b (%b)", op1, op2, alu_status[C],result,STATUS[C],STATUS[V]);
++			//$display("op1 + op2 + C = result + C (V)");
++			//$display("%d  + %d  + %b = %d + %b (%b)", op1, op2, alu_status[C],result,STATUS[C],STATUS[V]);
+ 
+ 			if (alu_status[D] == 1) begin
+ 				if (result[3:0] > 9) begin
+
+ParseResult:
+UPD HdlStmCase@@alu_opcode to alu_opcode
+    INS HdlStmCaseType@@CASE to alu_opcode
+    INS HdlValueId@@alu_opcode to alu_opcode
+
+UPD HdlStmCase@@alu_opcode to alu_opcode
+    DEL HdlStmCaseType@@CASE from alu_opcode
+    DEL HdlValueId@@alu_opcode from alu_opcode
     UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
             list: ops
-                HdlValueId: index
-                HdlValueInt: 00
+                HdlValueId: $display
+                str
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: op1
+                HdlValueId: op2
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: alu_status
+                        HdlValueId: C
+                HdlValueId: result
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: STATUS
+                        HdlValueId: C
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: STATUS
+                        HdlValueId: V
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: op1
+                HdlValueId: op2
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: alu_status
+                        HdlValueId: C
+                HdlValueId: result
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: STATUS
+                        HdlValueId: C
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: STATUS
+                        HdlValueId: V
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: op1
+                HdlValueId: op2
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: alu_status
+                        HdlValueId: C
+                HdlValueId: result
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: STATUS
+                        HdlValueId: C
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: STATUS
+                        HdlValueId: V
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: op1
+                HdlValueId: op2
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: alu_status
+                        HdlValueId: C
+                HdlValueId: result
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: STATUS
+                        HdlValueId: C
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: STATUS
+                        HdlValueId: V
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: op1
+                HdlValueId: op2
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: alu_status
+                        HdlValueId: C
+                HdlValueId: result
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: STATUS
+                        HdlValueId: C
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: STATUS
+                        HdlValueId: V
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: op1
+                HdlValueId: op2
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: alu_status
+                        HdlValueId: C
+                HdlValueId: result
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: STATUS
+                        HdlValueId: C
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: STATUS
+                        HdlValueId: V
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: op1
+                HdlValueId: op2
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: alu_status
+                        HdlValueId: C
+                HdlValueId: result
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: STATUS
+                        HdlValueId: C
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: STATUS
+                        HdlValueId: V
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: op1
+                HdlValueId: op2
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: alu_status
+                        HdlValueId: C
+                HdlValueId: result
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: STATUS
+                        HdlValueId: C
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: STATUS
+                        HdlValueId: V
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: op1
+                HdlValueId: op2
+                HdlValueId: result
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: op1
+                HdlValueId: op2
+                HdlValueId: result
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: op1
+                HdlValueId: op2
+                HdlValueId: result
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: op1
+                HdlValueId: op2
+                HdlValueId: result
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: op1
+                HdlValueId: op2
+                HdlValueId: result
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: op1
+                HdlValueId: op2
+                HdlValueId: result
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: op1
+                HdlValueId: op2
+                HdlValueId: result
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: op1
+                HdlValueId: op2
+                HdlValueId: result
 
 
 CommitId: 07dfd73483a79c4918f3d2ecba94d4200222fe33
@@ -5815,204 +4655,6 @@ Bug #24 from trac might be fixed. Processor register is working properly.
  			end
  			BIT_ZPG, BIT_ABS :
  			begin
-
-ParseResult:
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    INS HdlStmCaseType@@CASE to alu_opcode
-    INS HdlValueId@@alu_opcode to alu_opcode
-    INS tuple@@ to cases
-    tuple
-        HdlValueId: PLP_IMP
-        HdlStmBlock: SEQ
-            list: body
-                HdlStmAssign
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_a
-                            HdlValueId: C
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_status
-                            HdlValueId: C
-                HdlStmAssign
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_a
-                            HdlValueId: Z
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_status
-                            HdlValueId: Z
-                HdlStmAssign
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_a
-                            HdlValueId: I
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_status
-                            HdlValueId: I
-                HdlStmAssign
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_a
-                            HdlValueId: D
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_status
-                            HdlValueId: D
-                HdlStmAssign
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_a
-                            HdlValueId: B
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_status
-                            HdlValueId: B
-                HdlStmAssign
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_a
-                            HdlValueId: V
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_status
-                            HdlValueId: V
-                HdlStmAssign
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_a
-                            HdlValueId: N
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_status
-                            HdlValueId: N
-    INS tuple@@ to cases
-    tuple
-        HdlValueId: RTI_IMP
-        HdlStmBlock: SEQ
-            list: body
-                HdlStmAssign
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_a
-                            HdlValueId: C
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_status
-                            HdlValueId: C
-                HdlStmAssign
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_a
-                            HdlValueId: Z
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_status
-                            HdlValueId: Z
-                HdlStmAssign
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_a
-                            HdlValueId: I
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_status
-                            HdlValueId: I
-                HdlStmAssign
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_a
-                            HdlValueId: D
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_status
-                            HdlValueId: D
-                HdlStmAssign
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_a
-                            HdlValueId: B
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_status
-                            HdlValueId: B
-                HdlStmAssign
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_a
-                            HdlValueId: V
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_status
-                            HdlValueId: V
-                HdlStmAssign
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_a
-                            HdlValueId: N
-                    HdlOp: INDEX
-                        list: ops
-                            HdlValueId: alu_status
-                            HdlValueId: N
-
-UPD HdlStmIf@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@CALL from body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    DEL HdlStmCaseType@@CASE from alu_opcode
-    DEL HdlValueId@@alu_opcode from alu_opcode
-    DEL tuple@@ from cases
-    tuple
-        HdlValueId: PLP_IMP
-        HdlStmBlock: SEQ
-            list: body
-                HdlStmAssign
-                    HdlValueId: alu_a
-                    HdlValueId: alu_status
-    DEL tuple@@ from cases
-    tuple
-        HdlValueId: RTI_IMP
-        HdlStmBlock: SEQ
-            list: body
-                HdlStmAssign
-                    HdlValueId: alu_a
-                    HdlValueId: alu_status
-
-
-CommitId: 07dfd73483a79c4918f3d2ecba94d4200222fe33
-Bug #24 from trac might be fixed. Processor register is working properly.
---- a/rtl/verilog/t6507lp_alu.v
-+++ b/rtl/verilog/t6507lp_alu.v
-@@ -188,12 +194,16 @@ end
- always @ (*) begin
- 	bcd1      = A;
- 	bcd2      = alu_a;
--	//result    = alu_result;
--	//STATUS[C] = STATUS[C];
--	//STATUS[V] = STATUS[V];
--	//STATUS[B] = STATUS[B];
--	//STATUS[I] = STATUS[I];
--	//STATUS[D] = STATUS[D];
-+	result    = alu_result;
-+	STATUS[N] = alu_status[N];
-+	STATUS[C] = alu_status[C];
-+	STATUS[V] = alu_status[V];
-+	STATUS[B] = alu_status[B];
-+	STATUS[I] = alu_status[I];
-+	STATUS[D] = alu_status[D];
-+	STATUS[Z] = alu_status[Z];
-+	STATUS[N] = alu_status[N];
-+	STATUS[5] = alu_status[5];
- 
- 	case (alu_opcode)
- 		// BIT - Bit Test
 
 ParseResult:
 UPD HdlStmCase@@alu_opcode to alu_opcode
@@ -6841,100 +5483,6 @@ UPD HdlStmIf@@ to
     DEL list@@elifs from 
 
 
-CommitId: 6ee368ddb451d6ef8f075c5042017b9a2ab4dfec
-STA, STY and STX fixed
---- a/rtl/verilog/t6507lp_alu.v
-+++ b/rtl/verilog/t6507lp_alu.v
-@@ -428,7 +431,8 @@ if (alu_enable == 1) begin
- 				result = {bcdh[3:0],bcdl[3:0]};
- 			end
- 			else begin
--				{C_aux,result} = op1 + op2 + alu_status[C];
-+				op2 = ~alu_a;
-+				result = op1 + op2 + alu_status[C];
- 				STATUS[C] = ~result[7];
- 			end
- 				
-ParseResult:
-UPD HdlStmIf@@ to 
-    INS list@@elifs to 
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    INS HdlStmCaseType@@CASE to alu_opcode
-    INS HdlValueId@@alu_opcode to alu_opcode
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    UPD HdlStmBlock@@SEQ to SEQ
-        MOV HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: op2
-                HdlOp: NEG
-                    list: ops
-                        HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        MOV HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: op2
-                HdlOp: NEG
-                    list: ops
-                        HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        MOV HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: op2
-                HdlOp: NEG
-                    list: ops
-                        HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        MOV HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: op2
-                HdlOp: NEG
-                    list: ops
-                        HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        MOV HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: op2
-                HdlOp: NEG
-                    list: ops
-                        HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        MOV HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: op2
-                HdlOp: NEG
-                    list: ops
-                        HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        MOV HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: op2
-                HdlOp: NEG
-                    list: ops
-                        HdlValueId: alu_a
-    UPD HdlStmBlock@@SEQ to SEQ
-        MOV HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: op2
-                HdlOp: NEG
-                    list: ops
-                        HdlValueId: alu_a
-    DEL HdlStmCaseType@@CASE from alu_opcode
-    DEL HdlValueId@@alu_opcode from alu_opcode
-
-UPD HdlStmIf@@ to 
-    DEL list@@elifs from 
-
-
 CommitId: 71f30ad46487d39312b94f2960fe2b9ff22f3cd4
 Bug #24 from trac was fixed.
 --- a/rtl/verilog/t6507lp_alu.v
@@ -7138,123 +5686,6 @@ Bug #24 from trac was fixed.
  				STATUS[V] = 0;
 
 ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: op1
-                HdlValueId: A
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: op2
-                HdlValueId: alu_a
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    INS HdlStmCaseType@@CASE to alu_opcode
-    INS HdlValueId@@alu_opcode to alu_opcode
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    DEL HdlStmCaseType@@CASE from alu_opcode
-    DEL HdlValueId@@alu_opcode from alu_opcode
-
 UPD HdlStmIf@@ to 
     UPD HdlOp@@AND_LOG to AND_LOG
         UPD HdlOp@@EQ to EQ
@@ -7614,165 +6045,6 @@ UPD HdlStmIf@@ to
             UPD HdlOp@@ADD to ADD
                 UPD HdlOp@@INDEX to INDEX
                     UPD HdlValueId@@bcd2 to op2
-
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: bcd1
-                HdlValueId: A
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: bcd2
-                HdlValueId: alu_a
-
-
-CommitId: 71f30ad46487d39312b94f2960fe2b9ff22f3cd4
-Bug #24 from trac was fixed.
---- a/rtl/verilog/t6507lp_alu.v
-+++ b/rtl/verilog/t6507lp_alu.v
-@@ -346,8 +337,6 @@ always @ (*) begin
- 					STATUS[C] = 1;
- 				end
- 			end
--			//$display("op1 = %h op2 = %h result = %h", bcd1, bcd2, result);
--			//$display("V = %b C = %b D = %b", STATUS[V], STATUS[C], STATUS[D]);
- 		end
- 			
- 		// AND - Logical AND
-
-ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: op1
-                HdlValueId: A
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: op2
-                HdlValueId: alu_a
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    INS HdlStmCaseType@@CASE to alu_opcode
-    INS HdlValueId@@alu_opcode to alu_opcode
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    DEL HdlStmCaseType@@CASE from alu_opcode
-    DEL HdlValueId@@alu_opcode from alu_opcode
-
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: bcd1
-                HdlValueId: A
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: bcd2
-                HdlValueId: alu_a
 
 
 CommitId: 71f30ad46487d39312b94f2960fe2b9ff22f3cd4
@@ -7812,123 +6084,6 @@ Bug #24 from trac was fixed.
  				STATUS[V] = 0;
 
 ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: op1
-                HdlValueId: A
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: op2
-                HdlValueId: alu_a
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    INS HdlStmCaseType@@CASE to alu_opcode
-    INS HdlValueId@@alu_opcode to alu_opcode
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    DEL HdlStmCaseType@@CASE from alu_opcode
-    DEL HdlValueId@@alu_opcode from alu_opcode
-
 UPD HdlStmIf@@ to 
     UPD HdlStmBlock@@SEQ to SEQ
         UPD HdlOp@@ASSIGN to ASSIGN
@@ -7968,171 +6123,6 @@ UPD HdlStmIf@@ to
     UPD HdlStmBlock@@SEQ to SEQ
         UPD HdlOp@@ASSIGN to ASSIGN
             UPD HdlValueId@@bcd1 to op1
-
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: bcd1
-                HdlValueId: A
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: bcd2
-                HdlValueId: alu_a
-
-
-CommitId: 71f30ad46487d39312b94f2960fe2b9ff22f3cd4
-Bug #24 from trac was fixed.
---- a/rtl/verilog/t6507lp_alu.v
-+++ b/rtl/verilog/t6507lp_alu.v
-@@ -428,13 +418,13 @@ always @ (*) begin
- 			
- 		// ROL - Rotate Left
- 		ROL_ACC : begin
--			{STATUS[C],result} = {A,alu_status[C]}; //TODO: does it really work?
-+			{STATUS[C],result} = {A,alu_status[C]};
- 		end
- 		ROL_ZPG, ROL_ZPX, ROL_ABS, ROL_ABX : begin
- 			{STATUS[C],result} = {alu_a,alu_status[C]};
- 		end
- 
--		// ROR - Rotate Right		
-+		// ROR - Rotate Right
- 		ROR_ACC : begin
- 			{result,STATUS[C]} = {alu_status[C],A};
- 		end
-ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: op1
-                HdlValueId: A
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: op2
-                HdlValueId: alu_a
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    INS HdlStmCaseType@@CASE to alu_opcode
-    INS HdlValueId@@alu_opcode to alu_opcode
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@ADD to ADD
-                UPD HdlOp@@ADD to ADD
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@SUB to SUB
-                UPD HdlOp@@SUB to SUB
-                    UPD HdlValueId@@bcd1 to op1
-                    UPD HdlValueId@@bcd2 to op2
-    DEL HdlStmCaseType@@CASE from alu_opcode
-    DEL HdlValueId@@alu_opcode from alu_opcode
-
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: bcd1
-                HdlValueId: A
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: bcd2
-                HdlValueId: alu_a
 
 
 CommitId: 8da18a2c724af4c6a3e7aeab01c583f8128010c0
@@ -8148,54 +6138,6 @@ Still having bugs on ADC with decimal flag! Is it correct now?
  			else
  				{STATUS[C],result} = op1 + op2 + alu_status[C];
 
-ParseResult:
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    INS HdlStmCaseType@@CASE to alu_opcode
-    INS HdlValueId@@alu_opcode to alu_opcode
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    DEL HdlStmCaseType@@CASE from alu_opcode
-    DEL HdlValueId@@alu_opcode from alu_opcode
-
-
-CommitId: 8da18a2c724af4c6a3e7aeab01c583f8128010c0
-Still having bugs on ADC with decimal flag! Is it correct now?
---- a/rtl/verilog/t6507lp_alu.v
-+++ b/rtl/verilog/t6507lp_alu.v
-@@ -418,8 +419,8 @@ always @ (*) begin
- 				STATUS[V] = 0;
- */
- 			if (alu_status[D] == 1) begin
--				bcdl = A[3:0] + alu_a[3:0] + alu_status[C];
--				bcdh = A[7:4] + alu_a[7:4];
-+				bcdl = A[3:0] - alu_a[3:0] - ~alu_status[C];
-+				bcdh = A[7:4] - alu_a[7:4];
- 				if (bcdl > 9) begin
- 					bcdh = bcdh + bcdl[5:4];
- 					bcdl = bcdl % 10;
-
-ParseResult:
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    INS HdlStmCaseType@@CASE to alu_opcode
-    INS HdlValueId@@alu_opcode to alu_opcode
-
-UPD HdlStmCase@@alu_opcode to alu_opcode
-    DEL HdlStmCaseType@@CASE from alu_opcode
-    DEL HdlValueId@@alu_opcode from alu_opcode
-
-
-CommitId: 8da18a2c724af4c6a3e7aeab01c583f8128010c0
-Still having bugs on ADC with decimal flag! Is it correct now?
---- a/rtl/verilog/t6507lp_alu.v
-+++ b/rtl/verilog/t6507lp_alu.v
-@@ -428,6 +429,7 @@ always @ (*) begin
- 					STATUS[C] = 1;
- 					bcdh = bcdh % 10;
- 				end
-+				result = {bcdh[3:0],bcdl[3:0]};
- 			end
- 			else
- 				{STATUS[C],result} = op1 - op2 - ~alu_status[C];
 ParseResult:
 UPD HdlStmCase@@alu_opcode to alu_opcode
     INS HdlStmCaseType@@CASE to alu_opcode
@@ -8252,221 +6194,6 @@ Bug #48: SP wrong after decrement.
  			address_plus_index[12:8] = temp_addr[12:8] + page_crossed;
  		end
 
-ParseResult:
-UPD HdlStmIf@@ to 
-    INS list@@elifs to 
-
-UPD HdlStmCase@@state to state
-    INS HdlStmCaseType@@CASE to state
-    INS HdlValueId@@state to state
-    INS tuple@@ to cases
-    tuple
-        HdlValueId: RESET
-        HdlStmBlock: SEQ
-            list: body
-                HdlStmAssign
-                    HdlOp: ADD
-                        list: ops
-                            HdlValueId: rst_counter
-                            HdlValueInt: 001
-                    HdlValueId: rst_counter
-
-UPD HdlStmIf@@ to 
-    DEL list@@elifs from 
-
-UPD HdlStmCase@@state to state
-    DEL HdlStmCaseType@@CASE from state
-    DEL HdlValueId@@state from state
-    DEL tuple@@ from cases
-    tuple
-        HdlValueId: RESET
-        HdlStmBlock: SEQ
-            list: body
-                HdlStmAssign
-                    HdlOp: ADD
-                        list: ops
-                            HdlValueId: rst_counter
-                            HdlValueInt: 1
-                    HdlValueId: rst_counter
-
-
-CommitId: cc058c45baac505eac5228f249fedfaa6d141ddb
-Bug #48: SP wrong after decrement.
---- a/rtl/verilog/t6507lp_fsm.v
-+++ b/rtl/verilog/t6507lp_fsm.v
-@@ -182,7 +182,7 @@ module t6507lp_fsm(clk, reset_n, alu_result, alu_status, data_in, alu_x, alu_y,
- 				address_plus_index[12:8] = 5'b00000;
- 			end
- 			else if (jump_indirect) begin
--				address_plus_index[7:0] = temp_addr[7:0] + 8'h01; // temp_addr should be 7:0?
-+				address_plus_index[7:0] = temp_addr[7:0] + 8'h01;
- 				address_plus_index[12:8] = 5'b00000;
- 			end
- 			else begin // indirecty falls here
-
-ParseResult:
-UPD HdlStmIf@@ to 
-    INS list@@elifs to 
-
-UPD HdlStmCase@@state to state
-    INS HdlStmCaseType@@CASE to state
-    INS HdlValueId@@state to state
-    INS tuple@@ to cases
-    tuple
-        HdlValueId: RESET
-        HdlStmBlock: SEQ
-            list: body
-                HdlStmAssign
-                    HdlOp: ADD
-                        list: ops
-                            HdlValueId: rst_counter
-                            HdlValueInt: 001
-                    HdlValueId: rst_counter
-
-UPD HdlStmIf@@ to 
-    DEL list@@elifs from 
-
-UPD HdlStmCase@@state to state
-    DEL HdlStmCaseType@@CASE from state
-    DEL HdlValueId@@state from state
-    DEL tuple@@ from cases
-    tuple
-        HdlValueId: RESET
-        HdlStmBlock: SEQ
-            list: body
-                HdlStmAssign
-                    HdlOp: ADD
-                        list: ops
-                            HdlValueId: rst_counter
-                            HdlValueInt: 1
-                    HdlValueId: rst_counter
-
-
-CommitId: cc058c45baac505eac5228f249fedfaa6d141ddb
-Bug #48: SP wrong after decrement.
---- a/rtl/verilog/t6507lp_fsm.v
-+++ b/rtl/verilog/t6507lp_fsm.v
-@@ -205,7 +205,7 @@ module t6507lp_fsm(clk, reset_n, alu_result, alu_status, data_in, alu_x, alu_y,
- 	always @ (posedge clk or negedge reset_n) begin // sequencial always block
- 		if (reset_n == 1'b0) begin
- 			// all registers must assume default values
--			pc <= 0; // TODO: this is written somewhere. something about a reset vector. must be checked.
-+			pc <= 13'h0; // TODO: this is written somewhere. something about a reset vector. must be checked.
- 			sp <= 9'b111111111; // the default is 'h1FF 
- 			ir <= 8'h00;
- 			temp_addr <= 13'h0000;
-
-ParseResult:
-UPD HdlStmIf@@ to 
-    INS list@@elifs to 
-
-UPD HdlStmCase@@state to state
-    INS HdlStmCaseType@@CASE to state
-    INS HdlValueId@@state to state
-    INS tuple@@ to cases
-    tuple
-        HdlValueId: RESET
-        HdlStmBlock: SEQ
-            list: body
-                HdlStmAssign
-                    HdlOp: ADD
-                        list: ops
-                            HdlValueId: rst_counter
-                            HdlValueInt: 001
-                    HdlValueId: rst_counter
-
-UPD HdlStmIf@@ to 
-    DEL list@@elifs from 
-
-UPD HdlStmCase@@state to state
-    DEL HdlStmCaseType@@CASE from state
-    DEL HdlValueId@@state from state
-    DEL tuple@@ from cases
-    tuple
-        HdlValueId: RESET
-        HdlStmBlock: SEQ
-            list: body
-                HdlStmAssign
-                    HdlOp: ADD
-                        list: ops
-                            HdlValueId: rst_counter
-                            HdlValueInt: 1
-                    HdlValueId: rst_counter
-
-
-CommitId: cc058c45baac505eac5228f249fedfaa6d141ddb
-Bug #48: SP wrong after decrement.
---- a/rtl/verilog/t6507lp_fsm.v
-+++ b/rtl/verilog/t6507lp_fsm.v
-@@ -215,14 +215,14 @@ module t6507lp_fsm(clk, reset_n, alu_result, alu_status, data_in, alu_x, alu_y,
- 			address <= 13'h0000;
- 			mem_rw <= MEM_READ;
- 			data_out <= 8'h00;
--			rst_counter <= 0;
-+			rst_counter <= 3'h0;
- 		end
- 		else begin
- 			state <= next_state;
- 
- 			case (state)
- 				RESET: begin	// The processor was reset
--					rst_counter <= rst_counter + 1;
-+					rst_counter <= rst_counter + 3'b001;
- 					//sp <= 9'b111111111; // this prevents flipflops with different drivers
- 					//$write("under reset"); 
- 				end
-
-ParseResult:
-UPD HdlStmIf@@ to 
-    INS list@@elifs to 
-
-UPD HdlStmCase@@state to state
-    INS HdlStmCaseType@@CASE to state
-    INS HdlValueId@@state to state
-    INS tuple@@ to cases
-    tuple
-        HdlValueId: RESET
-        HdlStmBlock: SEQ
-            list: body
-                HdlStmAssign
-                    HdlOp: ADD
-                        list: ops
-                            HdlValueId: rst_counter
-                            HdlValueInt: 001
-                    HdlValueId: rst_counter
-
-UPD HdlStmIf@@ to 
-    DEL list@@elifs from 
-
-UPD HdlStmCase@@state to state
-    DEL HdlStmCaseType@@CASE from state
-    DEL HdlValueId@@state from state
-    DEL tuple@@ from cases
-    tuple
-        HdlValueId: RESET
-        HdlStmBlock: SEQ
-            list: body
-                HdlStmAssign
-                    HdlOp: ADD
-                        list: ops
-                            HdlValueId: rst_counter
-                            HdlValueInt: 1
-                    HdlValueId: rst_counter
-
-
-CommitId: cc058c45baac505eac5228f249fedfaa6d141ddb
-Bug #48: SP wrong after decrement.
---- a/rtl/verilog/t6507lp_fsm.v
-+++ b/rtl/verilog/t6507lp_fsm.v
-@@ -592,7 +592,7 @@ module t6507lp_fsm(clk, reset_n, alu_result, alu_status, data_in, alu_x, alu_y,
- 
- 		case (state)
- 			RESET: begin
--				if (rst_counter == 6) begin
-+				if (rst_counter == 3'd6) begin
- 					next_state = FETCH_OP;
- 				end
- 			end
 ParseResult:
 UPD HdlStmIf@@ to 
     INS list@@elifs to 

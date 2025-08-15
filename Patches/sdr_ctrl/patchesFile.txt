@@ -472,28 +472,3 @@ UPD HdlStmIf@@ to
                 UPD HdlValueId@@rd_xfr_count to x2a_rdok
 
 
-CommitId: 59f6326a06fe5ca6cf2bd87d22c4faaef2ccc820
-SDRAM bus converter bug fix and top-level signal clean up
---- a/rtl/core/sdrc_bs_convert.v
-+++ b/rtl/core/sdrc_bs_convert.v
-@@ -158,7 +160,7 @@ always @(*) begin
-         begin
-            // Changed the address and length to match the 16 bit SDR Mode
-             app_wr_next         = (x2a_wrnext & (wr_xfr_count[1:0]== 2'b11));
--            app_rd_valid        = (rd_xfr_count &   (rd_xfr_count[1:0]== 2'b11));
-+            app_rd_valid        = (x2a_rdok &   (rd_xfr_count[1:0]== 2'b11));
-             if(wr_xfr_count[1:0] == 2'b11)
-             begin
-                 a2x_wren_n      = app_wr_en_n[3];
-ParseResult:
-UPD HdlStmIf@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@AND to AND
-                UPD HdlValueId@@rd_xfr_count to x2a_rdok
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlOp@@AND to AND
-                UPD HdlValueId@@rd_xfr_count to x2a_rdok
-
-

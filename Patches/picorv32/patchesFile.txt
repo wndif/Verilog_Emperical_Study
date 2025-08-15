@@ -261,66 +261,6 @@ UPD HdlStmCase@@cpu_state to cpu_state
     DEL HdlValueId@@cpu_state from cpu_state
 
 
-CommitId: 7fc2cbd72a63228e85a002aac80104febf8b41ba
-More RVFI bugfixes
---- a/picorv32.v
-+++ b/picorv32.v
-@@ -1625,7 +1625,7 @@ module picorv32 #(
- 							reg_sh <= cpuregs_rs2;
- 							reg_op2 <= cpuregs_rs2;
- 							dbg_rs2val <= cpuregs_rs2;
--							dbg_rs2val_valid <= 0;
-+							dbg_rs2val_valid <= 1;
- 							(* parallel_case *)
- 							case (1'b1)
- 								is_sb_sh_sw: begin
-
-ParseResult:
-UPD HdlStmIf@@ to 
-    INS list@@elifs to 
-
-UPD HdlStmCase@@cpu_state to cpu_state
-    INS HdlStmCaseType@@CASE to cpu_state
-    INS HdlValueId@@cpu_state to cpu_state
-
-UPD HdlStmIf@@ to 
-    DEL list@@elifs from 
-
-UPD HdlStmCase@@cpu_state to cpu_state
-    DEL HdlStmCaseType@@CASE from cpu_state
-    DEL HdlValueId@@cpu_state from cpu_state
-
-
-CommitId: 7fc2cbd72a63228e85a002aac80104febf8b41ba
-More RVFI bugfixes
---- a/picorv32.v
-+++ b/picorv32.v
-@@ -1655,7 +1655,7 @@ module picorv32 #(
- 				reg_sh <= cpuregs_rs2;
- 				reg_op2 <= cpuregs_rs2;
- 				dbg_rs2val <= cpuregs_rs2;
--				dbg_rs2val_valid <= 0;
-+				dbg_rs2val_valid <= 1;
- 
- 				(* parallel_case *)
- 				case (1'b1)
-
-ParseResult:
-UPD HdlStmIf@@ to 
-    INS list@@elifs to 
-
-UPD HdlStmCase@@cpu_state to cpu_state
-    INS HdlStmCaseType@@CASE to cpu_state
-    INS HdlValueId@@cpu_state to cpu_state
-
-UPD HdlStmIf@@ to 
-    DEL list@@elifs from 
-
-UPD HdlStmCase@@cpu_state to cpu_state
-    DEL HdlStmCaseType@@CASE from cpu_state
-    DEL HdlValueId@@cpu_state from cpu_state
-
-
 CommitId: 89ad9fc85a4e89a8ae1ac977412d54de274ed02d
 Fix bug in picosoc spimemio and some cleanups in hx8kdemo
 --- a/picosoc/spimemio.v
@@ -507,34 +447,6 @@ Deassert pcpi_valid upon asserting sbreak IRQ
  									if (ENABLE_IRQ && !irq_mask[irq_sbreak] && !irq_active) begin
  										next_irq_pending[irq_sbreak] = 1;
 
-ParseResult:
-UPD HdlStmIf@@ to 
-    INS list@@elifs to 
-
-UPD HdlStmCase@@cpu_state to cpu_state
-    INS HdlStmCaseType@@CASE to cpu_state
-    INS HdlValueId@@cpu_state to cpu_state
-
-UPD HdlStmIf@@ to 
-    DEL list@@elifs from 
-
-UPD HdlStmCase@@cpu_state to cpu_state
-    DEL HdlStmCaseType@@CASE from cpu_state
-    DEL HdlValueId@@cpu_state from cpu_state
-
-
-CommitId: 38d51a33839f1c7407e42bb51a6104a8bad88aec
-Deassert pcpi_valid upon asserting sbreak IRQ
---- a/picorv32.v
-+++ b/picorv32.v
-@@ -1419,6 +1420,7 @@ module picorv32 #(
- 							cpu_state <= cpu_state_fetch;
- 						end else
- 						if (CATCH_ILLINSN && pcpi_timeout) begin
-+							pcpi_valid <= 0;
- 							`debug($display("SBREAK OR UNSUPPORTED INSN AT 0x%08x", reg_pc);)
- 							if (ENABLE_IRQ && !irq_mask[irq_sbreak] && !irq_active) begin
- 								next_irq_pending[irq_sbreak] = 1;
 ParseResult:
 UPD HdlStmIf@@ to 
     INS list@@elifs to 
@@ -1064,43 +976,6 @@ UPD HdlStmIf@@ to
     DEL list@@elifs from 
 
 
-CommitId: ef86b30b2598df6993a473222ebe355b0348e226
-Fixed some linter warnings in picorv32.v
---- a/picorv32.v
-+++ b/picorv32.v
-@@ -391,14 +391,14 @@ module picorv32 #(
- 					case (mem_rdata_latched[15:13])
- 						3'b000: begin // C.ADDI4SPN
- 							mem_rdata_q[14:12] <= 3'b000;
--							mem_rdata_q[31:20] <= {mem_rdata_latched[10:7], mem_rdata_latched[12:11], mem_rdata_latched[5], mem_rdata_latched[6], 2'b00};
-+							mem_rdata_q[31:20] <= {2'b0, mem_rdata_latched[10:7], mem_rdata_latched[12:11], mem_rdata_latched[5], mem_rdata_latched[6], 2'b00};
- 						end
- 						3'b010: begin // C.LW
--							mem_rdata_q[31:20] <= {mem_rdata_latched[5], mem_rdata_latched[12:10], mem_rdata_latched[6], 2'b00};
-+							mem_rdata_q[31:20] <= {5'b0, mem_rdata_latched[5], mem_rdata_latched[12:10], mem_rdata_latched[6], 2'b00};
- 							mem_rdata_q[14:12] <= 3'b 010;
- 						end
- 						3'b 110: begin // C.SW
--							{mem_rdata_q[31:25], mem_rdata_q[11:7]} <= {mem_rdata_latched[5], mem_rdata_latched[12:10], mem_rdata_latched[6], 2'b00};
-+							{mem_rdata_q[31:25], mem_rdata_q[11:7]} <= {5'b0, mem_rdata_latched[5], mem_rdata_latched[12:10], mem_rdata_latched[6], 2'b00};
- 							mem_rdata_q[14:12] <= 3'b 010;
- 						end
- 					endcase
-
-ParseResult:
-UPD HdlStmIf@@ to 
-    INS list@@elifs to 
-
-UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['mem_rdata_latched',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['mem_rdata_latched',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
-    INS HdlStmCaseType@@CASE to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['mem_rdata_latched',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
-
-UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['mem_rdata_latched',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['mem_rdata_latched',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
-    DEL HdlStmCaseType@@CASE from {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['mem_rdata_latched',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
-
-UPD HdlStmIf@@ to 
-    DEL list@@elifs from 
-
-
 CommitId: 9c028fc965e8913d82df2fde951102d8a12ff474
 Added missing LD_RS1 debug statements
 --- a/picorv32.v
@@ -1157,13 +1032,6 @@ Added missing LD_RS1 debug statements
  						cpu_state <= cpu_state_fetch;
 
 ParseResult:
-UPD HdlStmIf@@ to 
-    INS list@@elifs to 
-
-UPD HdlStmCase@@cpu_state to cpu_state
-    INS HdlStmCaseType@@CASE to cpu_state
-    INS HdlValueId@@cpu_state to cpu_state
-
 MOV HdlStmAssign@@ to body
 HdlStmAssign
     HdlOp: INDEX
@@ -1192,13 +1060,6 @@ UPD HdlStmAssign@@ to
         list: ops
             HdlValueId: cpuregs
             HdlValueId: decoded_rs1
-
-UPD HdlStmIf@@ to 
-    DEL list@@elifs from 
-
-UPD HdlStmCase@@cpu_state to cpu_state
-    DEL HdlStmCaseType@@CASE from cpu_state
-    DEL HdlValueId@@cpu_state from cpu_state
 
 
 CommitId: 9c028fc965e8913d82df2fde951102d8a12ff474
@@ -1229,13 +1090,6 @@ Added missing LD_RS1 debug statements
  						cpu_state <= cpu_state_fetch;
  					end
 ParseResult:
-UPD HdlStmIf@@ to 
-    INS list@@elifs to 
-
-UPD HdlStmCase@@cpu_state to cpu_state
-    INS HdlStmCaseType@@CASE to cpu_state
-    INS HdlValueId@@cpu_state to cpu_state
-
 MOV HdlStmAssign@@ to body
 HdlStmAssign
     HdlOp: INDEX
@@ -1257,13 +1111,6 @@ UPD HdlStmAssign@@ to
         list: ops
             HdlValueId: cpuregs
             HdlValueId: decoded_rs1
-
-UPD HdlStmIf@@ to 
-    DEL list@@elifs from 
-
-UPD HdlStmCase@@cpu_state to cpu_state
-    DEL HdlStmCaseType@@CASE from cpu_state
-    DEL HdlValueId@@cpu_state from cpu_state
 
 
 CommitId: 409d0dfd6772551e2ce77502e368973c447cbeb8
@@ -1562,6 +1409,315 @@ HdlStmProcess
                             HdlValueId: last_mem_valid
 
 
+CommitId: bf9687028df7570e7524a8a7b43f9c180c6dd1c7
+Fix decoding of illegal/reserved opcodes as other valid opcodes
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -835,7 +835,7 @@ module picorv32 #(
+ 			instr_lui     <= mem_rdata_latched[6:0] == 7'b0110111;
+ 			instr_auipc   <= mem_rdata_latched[6:0] == 7'b0010111;
+ 			instr_jal     <= mem_rdata_latched[6:0] == 7'b1101111;
+-			instr_jalr    <= mem_rdata_latched[6:0] == 7'b1100111;
++			instr_jalr    <= mem_rdata_latched[6:0] == 7'b1100111 && mem_rdata_latched[14:12] == 3'b000;
+ 			instr_retirq  <= mem_rdata_latched[6:0] == 7'b0001011 && mem_rdata_latched[31:25] == 7'b0000010 && ENABLE_IRQ;
+ 			instr_waitirq <= mem_rdata_latched[6:0] == 7'b0001011 && mem_rdata_latched[31:25] == 7'b0000100 && ENABLE_IRQ;
+ 
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    INS list@@elifs to 
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['mem_rdata_latched',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '15'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '13'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['mem_rdata_latched',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '15'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '13'}]}]} 
+    INS HdlStmBlock@@SEQ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+INS HdlStmIf@@ to body
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['mem_rdata_latched',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '15'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '13'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['mem_rdata_latched',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '15'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '13'}]}]} 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: is_alu_reg_imm
+            HdlStmAssign
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: mem_rdata_latched
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 11
+                                HdlValueInt: 7
+                HdlValueId: decoded_rd
+            HdlStmAssign
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: mem_rdata_latched
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 11
+                                HdlValueInt: 7
+                HdlValueId: decoded_rs1
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmIf
+                HdlOp: EQ
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: mem_rdata_latched
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 11
+                                        HdlValueInt: 7
+                        HdlValueInt: 2
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmAssign
+                            HdlValueInt: 1
+                            HdlValueId: is_alu_reg_imm
+                        HdlStmAssign
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: mem_rdata_latched
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 11
+                                            HdlValueInt: 7
+                            HdlValueId: decoded_rd
+                        HdlStmAssign
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: mem_rdata_latched
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 11
+                                            HdlValueInt: 7
+                            HdlValueId: decoded_rs1
+                list: elifs
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmAssign
+                            HdlValueInt: 1
+                            HdlValueId: instr_lui
+                        HdlStmAssign
+                            HdlOp: INDEX
+                                list: ops
+                                    HdlValueId: mem_rdata_latched
+                                    HdlOp: DOWNTO
+                                        list: ops
+                                            HdlValueInt: 11
+                                            HdlValueInt: 7
+                            HdlValueId: decoded_rd
+                        HdlStmAssign
+                            HdlValueInt: 0
+                            HdlValueId: decoded_rs1
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@OR_LOG to 
+    HdlOp: OR_LOG
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: mem_rdata_latched
+                    HdlValueInt: 12
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: mem_rdata_latched
+                    HdlOp: DOWNTO
+                        list: ops
+                            HdlValueInt: 6
+                            HdlValueInt: 2
+    INS list@@elifs to 
+
+UPD HdlStmIf@@ to 
+    DEL list@@elifs from 
+
+
+CommitId: bf9687028df7570e7524a8a7b43f9c180c6dd1c7
+Fix decoding of illegal/reserved opcodes as other valid opcodes
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -890,9 +890,11 @@ module picorv32 #(
+ 					2'b01: begin // Quadrant 1
+ 						case (mem_rdata_latched[15:13])
+ 							3'b000: begin // C.NOP / C.ADDI
+-								is_alu_reg_imm <= 1;
+-								decoded_rd <= mem_rdata_latched[11:7];
+-								decoded_rs1 <= mem_rdata_latched[11:7];
++								if (!mem_rdata_latched[12:2] || mem_rdata_latched[11:7]) begin
++									is_alu_reg_imm <= 1;
++									decoded_rd <= mem_rdata_latched[11:7];
++									decoded_rs1 <= mem_rdata_latched[11:7];
++								end
+ 							end
+ 							3'b001: begin // C.JAL
+ 								instr_jal <= 1;
+
+ParseResult:
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['mem_rdata_latched',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '15'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '13'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['mem_rdata_latched',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '15'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '13'}]}]} 
+    INS HdlStmBlock@@SEQ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+INS HdlStmIf@@ to body
+
+INS HdlStmIf@@ to body
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@NEG_LOG to 
+    HdlOp: NEG_LOG
+        list: ops
+            HdlOp: INDEX
+                list: ops
+                    HdlValueId: mem_rdata_latched
+                    HdlValueInt: 12
+    INS list@@elifs to 
+
+UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['mem_rdata_latched',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '15'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '13'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['mem_rdata_latched',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '15'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '13'}]}]} 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: is_alu_reg_imm
+            HdlStmAssign
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: mem_rdata_latched
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 11
+                                HdlValueInt: 7
+                HdlValueId: decoded_rd
+            HdlStmAssign
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: mem_rdata_latched
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 11
+                                HdlValueInt: 7
+                HdlValueId: decoded_rs1
+            HdlStmAssign
+                HdlOp: CONCAT
+                    list: ops
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: mem_rdata_latched
+                                HdlValueInt: 12
+                        HdlOp: INDEX
+                            list: ops
+                                HdlValueId: mem_rdata_latched
+                                HdlOp: DOWNTO
+                                    list: ops
+                                        HdlValueInt: 6
+                                        HdlValueInt: 2
+                HdlValueId: decoded_rs2
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmAssign
+                HdlValueInt: 1
+                HdlValueId: is_lb_lh_lw_lbu_lhu
+            HdlStmAssign
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: mem_rdata_latched
+                        HdlOp: DOWNTO
+                            list: ops
+                                HdlValueInt: 11
+                                HdlValueInt: 7
+                HdlValueId: decoded_rd
+            HdlStmAssign
+                HdlValueInt: 2
+                HdlValueId: decoded_rs1
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@INDEX to 
+    HdlOp: INDEX
+        list: ops
+            HdlValueId: mem_rdata_latched
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 11
+                    HdlValueInt: 7
+    INS list@@elifs to 
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        MOV HdlOp@@EQ to ops
+        HdlOp: EQ
+            list: ops
+                HdlOp: INDEX
+                    list: ops
+                        HdlValueId: mem_rdata_latched
+                        HdlValueInt: 12
+                HdlValueInt: 0
+
+
+CommitId: bf9687028df7570e7524a8a7b43f9c180c6dd1c7
+Fix decoding of illegal/reserved opcodes as other valid opcodes
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -904,18 +906,20 @@ module picorv32 #(
+ 								decoded_rs1 <= 0;
+ 							end
+ 							3'b 011: begin
+-								if (mem_rdata_latched[11:7] == 2) begin // C.ADDI16SP
+-									is_alu_reg_imm <= 1;
+-									decoded_rd <= mem_rdata_latched[11:7];
+-									decoded_rs1 <= mem_rdata_latched[11:7];
+-								end else begin // C.LUI
+-									instr_lui <= 1;
+-									decoded_rd <= mem_rdata_latched[11:7];
+-									decoded_rs1 <= 0;
++								if (mem_rdata_latched[12] || mem_rdata_latched[6:2]) begin
++									if (mem_rdata_latched[11:7] == 2) begin // C.ADDI16SP
++										is_alu_reg_imm <= 1;
++										decoded_rd <= mem_rdata_latched[11:7];
++										decoded_rs1 <= mem_rdata_latched[11:7];
++									end else begin // C.LUI
++										instr_lui <= 1;
++										decoded_rd <= mem_rdata_latched[11:7];
++										decoded_rs1 <= 0;
++									end
+ 								end
+ 							end
+ 							3'b100: begin
+-								if (mem_rdata_latched[11] == 1'b0) begin // C.SRLI, C.SRAI
++								if (!mem_rdata_latched[11] && !mem_rdata_latched[12]) begin // C.SRLI, C.SRAI
+ 									is_alu_reg_imm <= 1;
+ 									decoded_rd <= 8 + mem_rdata_latched[9:7];
+ 									decoded_rs1 <= 8 + mem_rdata_latched[9:7];
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND_LOG to AND_LOG
+        INS HdlOp@@AND_LOG to ops
+        UPD HdlOp@@AND_LOG to AND_LOG
+            INS list@@ops to AND_LOG
+            INS HdlOp@@NE to ops
+            HdlOp: NE
+                list: ops
+                    HdlOp: INDEX
+                        list: ops
+                            HdlValueId: mem_rdata_latched
+                            HdlOp: DOWNTO
+                                list: ops
+                                    HdlValueInt: 11
+                                    HdlValueInt: 7
+                    HdlValueInt: 0
+
+
 CommitId: da3749819197875c10eeec54551401ac19090902
 Two minor bugfixes
 --- a/picorv32.v
@@ -1576,35 +1732,6 @@ Two minor bugfixes
  						reg_op1 <= cpuregs_rs1;
  						cpu_state <= cpu_state_ldmem;
 
-ParseResult:
-UPD HdlStmIf@@ to 
-    INS list@@elifs to 
-
-UPD HdlStmCase@@cpu_state to cpu_state
-    INS HdlStmCaseType@@CASE to cpu_state
-    INS HdlValueId@@cpu_state to cpu_state
-
-UPD HdlStmIf@@ to 
-    DEL list@@elifs from 
-
-UPD HdlStmCase@@cpu_state to cpu_state
-    DEL HdlStmCaseType@@CASE from cpu_state
-    DEL HdlValueId@@cpu_state from cpu_state
-
-
-CommitId: da3749819197875c10eeec54551401ac19090902
-Two minor bugfixes
---- a/picorv32.v
-+++ b/picorv32.v
-@@ -1525,7 +1525,7 @@ module picorv32 #(
- 							reg_op2 <= cpuregs_rs2;
- 							(* parallel_case *)
- 							case (1'b1)
--								is_sb_sh_sw: begin
-+								is_sb_sh_sw && !instr_trap: begin
- 									cpu_state <= cpu_state_stmem;
- 									mem_do_rinst <= 1;
- 								end
 ParseResult:
 UPD HdlStmIf@@ to 
     INS list@@elifs to 

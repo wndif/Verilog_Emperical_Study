@@ -1,4 +1,4 @@
-,HdlOp-InfixExpression,HdlOp-PrefixExpression,HdlOp-TERNARY
-insert,21,3.0,
-update,26,1.0,
-move,7,,1.0
+,HdlOp-InfixExpression_HdlStmAssign,HdlOp-PrefixExpression_HdlStmAssign,HdlOp-InfixExpression_HdlStmIf,HdlOp-TERNARY_HdlStmAssign
+insert,13,3.0,3,
+update,15,1.0,4,
+move,6,,1,1.0

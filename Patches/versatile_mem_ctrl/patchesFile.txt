@@ -449,14 +449,6 @@ Fixed up sdr16 dqm output
                  if (we_reg)
 ParseResult:
 UPD HdlStmIf@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueInt@@00 to 11
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueInt@@00 to 11
-
-UPD HdlStmIf@@ to 
     INS HdlOp@@ASSIGN to 
     UPD HdlOp@@ASSIGN to ASSIGN
         INS list@@ops to ASSIGN

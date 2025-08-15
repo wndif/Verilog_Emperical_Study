@@ -1,1 +1,5 @@
-""
+,HdlOp-InfixExpression_HdlStmAssign,HdlOp-DOWNTO_HdlIdDef,HdlOp-MemberAccessing_HdlStmIf,HdlOp-InfixExpression_HdlStmIf,HdlOp-PrefixExpression_HdlStmAssign,HdlDirection,HdlOp-MemberAccessing_HdlStmAssign,HdlOp-DOWNTO_HdlStmAssign,HdlOp-MemberAccessing_HdlStmCase,HdlOp-Assignment_HdlStmCase
+move,13,,,6,1,,11.0,,,
+update,26,1.0,1.0,22,2,1.0,7.0,,4.0,10.0
+delete,5,,,4,1,,,,,
+insert,3,,1.0,9,1,,7.0,7.0,4.0,11.0

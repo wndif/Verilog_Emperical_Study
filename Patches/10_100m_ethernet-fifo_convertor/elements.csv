@@ -1,4 +1,4 @@
-,HdlOp-MemberAccessing,HdlOp-PARAMETRIZATION,HdlOp-DOWNTO,HdlOp-InfixExpression
-update,3.0,5,5.0,29.0
-insert,,1,,
-move,,1,,
+,HdlOp-InfixExpression_HdlIdDef,HdlOp-InfixExpression_HdlStmIf,HdlOp-InfixExpression_HdlStmAssign,HdlOp-PARAMETRIZATION_HdlIdDef,HdlOp-DOWNTO_HdlIdDef
+update,4.0,8.0,2.0,2,1.0
+insert,,,,1,
+move,,,,1,

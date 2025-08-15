@@ -1,5 +1,5 @@
-,HdlOp-RISING,HdlOp-InfixExpression,HdlOp-PrefixExpression,HdlDirection,HdlOp-MemberAccessing,HdlOp-TERNARY
-delete,2.0,6.0,2.0,1.0,,1.0
-insert,1.0,,,,,
-move,1.0,2.0,,,1.0,
-update,,13.0,1.0,,,
+,HdlOp-RISING_HdlStmProcess,HdlOp-InfixExpression_HdlIdDef,HdlOp-PrefixExpression_HdlIdDef,HdlDirection,HdlOp-MemberAccessing_HdlStmAssign,HdlOp-TERNARY_HdlStmAssign,HdlOp-InfixExpression_HdlStmIf,HdlOp-PrefixExpression_HdlStmIf
+delete,2.0,3.0,1.0,1.0,,1.0,3.0,1.0
+insert,1.0,,,,,,,
+move,1.0,,,,1.0,,2.0,
+update,,3.0,1.0,,,,5.0,

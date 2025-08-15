@@ -1,5 +1,5 @@
-,HdlOp-InfixExpression,HdlOp-MemberAccessing,HdlOp-DOWNTO,HdlOp-PrefixExpression,HdlOp-TERNARY,HdlOp-Assignment,HdlOp-RISING
-update,257,33,,44,3.0,280,1.0
-delete,21,7,1.0,3,,177,2.0
-move,27,11,,16,1.0,7,
-insert,76,6,,2,,203,
+,HdlOp-InfixExpression_HdlStmIf,HdlOp-MemberAccessing_HdlStmIf,HdlOp-DOWNTO_HdlStmIf,HdlOp-PrefixExpression_HdlStmIf,HdlOp-MemberAccessing_HdlStmAssign,HdlOp-InfixExpression_HdlStmAssign,HdlOp-PrefixExpression_HdlStmAssign,HdlOp-TERNARY_HdlStmIf,HdlOp-Assignment_HdlStmProcess,HdlOp-InfixExpression_HdlStmCase,HdlOp-Assignment_HdlStmCase,HdlOp-PrefixExpression_HdlStmCase,HdlOp-Assignment_HdlStmIf,HdlOp-RISING_HdlStmProcess,HdlOp-TERNARY_HdlStmAssign
+update,14,10.0,,7.0,11,14.0,4.0,,,9,12.0,2.0,12,1.0,1.0
+delete,6,1.0,1.0,2.0,6,9.0,1.0,,5.0,1,7.0,,1,2.0,
+move,5,,,,11,6.0,,1.0,,1,,1.0,7,,
+insert,3,5.0,,2.0,1,,,,7.0,5,7.0,,2,,

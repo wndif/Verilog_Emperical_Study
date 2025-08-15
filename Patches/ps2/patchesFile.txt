@@ -1,3 +1,253 @@
+CommitId: 8abe6f5600056a80e2b595979f724dcb5a7a2a11
+Wrong acknowledge generation during receiving repaired
+--- a/bench/verilog/ps2_keyboard_model.v
++++ b/bench/verilog/ps2_keyboard_model.v
+@@ -165,14 +168,15 @@ task kbd_receive_char;
+     output [7:0] char ;
+     reg          parity ;
+     integer i ;
+-    reg          stop_bit_received ;
++    reg          stop_clocking ;
+ begin:main
+     i = 0 ;
+-    stop_bit_received = 1 ;
+     receiving = 1 ;
++    stop_clocking = 1'b0 ;
++
+     #(kbd_clk_period/2) ;
+ 
+-    while ( i < 11 )
++    while ( !stop_clocking )
+     begin
+ 
+         if ( !kbd_clk_io )
+
+ParseResult:
+UPD HdlIdDef@@stop_bit_received to stop_clocking
+
+UPD HdlFunctionDef@@kbd_receive_char to kbd_receive_char
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stop_clocking
+                HdlValueInt: 0
+
+UPD HdlStmWhile@@ to 
+    UPD HdlOp@@LT to NEG_LOG
+    UPD HdlOp@@LT to LT
+        UPD HdlValueId@@i to stop_clocking
+        DEL HdlValueInt@@11 from ops
+
+UPD HdlFunctionDef@@kbd_receive_char to kbd_receive_char
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stop_bit_received
+                HdlValueInt: 1
+
+
+CommitId: 8abe6f5600056a80e2b595979f724dcb5a7a2a11
+Wrong acknowledge generation during receiving repaired
+--- a/bench/verilog/ps2_keyboard_model.v
++++ b/bench/verilog/ps2_keyboard_model.v
+@@ -197,28 +201,20 @@ begin:main
+                 if ( parity !== ( !(^char) ) )
+                     $display("Invalid parity bit received") ;
+             end
+-            else
+-            begin
+-                if ( kbd_data_io !== 1'b1 )
+-                begin
+-                    i = i - 1 ;
+-                    stop_bit_received = 0 ;
+-                end
+-                else
+-                begin
+-                    kbd_data = 1'b0 ;
+-                end
+-            end
+         end
+ 
+         i = i + 1 ;
+-        #(kbd_clk_period/2) ;
+-    end
++        #(kbd_clk_period/4) ;
++        if ( i > 9 )
++        begin
++            if ( kbd_data_io === 1'b1 )
++            begin
++                kbd_data <= 1'b0 ;
++                stop_clocking = 1'b1 ;
++            end
++        end
+ 
+-    if ( !kbd_clk_io )
+-    begin
+-        receiving = 0 ;
+-        disable main ;
++        #(kbd_clk_period/4) ;
+     end
+ 
+     kbd_clk  = 1'b0 ;
+
+ParseResult:
+INS HdlStmProcess@@ to body
+
+INS HdlStmIf@@ to body
+
+UPD HdlStmProcess@@ to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@GT to 
+    INS HdlStmBlock@@SEQ to 
+    INS list@@elifs to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+    UPD HdlOp@@GT to GT
+        INS HdlValueId@@i to ops
+        INS HdlValueInt@@9 to ops
+
+UPD HdlStmIf@@ to 
+    UPD list@@elifs to ops
+    MOV list@@elifs to 
+    list: elifs
+    UPD HdlOp@@IS_NOT to IS
+    MOV HdlOp@@IS_NOT to 
+    HdlOp: IS_NOT
+        list: ops
+            HdlValueId: kbd_data_io
+            HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to DIV
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stop_bit_received
+                HdlValueInt: 0
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueId@@stop_bit_received to kbd_clk_period
+            UPD HdlValueInt@@0 to 4
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: i
+                HdlOp: SUB
+                    list: ops
+                        HdlValueId: i
+                        HdlValueInt: 1
+        DEL list@@body from SEQ
+    DEL HdlStmBlock@@SEQ from 
+    DEL HdlStmBlock@@SEQ from 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: kbd_data
+                    HdlValueInt: 0
+
+INS HdlStmWait@@[{'__class__': 'HdlOp',  'fn': 'DIV',  'ops': ['kbd_clk_period',          {'__class__': 'HdlValueInt', 'base': 10, 'val': '4'}]} ] to body
+
+INS HdlStmNop@@ to body
+
+MOV HdlStmIf@@ to body
+HdlStmIf
+    HdlOp: NEG_LOG
+        list: ops
+            HdlValueId: kbd_clk_io
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: receiving
+                    HdlValueInt: 0
+            HdlStmNop
+    list: elifs
+
+UPD HdlStmWait@@[{'__class__': 'HdlOp',  'fn': 'DIV',  'ops': ['kbd_clk_period',          {'__class__': 'HdlValueInt', 'base': 10, 'val': '2'}]} ] to [{'__class__': 'HdlOp',  'fn': 'DIV',  'ops': ['kbd_clk_period',          {'__class__': 'HdlValueInt', 'base': 10, 'val': '4'}]} ]
+
+UPD HdlStmWait@@[{'__class__': 'HdlOp',  'fn': 'DIV',  'ops': ['kbd_clk_period',          {'__class__': 'HdlValueInt', 'base': 10, 'val': '4'}]} ] to [{'__class__': 'HdlOp',  'fn': 'DIV',  'ops': ['kbd_clk_period',          {'__class__': 'HdlValueInt', 'base': 10, 'val': '4'}]} ]
+    INS list@@val to [{'__class__': 'HdlOp',  'fn': 'DIV',  'ops': ['kbd_clk_period',          {'__class__': 'HdlValueInt', 'base': 10, 'val': '4'}]} ]
+
+INS HdlStmAssign@@ to body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: kbd_data
+
+UPD HdlStmWait@@[{'__class__': 'HdlOp',  'fn': 'DIV',  'ops': ['kbd_clk_period',          {'__class__': 'HdlValueInt', 'base': 10, 'val': '2'}]} ] to [{'__class__': 'HdlOp',  'fn': 'DIV',  'ops': ['kbd_clk_period',          {'__class__': 'HdlValueInt', 'base': 10, 'val': '2'}]} ]
+    UPD HdlOp@@DIV to DIV
+        UPD HdlValueInt@@2 to 4
+
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueId@@receiving to stop_clocking
+            UPD HdlValueInt@@0 to 1
+    DEL HdlOp@@NEG_LOG from 
+    HdlOp: NEG_LOG
+        list: ops
+            HdlValueId: kbd_clk_io
+
+DEL HdlStmIf@@ from body
+
+UPD HdlStmIf@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        DEL list@@body from SEQ
+    DEL HdlStmBlock@@SEQ from 
+
+DEL HdlStmNop@@ from body
+
+
+CommitId: 8abe6f5600056a80e2b595979f724dcb5a7a2a11
+Wrong acknowledge generation during receiving repaired
+--- a/bench/verilog/ps2_keyboard_model.v
++++ b/bench/verilog/ps2_keyboard_model.v
+@@ -227,12 +223,12 @@ begin:main
+     kbd_clk  <= 1'b1 ;
+     kbd_data <= 1'b1 ;
+ 
+-    if ( stop_bit_received )
++    receiving = 0 ;
++
++    if ( i === 10 )
+     begin
+         char_valid_o = !char_valid_o ;
+     end
+-
+-    receiving = 0 ;
+ end
+ endtask // kbd_receive_char
+ 
+ParseResult:
+MOV HdlStmIf@@ to body
+HdlStmIf
+    HdlValueId: stop_bit_received
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: char_valid_o
+                    HdlOp: NEG_LOG
+                        list: ops
+                            HdlValueId: char_valid_o
+    list: elifs
+
+UPD HdlStmIf@@ to 
+    INS HdlOp@@IS to 
+    UPD HdlOp@@IS to IS
+        INS list@@ops to IS
+        INS HdlValueInt@@10 to ops
+
+UPD HdlStmIf@@ to 
+    UPD HdlValueId@@stop_bit_received to i
+    MOV HdlValueId@@stop_bit_received to 
+    HdlValueId: stop_bit_received
+
+
 CommitId: 7655d4024c4150be874922abdb7f34dd52d8e724
 One bug fixed
 --- a/rtl/verilog/ps2_wb_if.v

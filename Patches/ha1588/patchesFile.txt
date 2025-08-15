@@ -321,29 +321,6 @@ UPD HdlStmWhile@@ to
 
 CommitId: 4a32f76c7240861f580822676a672f28d69b2929
 1. Corrected GMII BFM preamble+sfd size error: 4B 5555555d changed to 8B 5555555555555555d5.
---- a/sim/tsu/gmii_rx_bfm.v
-+++ b/sim/tsu/gmii_rx_bfm.v
-@@ -100,7 +100,7 @@ begin : feeder_rx
-             end
-                 @(posedge gmii_rxclk_offset)
-                 gmii_rxctrl = 1'b1;
--                gmii_rxdata = 8'h5d;
-+                gmii_rxdata = 8'hd5;
-             // send frame content
-             for (index_rx=0; index_rx<packet_leng_rx; index_rx=index_rx+1)
-             begin
-ParseResult:
-UPD HdlStmRepeat@@ to 
-    UPD HdlValueInt@@3 to 7
-
-UPD HdlStmWhile@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueInt@@5d to d5
-
-
-CommitId: 4a32f76c7240861f580822676a672f28d69b2929
-1. Corrected GMII BFM preamble+sfd size error: 4B 5555555d changed to 8B 5555555555555555d5.
 --- a/sim/top/nic_drv_bfm/gmii_tx_bfm.v
 +++ b/sim/top/nic_drv_bfm/gmii_tx_bfm.v
 @@ -91,8 +91,8 @@ begin : feeder_tx
@@ -358,29 +335,6 @@ CommitId: 4a32f76c7240861f580822676a672f28d69b2929
                  @(posedge gmii_txclk_offset);
                  gmii_txctrl = 1'b1;
 
-ParseResult:
-UPD HdlStmRepeat@@ to 
-    UPD HdlValueInt@@3 to 7
-
-UPD HdlStmWhile@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueInt@@5d to d5
-
-
-CommitId: 4a32f76c7240861f580822676a672f28d69b2929
-1. Corrected GMII BFM preamble+sfd size error: 4B 5555555d changed to 8B 5555555555555555d5.
---- a/sim/top/nic_drv_bfm/gmii_tx_bfm.v
-+++ b/sim/top/nic_drv_bfm/gmii_tx_bfm.v
-@@ -100,7 +100,7 @@ begin : feeder_tx
-             end
-                 @(posedge gmii_txclk_offset)
-                 gmii_txctrl = 1'b1;
--                gmii_txdata = 8'h5d;
-+                gmii_txdata = 8'hd5;
-             // send frame content
-             for (index_tx=0; index_tx<packet_leng_tx; index_tx=index_tx+1)
-             begin
 ParseResult:
 UPD HdlStmRepeat@@ to 
     UPD HdlValueInt@@3 to 7
@@ -806,29 +760,6 @@ UPD HdlStmWhile@@ to
 
 CommitId: 4a32f76c7240861f580822676a672f28d69b2929
 1. Corrected GMII BFM preamble+sfd size error: 4B 5555555d changed to 8B 5555555555555555d5.
---- a/sim/top/nic_drv_bfm/gmii_rx_bfm.v
-+++ b/sim/top/nic_drv_bfm/gmii_rx_bfm.v
-@@ -100,7 +100,7 @@ begin : feeder_rx
-             end
-                 @(posedge gmii_rxclk_offset)
-                 gmii_rxctrl = 1'b1;
--                gmii_rxdata = 8'h5d;
-+                gmii_rxdata = 8'hd5;
-             // send frame content
-             for (index_rx=0; index_rx<packet_leng_rx; index_rx=index_rx+1)
-             begin
-ParseResult:
-UPD HdlStmRepeat@@ to 
-    UPD HdlValueInt@@3 to 7
-
-UPD HdlStmWhile@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueInt@@5d to d5
-
-
-CommitId: 4a32f76c7240861f580822676a672f28d69b2929
-1. Corrected GMII BFM preamble+sfd size error: 4B 5555555d changed to 8B 5555555555555555d5.
 --- a/sim/tsu/gmii_tx_bfm.v
 +++ b/sim/tsu/gmii_tx_bfm.v
 @@ -91,8 +91,8 @@ begin : feeder_tx
@@ -843,29 +774,6 @@ CommitId: 4a32f76c7240861f580822676a672f28d69b2929
                  @(posedge gmii_txclk_offset);
                  gmii_txctrl = 1'b1;
 
-ParseResult:
-UPD HdlStmRepeat@@ to 
-    UPD HdlValueInt@@3 to 7
-
-UPD HdlStmWhile@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueInt@@5d to d5
-
-
-CommitId: 4a32f76c7240861f580822676a672f28d69b2929
-1. Corrected GMII BFM preamble+sfd size error: 4B 5555555d changed to 8B 5555555555555555d5.
---- a/sim/tsu/gmii_tx_bfm.v
-+++ b/sim/tsu/gmii_tx_bfm.v
-@@ -100,7 +100,7 @@ begin : feeder_tx
-             end
-                 @(posedge gmii_txclk_offset)
-                 gmii_txctrl = 1'b1;
--                gmii_txdata = 8'h5d;
-+                gmii_txdata = 8'hd5;
-             // send frame content
-             for (index_tx=0; index_tx<packet_leng_tx; index_tx=index_tx+1)
-             begin
 ParseResult:
 UPD HdlStmRepeat@@ to 
     UPD HdlValueInt@@3 to 7

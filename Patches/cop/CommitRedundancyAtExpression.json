@@ -1,1 +1,1 @@
-{"cop": {"149eaa84": {"codeEntityRedundancyNumForLocal": 3, "codeEntitySumForLobal": 3, "commitRedundancyForLocal": true, "codeEntityRedundancyNumForGlobal": 3, "codeEntitySumForGlobal": 3, "commitRedundancyForGlobal": true}}}
+{"cop": {"149eaa84": {"codeEntityRedundancyNumForLocal": 0, "codeEntitySumForLobal": 3, "commitRedundancyForLocal": false, "codeEntityRedundancyNumForGlobal": 0, "codeEntitySumForGlobal": 3, "commitRedundancyForGlobal": false}}}

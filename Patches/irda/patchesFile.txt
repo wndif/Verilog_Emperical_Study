@@ -301,19 +301,6 @@ UPD HdlStmIf@@ to
     UPD HdlStmBlock@@SEQ to SEQ
         INS list@@body to SEQ
 
-UPD HdlStmIf@@ to 
-    MOV HdlStmBlock@@SEQ to 
-    HdlStmBlock: SEQ
-        list: body
-            HdlStmAssign
-                HdlValueInt: 0
-                HdlValueId: rxfifo_add
-                HdlValueInt: 1
-            HdlStmAssign
-                HdlValueInt: 0
-                HdlValueId: rxfifo_dat_i
-                HdlValueInt: 1
-
 MOV HdlStmAssign@@ to body
 HdlStmAssign
     HdlValueInt: 0
@@ -375,10 +362,6 @@ Bug fixes
  		std_restart 	  <= #1 1;
 
 ParseResult:
-UPD HdlStmIf@@ to 
-    UPD HdlOp@@OR to OR
-        UPD HdlValueId@@brd_o to brd_active
-
 DEL HdlStmAssign@@ from body
 HdlStmAssign
     HdlValueInt: 0
@@ -404,10 +387,6 @@ Bug fixes
  		  begin
 
 ParseResult:
-UPD HdlStmIf@@ to 
-    UPD HdlOp@@OR to OR
-        UPD HdlValueId@@brd_o to brd_active
-
 MOV HdlStmAssign@@ to body
 HdlStmAssign
     HdlValueInt: 0
@@ -717,60 +696,6 @@ UPD HdlStmCase@@state to state
                 HdlValueId: mir_tx_o
 
 
-CommitId: 27c6cb80dfae672d2dcf7c022fb9b071f814a756
-Debugged.
---- a/rtl/verilog/irda_mir_tx.v
-+++ b/rtl/verilog/irda_mir_tx.v
-@@ -129,6 +129,7 @@ begin
- 			else begin
- 				st_restart 	  <= #1 1;
- 				st_shift 	  <= #1 0;
-+				mux_select 	  <= #1 2'b0; /// break
- 			end
- 			crcndata <= #1 0;
- 		end
-
-ParseResult:
-UPD HdlStmCase@@state to state
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@CALL from body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-                HdlOp: CALL
-                    list: ops
-                        HdlValueId: $time
-                HdlValueId: mir_tx_o
-
-
-CommitId: 27c6cb80dfae672d2dcf7c022fb9b071f814a756
-Debugged.
---- a/rtl/verilog/irda_mir_tx.v
-+++ b/rtl/verilog/irda_mir_tx.v
-@@ -152,7 +153,7 @@ begin
- 	st_send_data :
- 	  begin
- 		  //// DEBUG
--		  $display("%m, %t, sending: %b", $time, mir_tx_o);
-+		 /// $display("%m, %t, sending: %b", $time, mir_tx_o);
- 		  //// END DEBUG
- 			st_restart <= #1 1;
- 			// conditions for next step (CRC)
-ParseResult:
-UPD HdlStmCase@@state to state
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL HdlOp@@CALL from body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $display
-                str
-                HdlOp: CALL
-                    list: ops
-                        HdlValueId: $time
-                HdlValueId: mir_tx_o
-
-
 CommitId: 1f9c31626417b16fe51bfb7620df36f19b4f402b
 top level port names change and minor bug fix.
 --- a/rtl/verilog/irda_mir_st_det.v
@@ -1019,18 +944,6 @@ major bug fixes. some code rewrite.
  					end
 
 ParseResult:
-UPD HdlStmCase@@rxstate to rxstate
-    INS tuple@@ to cases
-    INS HdlValueId@@st_wait16 to 
-    INS HdlStmBlock@@SEQ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS list@@body to SEQ
-
-UPD HdlStmIf@@ to 
-    INS HdlStmBlock@@SEQ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS list@@body to SEQ
-
 UPD HdlStmIf@@ to 
     INS HdlOp@@NE to 
     HdlOp: NE
@@ -1042,12 +955,6 @@ UPD HdlStmIf@@ to
 UPD HdlStmAssign@@ to 
     UPD HdlOp@@CONCAT to CONCAT
         UPD HdlValueId@@bds_o to shr16_o
-
-UPD HdlStmIf@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@CALL to CALL
-            UPD HdlOp@@CONCAT to CONCAT
-                UPD HdlValueId@@bds_o to shr16_o
 
 UPD HdlStmAssign@@ to 
     UPD HdlValueId@@bds_o to shr16_o
@@ -1061,30 +968,6 @@ UPD HdlStmIf@@ to
         UPD HdlOp@@CALL to CALL
             UPD HdlOp@@CONCAT to CONCAT
                 UPD HdlValueId@@bds_o to shr16_o
-
-
-CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
-major bug fixes. some code rewrite.
---- a/rtl/verilog/irda_mir_rx.v
-+++ b/rtl/verilog/irda_mir_rx.v
-@@ -178,8 +202,8 @@ begin
- 				end // else: !if(bds_is_data_bit)
- 		  end
- 		st_sto_detected :
--			begin
--				if (crc16_par_o==16'b0001_1101_0000_1111) begin // if the crc is correct
-+		  begin
-+				if (crc16_par_o == 16'b0001_1101_0000_1111) begin // if the crc is correct
- 					mir_crc_error 	  <= #1 0;
- 				end else begin
- 					mir_crc_error 	  <= #1 1;
-ParseResult:
-UPD HdlStmCase@@rxstate to rxstate
-    INS tuple@@ to cases
-    INS HdlValueId@@st_wait16 to 
-    INS HdlStmBlock@@SEQ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS list@@body to SEQ
 
 
 CommitId: ec40d4c8c6938f486e3ba642fba2a331e38d01da
@@ -1850,44 +1733,6 @@ major bug fixes. some code rewrite.
  always @(posedge clk or posedge wb_rst_i)
  begin
 
-ParseResult:
-UPD HdlStmIf@@ to 
-    UPD HdlValueId@@fir_tx4_enable to fir_tx8_enable
-
-
-CommitId: bc0b2c3fb080cae3137c314748ad663bf8cd812d
-major bug fixes. some code rewrite.
---- a/rtl/verilog/irda_fir_tx.v
-+++ b/rtl/verilog/irda_fir_tx.v
-@@ -181,20 +192,20 @@ begin
- 				if (counter != 0)
- 					counter <= #1 counter - 1;
- 				else begin
--					crcndata <= #1 0;
--					mux_select <= #1 2'b00; // flag generator
--					state <= #1 st_send_sto;
--					fir_gen_start <= #1 1;
--					fir_flag <= #1 2'b11; // STO signal
-+					crcndata 		  <= #1 0;
-+					mux_select 		  <= #1 2'b00; // flag generator
-+					state 			  <= #1 st_send_sto;
-+					fir_gen_start 	  <= #1 1;
-+					fir_flag 		  <= #1 2'b11; // STO signal
- 				end
- 			end
- 		st_send_sto :
- 			begin
- 				fir_gen_start <= #1 0;
- 				if (eof) begin
--					state <= #1 st_send_sip;
--					fir_flag <= #1 0;
--					mux_select <= #1 2'b10;
-+					state 		  <= #1 st_send_sip;
-+					fir_flag 	  <= #1 0;
-+					mux_select 	  <= #1 2'b10;
- 				end
- 			end
- 		st_break_out :
 ParseResult:
 UPD HdlStmIf@@ to 
     UPD HdlValueId@@fir_tx4_enable to fir_tx8_enable

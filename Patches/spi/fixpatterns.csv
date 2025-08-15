@@ -1,12 +1,6 @@
 ,update
 HdlIdDef-HdlModuleDef,4
-HdlOp-DOWNTO-HdlOp-PARAMETRIZATION,4
-HdlOp-InfixExpression-HdlOp-DOWNTO,1
-HdlOp-InfixExpression-HdlOp-TERNARY,4
-HdlOp-MemberAccessing-HdlOp-InfixExpression,3
-HdlOp-MemberAccessing-HdlOp-MemberAccessing,3
-HdlOp-PARAMETRIZATION-HdlIdDef,4
-HdlOp-TERNARY-HdlOp-InfixExpression,1
-HdlOp-TERNARY-HdlOp-TERNARY,1
-HdlOp-TERNARY-HdlStmAssign,2
+HdlOp-DOWNTO_HdlIdDef-HdlOp-PARAMETRIZATION,3
+HdlOp-InfixExpression_HdlIdDef-HdlOp-DOWNTO,1
+HdlOp-MemberAccessing_HdlStmAssign-HdlOp-MemberAccessing,3
 HdlStmAssign-HdlModuleDef,2

@@ -1,5 +1,5 @@
-,HdlOp-PARAMETRIZATION,HdlOp-DOWNTO,HdlOp-InfixExpression,HdlOp-MemberAccessing,HdlDirection,HdlOp-RISING,HdlOp-TERNARY,HdlOp-Assignment,HdlOp-PrefixExpression
-update,67,59.0,642,239,,251.0,91,35,13.0
-insert,5,16.0,173,42,26.0,,13,6,2.0
-move,10,,28,7,,8.0,1,9,
-delete,1,4.0,80,10,8.0,2.0,13,8,
+,HdlOp-InfixExpression_HdlIdDef,HdlOp-MemberAccessing_HdlIdDef,HdlDirection,HdlOp-RISING_HdlStmProcess,HdlOp-PARAMETRIZATION_HdlIdDef,HdlOp-DOWNTO_HdlIdDef,HdlOp-MemberAccessing_HdlStmAssign,HdlOp-Assignment_HdlStmCase,HdlOp-InfixExpression_HdlStmCase,HdlOp-MemberAccessing_HdlStmCase,HdlOp-InfixExpression_HdlStmIf,HdlOp-TERNARY_HdlIdDef,HdlOp-TERNARY_HdlStmCase,HdlOp-InfixExpression_HdlStmAssign,HdlOp-PrefixExpression_HdlStmAssign,HdlOp-TERNARY_HdlStmAssign,HdlOp-PrefixExpression_HdlStmIf,HdlOp-PrefixExpression_HdlIdDef,HdlOp-PrefixExpression_HdlStmCase
+insert,166,42.0,26.0,,5,16.0,,4,,,3.0,12.0,,4,1.0,1.0,1.0,,
+update,368,85.0,,243.0,17,31.0,22.0,19,11.0,3.0,60.0,16.0,11.0,5,1.0,1.0,,1.0,2.0
+delete,76,,8.0,2.0,1,4.0,10.0,5,3.0,,,12.0,1.0,1,,,,,
+move,19,,,8.0,10,,7.0,9,3.0,,4.0,,1.0,2,,,,,

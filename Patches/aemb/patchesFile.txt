@@ -338,27 +338,6 @@ UPD HdlStmIf@@body to body
     DEL list@@elifs from body
 
 
-CommitId: 0b2afa9905909e6ab8b47b0870ebfcc900deb097
-Minor enable fix
---- a/rtl/verilog/aeMB2_sysc.v
-+++ b/rtl/verilog/aeMB2_sysc.v
-@@ -197,6 +197,9 @@ module aeMB2_sysc (/*AUTOARG*/
- endmodule // aeMB2_sysc
- 
- /* $Log: not supported by cvs2svn $
-+/* Revision 1.4  2007/12/16 03:25:02  sybreon
-+/* Added interrupt support.
-+/*
- /* Revision 1.3  2007/12/13 20:12:11  sybreon
- /* Code cleanup + minor speed regression.
- /*
-ParseResult:
-UPD HdlStmIf@@body to body
-    INS list@@elifs to body
-    INS tuple@@ to elifs
-    INS HdlValueId@@ena_o to 
-
-
 CommitId: a4f032f32043fbd3cf3956ab2af68e69b795a4dc
 Made some changes to the interrupt control. In some cases, the interrupt logic waits forever and doesn't execute. Bug was discovered by M. Ettus.
 --- a/rtl/verilog/aeMB_aslu.v
@@ -436,9 +415,6 @@ Made some changes to the interrupt control. In some cases, the interrupt logic w
  		 (fMTS) ? wOPA[1] :
  		 rMSR_IE;      
 ParseResult:
-UPD HdlStmProcess@@ to 
-    INS HdlValueId@@drun to sensitivity
-
 UPD HdlStmAssign@@ to 
     UPD HdlOp@@TERNARY to TERNARY
         UPD HdlOp@@EQ to EQ
@@ -546,21 +522,6 @@ HdlStmAssign
     HdlValueId: fSTR
     HdlValueId: xDWBWRE
 
-UPD HdlStmIf@@body to body
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD list@@body to ops
-        MOV list@@body to SEQ
-        list: body
-            HdlStmAssign
-                HdlOp: OR
-                    list: ops
-                        HdlValueId: fLOD
-                        HdlValueId: fSTR
-                HdlValueId: xDWBSTB
-            HdlStmAssign
-                HdlValueId: fSTR
-                HdlValueId: xDWBWRE
-
 UPD HdlStmAssign@@ to 
     MOV HdlOp@@OR to 
     HdlOp: OR
@@ -658,36 +619,12 @@ UPD HdlStmProcess@@ to
             list: ops
                 HdlValueId: gclk
 
-UPD HdlStmProcess@@ to 
-    MOV list@@sensitivity to 
-    list: sensitivity
-        HdlOp: RISING
-            list: ops
-                HdlValueId: gclk
-
 INS HdlStmIf@@body to 
 
 UPD HdlStmIf@@body to body
     INS HdlStmBlock@@SEQ to body
     UPD HdlStmBlock@@SEQ to SEQ
         INS list@@body to SEQ
-
-UPD HdlStmIf@@body to body
-    MOV HdlStmBlock@@SEQ to body
-    HdlStmBlock: SEQ
-        list: body
-            HdlStmAssign
-                HdlValueInt: 0
-                HdlValueId: rDWBSTB
-            HdlStmAssign
-                HdlValueInt: 0
-                HdlValueId: rDWBWRE
-            HdlStmAssign
-                HdlValueInt: 0
-                HdlValueId: rMXDST
-            HdlStmAssign
-                HdlValueInt: 0
-                HdlValueId: rRW
 
 MOV HdlStmAssign@@ to body
 HdlStmAssign
@@ -2364,31 +2301,6 @@ HdlStmAssign
     HdlValueInt: 0
     HdlValueId: dwb_lat
 
-UPD HdlStmIf@@body to body
-    UPD HdlOp@@XNOR to XNOR
-        UPD HdlValueId@@dwb_ack_i to dwb_fb
-        MOV HdlValueId@@dwb_ack_i to ops
-        HdlValueId: dwb_ack_i
-        DEL HdlValueId@@dwb_stb_o from ops
-        DEL list@@ops from XNOR
-    DEL HdlOp@@XNOR from 
-
-
-CommitId: 6506e2a4c0e1eda44f2c698eef27a20e26949b42
-Fixed pipelined latching of data bug.
---- a/rtl/verilog/aeMB2_dwbif.v
-+++ b/rtl/verilog/aeMB2_dwbif.v
-@@ -167,7 +170,7 @@ module aeMB2_dwbif (/*AUTOARG*/
- 	dwb_cyc_o <= 1'h0;
- 	dwb_stb_o <= 1'h0;
- 	// End of automatics
--     end else if (dwb_ack_i ~^ dwb_stb_o) begin
-+     end else if (dwb_fb) begin
- 	dwb_stb_o <= #1
- 		     (dena) ? &opc_of[5:4] : // LXX/SSS
- 		     (dwb_stb_o & !dwb_ack_i); // LXX/SSS
-
-ParseResult:
 UPD HdlStmIf@@body to body
     UPD HdlOp@@XNOR to XNOR
         UPD HdlValueId@@dwb_ack_i to dwb_fb

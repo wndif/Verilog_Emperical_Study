@@ -93,27 +93,12 @@ bugfix: data write transfer bugfix
                          else
 ParseResult:
 UPD HdlStmIf@@ to 
-    INS HdlValueId@@rst to 
-    INS list@@elifs to 
-
-UPD HdlStmIf@@ to 
     INS HdlOp@@EQ to 
     HdlOp: EQ
         list: ops
             HdlValueId: data_send_index
             HdlValueInt: 29
     INS list@@elifs to 
-
-UPD HdlStmIf@@ to 
-    MOV HdlStmBlock@@SEQ to 
-    HdlStmBlock: SEQ
-        list: body
-            HdlStmAssign
-                HdlValueInt: 1
-                HdlValueId: rd
-            HdlStmAssign
-                HdlValueInt: 0
-                HdlValueId: data_send_index
 
 UPD HdlStmIf@@ to 
     INS HdlStmBlock@@SEQ to 
@@ -124,9 +109,5 @@ MOV HdlStmAssign@@ to body
 HdlStmAssign
     HdlValueInt: 0
     HdlValueId: data_send_index
-
-UPD HdlStmIf@@ to 
-    DEL HdlValueId@@rst from 
-    DEL list@@elifs from 
 
 

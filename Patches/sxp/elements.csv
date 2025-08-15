@@ -1,5 +1,5 @@
-,HdlOp-InfixExpression,HdlOp-FALLING,HdlOp-PrefixExpression,HdlOp-MemberAccessing,HdlOp-DOWNTO,HdlOp-FunctionCall
-update,15,1.0,1.0,6.0,2.0,1.0
-insert,4,1.0,,,,
-move,2,,,,,
-delete,7,,,,,
+,HdlOp-InfixExpression_HdlStmAssign,HdlOp-FALLING_HdlStmProcess,HdlOp-PrefixExpression_HdlStmAssign,HdlOp-DOWNTO_HdlIdDef,HdlOp-InfixExpression_HdlIdDef,HdlOp-InfixExpression_HdlStmIf,HdlOp-InfixExpression_HdlStmFor
+update,6.0,1.0,1.0,1.0,1.0,2,2.0
+insert,1.0,1.0,,,1.0,2,
+delete,4.0,,,,,2,1.0
+move,,,,,,2,

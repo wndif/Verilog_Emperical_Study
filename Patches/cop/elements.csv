@@ -1,4 +1,4 @@
-,HdlOp-Assignment,HdlOp-InfixExpression,HdlOp-PrefixExpression
-update,3.0,,
-delete,3.0,,
-move,,1.0,1.0
+,HdlOp-InfixExpression_HdlStmIf,HdlOp-Assignment_HdlStmIf,HdlOp-PrefixExpression_HdlStmIf
+move,1.0,,1.0
+update,,3.0,
+delete,,3.0,

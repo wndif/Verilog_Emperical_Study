@@ -1,5 +1,5 @@
-,HdlOp-InfixExpression,HdlOp-Assignment,HdlOp-MemberAccessing,HdlOp-TERNARY
-insert,17,1,2,6
-update,15,3,9,23
-move,5,8,4,2
-delete,5,2,3,2
+,HdlOp-InfixExpression_HdlStmIf,HdlOp-Assignment_HdlStmCase,HdlOp-MemberAccessing_HdlStmCase,HdlOp-TERNARY_HdlStmAssign,HdlOp-InfixExpression_HdlStmAssign,HdlOp-Assignment_HdlStmIf,HdlOp-MemberAccessing_HdlStmIf
+insert,5,,1,6,6,1.0,1.0
+move,2,1.0,4,2,2,3.0,
+update,4,2.0,7,13,5,1.0,
+delete,1,2.0,3,2,2,,

@@ -1,2 +1,2 @@
-,HdlOp-PARAMETRIZATION,HdlOp-DOWNTO,HdlOp-InfixExpression,HdlOp-TERNARY,HdlOp-MemberAccessing
-update,4,4,5,4,6
+,HdlOp-DOWNTO_HdlIdDef,HdlOp-InfixExpression_HdlIdDef,HdlOp-MemberAccessing_HdlStmAssign
+update,3,1,3

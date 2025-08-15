@@ -1,3 +1,66 @@
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_phy.v
++++ b/rtl/verilog/usb_phy.v
+@@ -92,7 +95,7 @@ output	[1:0]	LineState_o;
+ // Local Wires and Registers
+ //
+ 
+-reg	[5:0]	rst_cnt;
++reg	[4:0]	rst_cnt;
+ reg		usb_rst;
+ wire		reset;
+ 
+
+ParseResult:
+UPD HdlIdDef@@rst_cnt to rst_cnt
+    UPD HdlOp@@PARAMETRIZATION to PARAMETRIZATION
+        UPD HdlOp@@DOWNTO to DOWNTO
+            UPD HdlValueInt@@5 to 4
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_phy.v
++++ b/rtl/verilog/usb_phy.v
+@@ -155,14 +158,14 @@ usb_rx_phy i_rx_phy(
+ //
+ 
+ always @(posedge clk)
+-	if(!rst)			rst_cnt <= #1 5'h0;
++	if(!rst)			rst_cnt <= 5'h0;
+ 	else
+-	if(LineState_o != 2'h0)		rst_cnt <= #1 5'h0;
++	if(LineState_o != 2'h0)		rst_cnt <= 5'h0;
+ 	else	
+-	if(!usb_rst & fs_ce)		rst_cnt <= #1 rst_cnt + 5'h1;
++	if(!usb_rst && fs_ce)		rst_cnt <= rst_cnt + 5'h1;
+ 
+ always @(posedge clk)
+-	usb_rst <= #1 (rst_cnt == 5'd31);
++	usb_rst <= (rst_cnt == 5'h1f);
+ 
+ endmodule
+ 
+ParseResult:
+UPD HdlStmIf@@body to body
+    UPD HdlOp@@AND to AND_LOG
+
+UPD HdlStmAssign@@body to body
+    UPD HdlOp@@EQ to EQ
+        UPD HdlValueInt@@31 to 1f
+    DEL HdlValueInt@@1 from body
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+
 CommitId: 7df8e0f3a9306ee5423216abea29baf7d140206c
 Fixed DPLL alignment in the rx_phy and bit stuffing errors in the tx_phy (if last bit bit was a stuff bit in a packet it was omitted).
 --- a/rtl/verilog/usb_rx_phy.v
@@ -153,10 +216,6 @@ UPD HdlStmIf@@ to
                 HdlOp: NEG_LOG
                     list: ops
                         HdlValueId: rx_active
-
-UPD HdlStmIf@@ to 
-    MOV HdlValueId@@fs_ce to 
-    HdlValueId: fs_ce
 
 UPD HdlStmIf@@ to 
     MOV HdlOp@@ASSIGN to 
@@ -595,14 +654,6 @@ UPD HdlStmProcess@@ to
             list: ops
                 HdlValueId: clk
 
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: sync_err_d
-                HdlValueInt: 0
-
 UPD HdlStmIf@@body to body
     UPD HdlOp@@AND to AND_LOG
 
@@ -823,6 +874,689 @@ UPD HdlStmAssign@@ to
 
 UPD HdlStmAssign@@body to body
     DEL HdlValueInt@@1 from body
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_tx_phy.v
++++ b/rtl/verilog/usb_tx_phy.v
+@@ -91,7 +94,6 @@ parameter	IDLE	= 3'd0,
+ 
+ reg		TxReady_o;
+ reg	[2:0]	state, next_state;
+-reg		tx_ready;
+ reg		tx_ready_d;
+ reg		ld_sop_d;
+ reg		ld_data_d;
+
+ParseResult:
+DEL HdlIdDef@@tx_ready from objs
+HdlIdDef: tx_ready
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_tx_phy.v
++++ b/rtl/verilog/usb_tx_phy.v
+@@ -125,19 +127,16 @@ reg		txoe;
+ // Misc Logic
+ //
+ 
+-always @(posedge clk)
+-	tx_ready <= #1 tx_ready_d;
+-
+ `ifdef USB_ASYNC_REST
+ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)	TxReady_o <= #1 1'b0;
+-	else		TxReady_o <= #1 tx_ready_d & TxValid_i;
++	if(!rst)	TxReady_o <= 1'b0;
++	else		TxReady_o <= tx_ready_d & TxValid_i;
+ 
+ always @(posedge clk)
+-	ld_data <= #1 ld_data_d;
++	ld_data <= ld_data_d;
+ 
+ ///////////////////////////////////////////////////////////////////
+ //
+
+ParseResult:
+MOV HdlStmProcess@@ to objs
+HdlStmProcess
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+    HdlStmAssign: body
+        HdlValueId: tx_ready_d
+        HdlValueId: tx_ready
+        HdlValueInt: 1
+
+UPD HdlStmProcess@@ to 
+    MOV list@@sensitivity to 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+
+UPD HdlStmAssign@@body to body
+    UPD HdlValueId@@tx_ready_d to ld_data_d
+    UPD HdlValueId@@tx_ready to ld_data
+    DEL HdlValueInt@@1 from body
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@if_false to if_false
+    DEL HdlValueInt@@1 from if_false
+
+DEL HdlStmAssign@@body from 
+HdlStmAssign: body
+    HdlValueId: ld_data_d
+    HdlValueId: ld_data
+    HdlValueInt: 1
+
+DEL HdlStmProcess@@ from objs
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_tx_phy.v
++++ b/rtl/verilog/usb_tx_phy.v
+@@ -149,20 +148,20 @@ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)	tx_ip <= #1 1'b0;
++	if(!rst)	tx_ip <= 1'b0;
+ 	else
+-	if(ld_sop_d)	tx_ip <= #1 1'b1;
++	if(ld_sop_d)	tx_ip <= 1'b1;
+ 	else
+-	if(eop_done)	tx_ip <= #1 1'b0;
++	if(eop_done)	tx_ip <= 1'b0;
+ 
+ `ifdef USB_ASYNC_REST
+ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)		tx_ip_sync <= #1 1'b0;
++	if(!rst)		tx_ip_sync <= 1'b0;
+ 	else
+-	if(fs_ce)		tx_ip_sync <= #1 tx_ip;
++	if(fs_ce)		tx_ip_sync <= tx_ip;
+ 
+ // data_done helps us to catch cases where TxValid drops due to
+ // packet end and then gets re-asserted as a new packet starts.
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    MOV list@@sensitivity to 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+
+UPD HdlStmIf@@body to body
+    MOV HdlOp@@NEG_LOG to body
+    HdlOp: NEG_LOG
+        list: ops
+            HdlValueId: rst
+
+UPD HdlStmIf@@body to body
+    MOV HdlOp@@NEG_LOG to body
+    HdlOp: NEG_LOG
+        list: ops
+            HdlValueId: rst
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmProcess@@ to 
+    DEL list@@sensitivity from 
+    list: sensitivity
+        HdlOp: RISING
+            list: ops
+                HdlValueId: clk
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_tx_phy.v
++++ b/rtl/verilog/usb_tx_phy.v
+@@ -173,11 +172,11 @@ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)		data_done <= #1 1'b0;
++	if(!rst)		data_done <= 1'b0;
+ 	else
+-	if(TxValid_i & ! tx_ip)	data_done <= #1 1'b1;
++	if(TxValid_i && ! tx_ip)	data_done <= 1'b1;
+ 	else
+-	if(!TxValid_i)		data_done <= #1 1'b0;
++	if(!TxValid_i)		data_done <= 1'b0;
+ 
+ ///////////////////////////////////////////////////////////////////
+ //
+
+ParseResult:
+UPD HdlStmIf@@body to body
+    UPD HdlOp@@AND to AND_LOG
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_tx_phy.v
++++ b/rtl/verilog/usb_tx_phy.v
+@@ -189,41 +188,41 @@ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)		bit_cnt <= #1 3'h0;
++	if(!rst)		bit_cnt <= 3'h0;
+ 	else
+-	if(!tx_ip_sync)		bit_cnt <= #1 3'h0;
++	if(!tx_ip_sync)		bit_cnt <= 3'h0;
+ 	else
+-	if(fs_ce & !hold)	bit_cnt <= #1 bit_cnt + 3'h1;
++	if(fs_ce && !hold)	bit_cnt <= bit_cnt + 3'h1;
+ 
+ assign hold = stuff;
+ 
+ always @(posedge clk)
+-	if(!tx_ip_sync)		sd_raw_o <= #1 1'b0;
++	if(!tx_ip_sync)		sd_raw_o <= 1'b0;
+ 	else
+ 	case(bit_cnt)	// synopsys full_case parallel_case
+-	   3'h0: sd_raw_o <= #1 hold_reg[0];
+-	   3'h1: sd_raw_o <= #1 hold_reg[1];
+-	   3'h2: sd_raw_o <= #1 hold_reg[2];
+-	   3'h3: sd_raw_o <= #1 hold_reg[3];
+-	   3'h4: sd_raw_o <= #1 hold_reg[4];
+-	   3'h5: sd_raw_o <= #1 hold_reg[5];
+-	   3'h6: sd_raw_o <= #1 hold_reg[6];
+-	   3'h7: sd_raw_o <= #1 hold_reg[7];
++	   3'h0: sd_raw_o <= hold_reg[0];
++	   3'h1: sd_raw_o <= hold_reg[1];
++	   3'h2: sd_raw_o <= hold_reg[2];
++	   3'h3: sd_raw_o <= hold_reg[3];
++	   3'h4: sd_raw_o <= hold_reg[4];
++	   3'h5: sd_raw_o <= hold_reg[5];
++	   3'h6: sd_raw_o <= hold_reg[6];
++	   3'h7: sd_raw_o <= hold_reg[7];
+ 	endcase
+ 
+ always @(posedge clk)
+-	sft_done <= #1 !hold & (bit_cnt == 3'h7);
++	sft_done <= !hold & (bit_cnt == 3'h7);
+ 
+ always @(posedge clk)
+-	sft_done_r <= #1 sft_done;
++	sft_done_r <= sft_done;
+ 
+ assign sft_done_e = sft_done & !sft_done_r;
+ 
+ // Out Data Hold Register
+ always @(posedge clk)
+-	if(ld_sop_d)	hold_reg <= #1 8'h80;
++	if(ld_sop_d)	hold_reg <= 8'h80;
+ 	else
+-	if(ld_data)	hold_reg <= #1 DataOut_i;
++	if(ld_data)	hold_reg <= DataOut_i;
+ 
+ ///////////////////////////////////////////////////////////////////
+ //
+
+ParseResult:
+UPD HdlStmIf@@body to body
+    UPD HdlOp@@AND to AND_LOG
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@body to body
+    DEL HdlValueInt@@1 from body
+
+UPD HdlStmAssign@@body to body
+    DEL HdlValueInt@@1 from body
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_tx_phy.v
++++ b/rtl/verilog/usb_tx_phy.v
+@@ -235,14 +234,14 @@ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)	one_cnt <= #1 3'h0;
++	if(!rst)	one_cnt <= 3'h0;
+ 	else
+-	if(!tx_ip_sync)	one_cnt <= #1 3'h0;
++	if(!tx_ip_sync)	one_cnt <= 3'h0;
+ 	else
+ 	if(fs_ce)
+ 	   begin
+-		if(!sd_raw_o | stuff)	one_cnt <= #1 3'h0;
+-		else			one_cnt <= #1 one_cnt + 3'h1;
++		if(!sd_raw_o || stuff)	one_cnt <= 3'h0;
++		else			one_cnt <= one_cnt + 3'h1;
+ 	   end
+ 
+ assign stuff = (one_cnt==3'h6);
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@OR to OR_LOG
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@if_false to if_false
+    DEL HdlValueInt@@1 from if_false
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_tx_phy.v
++++ b/rtl/verilog/usb_tx_phy.v
+@@ -252,10 +251,9 @@ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)	sd_bs_o <= #1 1'h0;
++	if(!rst)	sd_bs_o <= 1'h0;
+ 	else
+-	if(fs_ce)	sd_bs_o <= #1 !tx_ip_sync ? 1'b0 :
+-				(stuff ? 1'b0 : sd_raw_o);
++	if(fs_ce)	sd_bs_o <= !tx_ip_sync ? 1'b0 : (stuff ? 1'b0 : sd_raw_o);
+ 
+ ///////////////////////////////////////////////////////////////////
+ //
+
+ParseResult:
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_tx_phy.v
++++ b/rtl/verilog/usb_tx_phy.v
+@@ -267,11 +265,11 @@ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)	sd_nrzi_o <= #1 1'b1;
++	if(!rst)			sd_nrzi_o <= 1'b1;
+ 	else
+-	if(!tx_ip_sync | !txoe_r1)	sd_nrzi_o <= #1 1'b1;
++	if(!tx_ip_sync || !txoe_r1)	sd_nrzi_o <= 1'b1;
+ 	else
+-	if(fs_ce)	sd_nrzi_o <= #1 sd_bs_o ? sd_nrzi_o : ~sd_nrzi_o;
++	if(fs_ce)			sd_nrzi_o <= sd_bs_o ? sd_nrzi_o : ~sd_nrzi_o;
+ 
+ ///////////////////////////////////////////////////////////////////
+ //
+
+ParseResult:
+UPD HdlStmIf@@body to body
+    UPD HdlOp@@OR to OR_LOG
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_tx_phy.v
++++ b/rtl/verilog/usb_tx_phy.v
+@@ -283,38 +281,38 @@ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)		append_eop <= #1 1'b0;
++	if(!rst)		append_eop <= 1'b0;
+ 	else
+-	if(ld_eop_d)		append_eop <= #1 1'b1;
++	if(ld_eop_d)		append_eop <= 1'b1;
+ 	else
+-	if(append_eop_sync2)	append_eop <= #1 1'b0;
++	if(append_eop_sync2)	append_eop <= 1'b0;
+ 
+ `ifdef USB_ASYNC_REST
+ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)	append_eop_sync1 <= #1 1'b0;
++	if(!rst)	append_eop_sync1 <= 1'b0;
+ 	else
+-	if(fs_ce)	append_eop_sync1 <= #1 append_eop;
++	if(fs_ce)	append_eop_sync1 <= append_eop;
+ 
+ `ifdef USB_ASYNC_REST
+ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)	append_eop_sync2 <= #1 1'b0;
++	if(!rst)	append_eop_sync2 <= 1'b0;
+ 	else
+-	if(fs_ce)	append_eop_sync2 <= #1 append_eop_sync1;
++	if(fs_ce)	append_eop_sync2 <= append_eop_sync1;
+ 
+ `ifdef USB_ASYNC_REST
+ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)	append_eop_sync3 <= #1 1'b0;
++	if(!rst)	append_eop_sync3 <= 1'b0;
+ 	else
+-	if(fs_ce)	append_eop_sync3 <= #1 append_eop_sync2;
++	if(fs_ce)	append_eop_sync3 <= append_eop_sync2;
+ 
+ assign eop_done = append_eop_sync3;
+ 
+
+ParseResult:
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_tx_phy.v
++++ b/rtl/verilog/usb_tx_phy.v
+@@ -328,27 +326,27 @@ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)	txoe_r1 <= #1 1'b0;
++	if(!rst)	txoe_r1 <= 1'b0;
+ 	else
+-	if(fs_ce)	txoe_r1 <= #1 tx_ip_sync;
++	if(fs_ce)	txoe_r1 <= tx_ip_sync;
+ 
+ `ifdef USB_ASYNC_REST
+ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)	txoe_r2 <= #1 1'b0;
++	if(!rst)	txoe_r2 <= 1'b0;
+ 	else
+-	if(fs_ce)	txoe_r2 <= #1 txoe_r1;
++	if(fs_ce)	txoe_r2 <= txoe_r1;
+ 
+ `ifdef USB_ASYNC_REST
+ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)	txoe <= #1 1'b1;
++	if(!rst)	txoe <= 1'b1;
+ 	else
+-	if(fs_ce)	txoe <= #1 !(txoe_r1 | txoe_r2);
++	if(fs_ce)	txoe <= !(txoe_r1 | txoe_r2);
+ 
+ ///////////////////////////////////////////////////////////////////
+ //
+
+ParseResult:
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_tx_phy.v
++++ b/rtl/verilog/usb_tx_phy.v
+@@ -360,9 +358,9 @@ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)	txdp <= #1 1'b1;
++	if(!rst)	txdp <= 1'b1;
+ 	else
+-	if(fs_ce)	txdp <= #1 phy_mode ?
++	if(fs_ce)	txdp <= phy_mode ?
+ 					(!append_eop_sync3 &  sd_nrzi_o) :
+ 					sd_nrzi_o;
+ 
+
+ParseResult:
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_tx_phy.v
++++ b/rtl/verilog/usb_tx_phy.v
+@@ -371,9 +369,9 @@ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)	txdn <= #1 1'b0;
++	if(!rst)	txdn <= 1'b0;
+ 	else
+-	if(fs_ce)	txdn <= #1 phy_mode ?
++	if(fs_ce)	txdn <= phy_mode ?
+ 					(!append_eop_sync3 & ~sd_nrzi_o) :
+ 					append_eop_sync3;
+ 
+
+ParseResult:
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@ to 
+    DEL HdlValueInt@@1 from 
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_tx_phy.v
++++ b/rtl/verilog/usb_tx_phy.v
+@@ -387,8 +385,8 @@ always @(posedge clk or negedge rst)
+ `else
+ always @(posedge clk)
+ `endif
+-	if(!rst)	state <= #1 IDLE;
+-	else		state <= #1 next_state;
++	if(!rst)	state <= IDLE;
++	else		state <= next_state;
+ 
+ always @(state or TxValid_i or data_done or sft_done_e or eop_done or fs_ce)
+    begin
+
+ParseResult:
+UPD HdlStmAssign@@if_true to if_true
+    DEL HdlValueInt@@1 from if_true
+
+UPD HdlStmAssign@@if_false to if_false
+    DEL HdlValueInt@@1 from if_false
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_tx_phy.v
++++ b/rtl/verilog/usb_tx_phy.v
+@@ -419,13 +417,13 @@ always @(state or TxValid_i or data_done or sft_done_e or eop_done or fs_ce)
+ 		   end
+ 	   DATA:
+ 		   begin
+-			if(!data_done & sft_done_e)
++			if(!data_done && sft_done_e)
+ 			   begin
+ 				ld_eop_d = 1'b1;
+ 				next_state = EOP1;
+ 			   end
+ 			
+-			if(data_done & sft_done_e)
++			if(data_done && sft_done_e)
+ 			   begin
+ 				tx_ready_d = 1'b1;
+ 				ld_data_d = 1'b1;
+
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND to AND_LOG
+
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND to AND_LOG
+
+
+CommitId: 9d6135bd1c20d8fa3c349ad65c973e7bb64478db
+- Made core more robust against line noise
+--- a/rtl/verilog/usb_tx_phy.v
++++ b/rtl/verilog/usb_tx_phy.v
+@@ -437,14 +435,13 @@ always @(state or TxValid_i or data_done or sft_done_e or eop_done or fs_ce)
+ 		   end
+ 	   EOP2:
+ 		   begin
+-			if(!eop_done & fs_ce)	next_state = WAIT;
++			if(!eop_done && fs_ce)	next_state = WAIT;
+ 		   end
+ 	   WAIT:
+ 		   begin
+ 			if(fs_ce)		next_state = IDLE;
+ 		   end
+ 	endcase
+-	
+    end
+ 
+ endmodule
+ParseResult:
+UPD HdlStmIf@@ to 
+    UPD HdlOp@@AND to AND_LOG
 
 
 CommitId: e15b5f22c4e2ff00960a62276d25db0ddd1f0c15

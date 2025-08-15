@@ -568,6 +568,1414 @@ HdlIdDef: write_xgchid
     HdlDirection: INTERNAL
 
 
+CommitId: c54bc9c6b2c14955e2865f97dc35d0f3467634a3
+Update with Single Step debuging test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -45,6 +45,7 @@ module tst_bench_top();
+ 
+   parameter MAX_CHANNEL = 127;    // Max XGATE Interrupt Channel Number
+   parameter STOP_ON_ERROR = 1'b0;
++  parameter MAX_VECTOR = 1800;
+   
+   //
+   // wires && regs
+
+ParseResult:
+INS HdlIdDef@@MAX_VECTOR to params
+HdlIdDef: MAX_VECTOR
+    HdlValueInt: 1800
+    HdlDirection: INTERNAL
+
+
+CommitId: c54bc9c6b2c14955e2865f97dc35d0f3467634a3
+Update with Single Step debuging test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -82,6 +83,7 @@ module tst_bench_top();
+   reg  [127:0] channel_req;
+   wire [  7:0] xgswt;        // XGATE Software Triggers
+   wire [MAX_CHANNEL:0] xgif; // Max XGATE Interrupt Channel Number
++  wire         xg_sw_irq;    // Xgate Software interrupt
+ 
+ 
+   wire [15:0] xgate_address;
+
+ParseResult:
+INS HdlIdDef@@xg_sw_irq to objs
+HdlIdDef: xg_sw_irq
+    HdlDirection: INTERNAL
+
+
+CommitId: c54bc9c6b2c14955e2865f97dc35d0f3467634a3
+Update with Single Step debuging test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -93,8 +95,6 @@ module tst_bench_top();
+   wire [15:0] wbm_adr_o;
+   wire [ 1:0] wbm_sel_o;
+ 
+-  wire scl, scl0_o, scl0_oen, scl1_o, scl1_oen;
+-  wire sda, sda0_o, sda0_oen, sda1_o, sda1_oen;
+ 
+   // Name Address Locations
+   parameter XGATE_XGMCTL   = 5'h00;
+
+ParseResult:
+DEL HdlIdDef@@scl from objs
+HdlIdDef: scl
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@scl0_o from objs
+HdlIdDef: scl0_o
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@scl0_oen from objs
+HdlIdDef: scl0_oen
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@scl1_o from objs
+HdlIdDef: scl1_o
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@scl1_oen from objs
+HdlIdDef: scl1_oen
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@sda from objs
+HdlIdDef: sda
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@sda0_o from objs
+HdlIdDef: sda0_o
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@sda0_oen from objs
+HdlIdDef: sda0_oen
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@sda1_o from objs
+HdlIdDef: sda1_o
+    HdlDirection: INTERNAL
+
+DEL HdlIdDef@@sda1_oen from objs
+HdlIdDef: sda1_oen
+    HdlDirection: INTERNAL
+
+
+CommitId: c54bc9c6b2c14955e2865f97dc35d0f3467634a3
+Update with Single Step debuging test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -123,7 +123,25 @@ module tst_bench_top();
+   parameter XGATE_XGR5     = 5'h17;
+   parameter XGATE_XGR6     = 5'h18;
+   parameter XGATE_XGR7     = 5'h19;
+-
++  
++  // Define bits in XGATE Control Register
++  parameter XGMCTL_XGEM     = 16'h8000;
++  parameter XGMCTL_XGFRZM   = 16'h4000;
++  parameter XGMCTL_XGDBGM   = 15'h2000;
++  parameter XGMCTL_XGSSM    = 15'h1000;
++  parameter XGMCTL_XGFACTM  = 15'h0800;
++  parameter XGMCTL_XGBRKIEM = 15'h0400;
++  parameter XGMCTL_XGSWEIFM = 15'h0200;
++  parameter XGMCTL_XGIEM    = 15'h0100;
++  parameter XGMCTL_XGE      = 16'h0080;
++  parameter XGMCTL_XGFRZ    = 16'h0040;
++  parameter XGMCTL_XGDBG    = 15'h0020;
++  parameter XGMCTL_XGSS     = 15'h0010;
++  parameter XGMCTL_XGFACT   = 15'h0008;
++  parameter XGMCTL_XGBRKIE  = 15'h0004;
++  parameter XGMCTL_XGSWEIF  = 15'h0002;
++  parameter XGMCTL_XGIE     = 15'h0001;
++  
+   parameter COP_CNTRL = 5'b0_0000;
+ 
+   parameter COP_CNTRL_COP_EVENT  = 16'h0100;  // COP Enable interrupt request
+
+ParseResult:
+INS HdlIdDef@@XGMCTL_XGEM to params
+HdlIdDef: XGMCTL_XGEM
+    HdlValueInt: 8000
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@XGMCTL_XGFRZM to params
+HdlIdDef: XGMCTL_XGFRZM
+    HdlValueInt: 4000
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@XGMCTL_XGDBGM to params
+HdlIdDef: XGMCTL_XGDBGM
+    HdlValueInt: 2000
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@XGMCTL_XGSSM to params
+HdlIdDef: XGMCTL_XGSSM
+    HdlValueInt: 1000
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@XGMCTL_XGFACTM to params
+HdlIdDef: XGMCTL_XGFACTM
+    HdlValueInt: 0800
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@XGMCTL_XGBRKIEM to params
+HdlIdDef: XGMCTL_XGBRKIEM
+    HdlValueInt: 0400
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@XGMCTL_XGSWEIFM to params
+HdlIdDef: XGMCTL_XGSWEIFM
+    HdlValueInt: 0200
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@XGMCTL_XGIEM to params
+HdlIdDef: XGMCTL_XGIEM
+    HdlValueInt: 0100
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@XGMCTL_XGE to params
+HdlIdDef: XGMCTL_XGE
+    HdlValueInt: 0080
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@XGMCTL_XGFRZ to params
+HdlIdDef: XGMCTL_XGFRZ
+    HdlValueInt: 0040
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@XGMCTL_XGDBG to params
+HdlIdDef: XGMCTL_XGDBG
+    HdlValueInt: 0020
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@XGMCTL_XGSS to params
+HdlIdDef: XGMCTL_XGSS
+    HdlValueInt: 0010
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@XGMCTL_XGFACT to params
+HdlIdDef: XGMCTL_XGFACT
+    HdlValueInt: 0008
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@XGMCTL_XGBRKIE to params
+HdlIdDef: XGMCTL_XGBRKIE
+    HdlValueInt: 0004
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@XGMCTL_XGSWEIF to params
+HdlIdDef: XGMCTL_XGSWEIF
+    HdlValueInt: 0002
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@XGMCTL_XGIE to params
+HdlIdDef: XGMCTL_XGIE
+    HdlValueInt: 0001
+    HdlDirection: INTERNAL
+
+
+CommitId: c54bc9c6b2c14955e2865f97dc35d0f3467634a3
+Update with Single Step debuging test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -138,6 +156,15 @@ module tst_bench_top();
+   event channel_ack_wrt;
+   event channel_err_wrt;
+   reg [15:0] error_count;
++  
++  reg        mem_wait_state_enable;
++  
++  // Registers used to mirror internal registers
++  reg [15:0] data_xgmctl;
++  reg [15:0] data_xgchid;
++  reg [15:0] data_xgvbr;
++  reg [15:0] data_xgswt;
++  reg [15:0] data_xgsem;
+ 
+   // initial values and testbench setup
+   initial
+
+ParseResult:
+INS HdlIdDef@@mem_wait_state_enable to objs
+HdlIdDef: mem_wait_state_enable
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@data_xgmctl to objs
+HdlIdDef: data_xgmctl
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 15
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@data_xgchid to objs
+HdlIdDef: data_xgchid
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 15
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@data_xgvbr to objs
+HdlIdDef: data_xgvbr
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 15
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@data_xgswt to objs
+HdlIdDef: data_xgswt
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 15
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+INS HdlIdDef@@data_xgsem to objs
+HdlIdDef: data_xgsem
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+            HdlOp: DOWNTO
+                list: ops
+                    HdlValueInt: 15
+                    HdlValueInt: 0
+    HdlDirection: INTERNAL
+
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@0 to 1
+
+
+CommitId: c54bc9c6b2c14955e2865f97dc35d0f3467634a3
+Update with Single Step debuging test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -177,17 +205,26 @@ module tst_bench_top();
+ 
+   // Keep a count of how many clocks we've simulated
+   always @(posedge mstr_test_clk)
+-    vector <= vector + 1;
++    begin
++      vector <= vector + 1;
++      if (vector > MAX_VECTOR)
++	begin
++	  error_count = error_count + 1;
++	  $display("\n ------ !!!!! Simulation Timeout at vector=%d\n -------", vector);
++	  wrap_up;
++	end
++    end
++
+ 
+   // Throw in some wait states from the memory
+   always @(posedge mstr_test_clk)
+-//    if (((vector % 7) == 0) && (xgate.risc.cpu_state == 4'b0001))
+-//    if (((vector % 5) == 0) && (xgate.risc.load_next_inst))
+-    if ((vector % 5) == 0)
++    if (((vector % 5) == 0) && (xgate.risc.load_next_inst || xgate.risc.data_access))
++//    if ((vector % 5) == 0)
+       wbm_ack_i <= 1'b0;
+     else 
+       wbm_ack_i <= 1'b1;
+ 
++
+   // Write memory interface to RAM
+   always @(posedge mstr_test_clk)
+     begin
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: mem_wait_state_enable
+                HdlValueInt: 0
+
+UPD HdlStmIf@@body to body
+    MOV HdlOp@@EQ to body
+    HdlOp: EQ
+        list: ops
+            HdlOp: MOD
+                list: ops
+                    HdlValueId: vector
+                    HdlValueInt: 5
+            HdlValueInt: 0
+
+
+CommitId: c54bc9c6b2c14955e2865f97dc35d0f3467634a3
+Update with Single Step debuging test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -214,22 +251,25 @@ module tst_bench_top();
+       if (write_mem_strb_l && wbm_ack_i && (xgate_address == CHECK_POINT))
+ 	begin
+ 	  check_point_reg <= write_mem_data[7:0];
++	  #1;
+ 	  -> check_point_wrt;
+ 	end
+       if (write_mem_strb_l && wbm_ack_i && (xgate_address == CHANNEL_ACK))
+ 	begin
+ 	  channel_ack_reg <= write_mem_data[7:0];
++	  #1;
+ 	  -> channel_ack_wrt;
+ 	end
+       if (write_mem_strb_l && wbm_ack_i && (xgate_address == CHANNEL_ERR))
+ 	begin
+ 	  channel_err_reg <= write_mem_data[7:0];
++	  #1;
+ 	  -> channel_err_wrt;
+ 	end
+     end
+ 
+   always @check_point_wrt
+-    $display("\nSoftware Checkpoint #%d -- at vector=%d\n", check_point_reg, vector);
++    $display("\nSoftware Checkpoint #%h -- at vector=%d\n", check_point_reg, vector);
+ 
+   always @channel_err_wrt
+     begin
+
+ParseResult:
+UPD HdlStmIf@@body to body
+    INS HdlOp@@AND_LOG to body
+    UPD HdlOp@@AND_LOG to AND_LOG
+        INS list@@ops to AND_LOG
+        INS HdlOp@@OR_LOG to ops
+        HdlOp: OR_LOG
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlOp: DOT
+                            list: ops
+                                HdlValueId: xgate
+                                HdlValueId: risc
+                        HdlValueId: load_next_inst
+                HdlOp: DOT
+                    list: ops
+                        HdlOp: DOT
+                            list: ops
+                                HdlValueId: xgate
+                                HdlValueId: risc
+                        HdlValueId: data_access
+
+INS HdlStmNop@@ to body
+
+INS HdlStmProcess@@ to body
+
+INS HdlStmNop@@ to body
+
+INS HdlStmWait@@[{'__class__': 'HdlValueInt', 'base': 10, 'val': '1'} ] to body
+HdlStmWait:
+    list: val
+        HdlValueInt: 1
+
+MOV HdlStmNop@@ to body
+HdlStmNop
+
+
+CommitId: c54bc9c6b2c14955e2865f97dc35d0f3467634a3
+Update with Single Step debuging test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -331,7 +372,7 @@ module tst_bench_top();
+ // Test Program
+ initial
+   begin
+-      $readmemh("../../../bench/verilog/jump_mem.v", ram_8);
++      $readmemh("../../../bench/verilog/inst_test.v", ram_8);
+       $display("\nstatus at time: %t Testbench started", $time);
+ 
+       // reset system
+
+ParseResult:
+INS HdlStmProcess@@ to objs
+
+UPD HdlStmProcess@@ to 
+    MOV HdlStmBlock@@SEQ to 
+    HdlStmBlock: SEQ
+        list: body
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: $readmemh
+                    str
+                    HdlValueId: ram_8
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: $display
+                    str
+                    HdlOp: CALL
+                        list: ops
+                            HdlValueId: $time
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: rstn
+                    HdlValueInt: 1
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: channel_req
+                    HdlValueInt: 1
+            HdlStmRepeat
+                HdlValueInt: 1
+                HdlStmProcess: body
+                    list: sensitivity
+                        HdlOp: RISING
+                            list: ops
+                                HdlValueId: mstr_test_clk
+                    HdlStmNop: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: sync_reset
+                    HdlValueInt: 1
+            HdlStmProcess
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmWait:
+                            list: val
+                                HdlValueInt: 2
+                        HdlStmNop
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: rstn
+                    HdlValueInt: 0
+            HdlStmProcess
+                HdlStmBlock: SEQ
+                    list: body
+                        HdlStmWait:
+                            list: val
+                                HdlValueInt: 5
+                        HdlStmNop
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: rstn
+                    HdlValueInt: 1
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: por_reset_b
+                    HdlValueInt: 1
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: channel_req
+                    HdlValueInt: 0
+            HdlStmRepeat
+                HdlValueInt: 1
+                HdlStmProcess: body
+                    list: sensitivity
+                        HdlOp: RISING
+                            list: ops
+                                HdlValueId: mstr_test_clk
+                    HdlStmNop: body
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: sync_reset
+                    HdlValueInt: 0
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: channel_req
+                    HdlValueInt: 0
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: $display
+                    str
+                    HdlOp: CALL
+                        list: ops
+                            HdlValueId: $time
+            HdlOp: ASSIGN
+                list: ops
+                    HdlValueId: test_num
+                    HdlOp: ADD
+                        list: ops
+                            HdlValueId: test_num
+                            HdlValueInt: 1
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: activate_thread_sw
+                    HdlValueInt: 1
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: wait_irq_set
+                    HdlValueInt: 1
+            HdlOp: CALL
+                list: ops
+                    HdlOp: DOT
+                        list: ops
+                            HdlValueId: u0
+                            HdlValueId: wb_write
+                    HdlValueInt: 1
+                    HdlValueId: XGATE_XGIF_0
+                    HdlValueInt: 0002
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: activate_thread_sw
+                    HdlValueInt: 2
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: wait_irq_set
+                    HdlValueInt: 2
+            HdlOp: CALL
+                list: ops
+                    HdlOp: DOT
+                        list: ops
+                            HdlValueId: u0
+                            HdlValueId: wb_write
+                    HdlValueInt: 1
+                    HdlValueId: XGATE_XGIF_0
+                    HdlValueInt: 0004
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: activate_thread_sw
+                    HdlValueInt: 3
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: wait_irq_set
+                    HdlValueInt: 3
+            HdlOp: CALL
+                list: ops
+                    HdlOp: DOT
+                        list: ops
+                            HdlValueId: u0
+                            HdlValueId: wb_write
+                    HdlValueInt: 1
+                    HdlValueId: XGATE_XGIF_0
+                    HdlValueInt: 0008
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: activate_thread_sw
+                    HdlValueInt: 4
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: wait_irq_set
+                    HdlValueInt: 4
+            HdlOp: CALL
+                list: ops
+                    HdlOp: DOT
+                        list: ops
+                            HdlValueId: u0
+                            HdlValueId: wb_write
+                    HdlValueInt: 1
+                    HdlValueId: XGATE_XGIF_0
+                    HdlValueInt: 0010
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: activate_thread_sw
+                    HdlValueInt: 5
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: wait_irq_set
+                    HdlValueInt: 5
+            HdlOp: CALL
+                list: ops
+                    HdlOp: DOT
+                        list: ops
+                            HdlValueId: u0
+                            HdlValueId: wb_write
+                    HdlValueInt: 1
+                    HdlValueId: XGATE_XGIF_0
+                    HdlValueInt: 0020
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: activate_thread_sw
+                    HdlValueInt: 6
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: wait_irq_set
+                    HdlValueInt: 6
+            HdlOp: CALL
+                list: ops
+                    HdlOp: DOT
+                        list: ops
+                            HdlValueId: u0
+                            HdlValueId: wb_write
+                    HdlValueInt: 1
+                    HdlValueId: XGATE_XGIF_0
+                    HdlValueInt: 0040
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: activate_thread_sw
+                    HdlValueInt: 7
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: wait_irq_set
+                    HdlValueInt: 7
+            HdlOp: CALL
+                list: ops
+                    HdlOp: DOT
+                        list: ops
+                            HdlValueId: u0
+                            HdlValueId: wb_write
+                    HdlValueInt: 1
+                    HdlValueId: XGATE_XGIF_0
+                    HdlValueInt: 0080
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: activate_thread_sw
+                    HdlValueInt: 8
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: wait_irq_set
+                    HdlValueInt: 8
+            HdlOp: CALL
+                list: ops
+                    HdlOp: DOT
+                        list: ops
+                            HdlValueId: u0
+                            HdlValueId: wb_write
+                    HdlValueInt: 1
+                    HdlValueId: XGATE_XGIF_0
+                    HdlValueInt: 0100
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: activate_thread_sw
+                    HdlValueInt: 9
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: wait_irq_set
+                    HdlValueInt: 9
+            HdlOp: CALL
+                list: ops
+                    HdlOp: DOT
+                        list: ops
+                            HdlValueId: u0
+                            HdlValueId: wb_write
+                    HdlValueInt: 1
+                    HdlValueId: XGATE_XGIF_0
+                    HdlValueInt: 0200
+            HdlOp: CALL
+                list: ops
+                    HdlOp: DOT
+                        list: ops
+                            HdlValueId: u0
+                            HdlValueId: wb_write
+                    HdlValueInt: 1
+                    HdlValueId: XGATE_XGSEM
+                    HdlValueInt: 5050
+            HdlOp: CALL
+                list: ops
+                    HdlOp: DOT
+                        list: ops
+                            HdlValueId: u0
+                            HdlValueId: wb_cmp
+                    HdlValueInt: 0
+                    HdlValueId: XGATE_XGSEM
+                    HdlValueInt: 0050
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: activate_thread_sw
+                    HdlValueInt: 10
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: wait_irq_set
+                    HdlValueInt: 10
+            HdlOp: CALL
+                list: ops
+                    HdlOp: DOT
+                        list: ops
+                            HdlValueId: u0
+                            HdlValueId: wb_write
+                    HdlValueInt: 1
+                    HdlValueId: XGATE_XGIF_0
+                    HdlValueInt: 0400
+            HdlOp: CALL
+                list: ops
+                    HdlOp: DOT
+                        list: ops
+                            HdlValueId: u0
+                            HdlValueId: wb_write
+                    HdlValueInt: 1
+                    HdlValueId: XGATE_XGSEM
+                    HdlValueInt: ff00
+            HdlOp: CALL
+                list: ops
+                    HdlOp: DOT
+                        list: ops
+                            HdlValueId: u0
+                            HdlValueId: wb_cmp
+                    HdlValueInt: 0
+                    HdlValueId: XGATE_XGSEM
+                    HdlValueInt: 0000
+            HdlOp: CALL
+                list: ops
+                    HdlOp: DOT
+                        list: ops
+                            HdlValueId: u0
+                            HdlValueId: wb_write
+                    HdlValueInt: 1
+                    HdlValueId: XGATE_XGSEM
+                    HdlValueInt: a0a0
+            HdlOp: CALL
+                list: ops
+                    HdlOp: DOT
+                        list: ops
+                            HdlValueId: u0
+                            HdlValueId: wb_cmp
+                    HdlValueInt: 0
+                    HdlValueId: XGATE_XGSEM
+                    HdlValueInt: 00a0
+            HdlOp: CALL
+                list: ops
+                    HdlOp: DOT
+                        list: ops
+                            HdlValueId: u0
+                            HdlValueId: wb_write
+                    HdlValueInt: 1
+                    HdlValueId: XGATE_XGSEM
+                    HdlValueInt: ff08
+            HdlOp: CALL
+                list: ops
+                    HdlOp: DOT
+                        list: ops
+                            HdlValueId: u0
+                            HdlValueId: wb_cmp
+                    HdlValueInt: 0
+                    HdlValueId: XGATE_XGSEM
+                    HdlValueInt: 0000
+            HdlStmRepeat
+                HdlValueInt: 2
+                HdlStmProcess: body
+                    list: sensitivity
+                        HdlOp: RISING
+                            list: ops
+                                HdlValueId: mstr_test_clk
+                    HdlStmNop: body
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: activate_channel
+                    HdlValueInt: 33
+            HdlStmRepeat
+                HdlValueInt: 20
+                HdlStmProcess: body
+                    list: sensitivity
+                        HdlOp: RISING
+                            list: ops
+                                HdlValueId: mstr_test_clk
+                    HdlStmNop: body
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: activate_channel
+                    HdlValueInt: 20
+            HdlStmRepeat
+                HdlValueInt: 20
+                HdlStmProcess: body
+                    list: sensitivity
+                        HdlOp: RISING
+                            list: ops
+                                HdlValueId: mstr_test_clk
+                    HdlStmNop: body
+            HdlOp: CALL
+                list: ops
+                    HdlValueId: dump_ram
+                    HdlValueInt: 0
+            HdlValueId: wrap_up
+            HdlValueId: reg_test_16
+            HdlStmRepeat
+                HdlValueInt: 10
+                HdlStmProcess: body
+                    list: sensitivity
+                        HdlOp: RISING
+                            list: ops
+                                HdlValueId: mstr_test_clk
+                    HdlStmNop: body
+            HdlValueId: wrap_up
+            HdlStmWait:
+                list: val
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $readmemh
+                str
+                HdlValueId: ram_8
+        MOV HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlOp: CALL
+                    list: ops
+                        HdlValueId: $time
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: rstn
+                HdlValueInt: 1
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: channel_req
+                HdlValueInt: 1
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: sync_reset
+                HdlValueInt: 1
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: rstn
+                HdlValueInt: 0
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: rstn
+                HdlValueInt: 1
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: por_reset_b
+                HdlValueInt: 1
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: channel_req
+                HdlValueInt: 0
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: sync_reset
+                HdlValueInt: 0
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: channel_req
+                HdlValueInt: 0
+        MOV HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlOp: CALL
+                    list: ops
+                        HdlValueId: $time
+        MOV HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGSEM
+                HdlValueInt: 0000
+        MOV HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGSEM
+                HdlValueInt: 0000
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: activate_channel
+                HdlValueInt: 33
+        DEL HdlOp@@CALL from body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: activate_channel
+                HdlValueInt: 20
+        DEL HdlValueId@@wrap_up from body
+        DEL HdlValueId@@reg_test_16 from body
+        DEL HdlValueId@@wrap_up from body
+
+MOV HdlStmProcess@@ to body
+HdlStmProcess
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmWait:
+                list: val
+                    HdlValueInt: 2
+            HdlStmNop
+
+MOV HdlStmProcess@@ to body
+HdlStmProcess
+    HdlStmBlock: SEQ
+        list: body
+            HdlStmWait:
+                list: val
+                    HdlValueInt: 5
+            HdlStmNop
+
+MOV HdlStmWait@@[] to body
+HdlStmWait:
+    list: val
+
+DEL HdlStmProcess@@ from objs
+
+
+CommitId: c54bc9c6b2c14955e2865f97dc35d0f3467634a3
+Update with Single Step debuging test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -498,6 +639,25 @@ task reg_test_16;
+ endtask
+ 
+ 
++// Poll for XGATE Interrupt set
++task wait_irq_set;
++  input [ 6:0] chan_val;
++  begin
++    while(!xgif[chan_val])
++      @(posedge mstr_test_clk); // poll it until it is set
++    $display("XGATE Interrupt Request #%d set detected at vector =%d", chan_val, vector);
++  end
++endtask
++
++// Poll for debug bit set
++task wait_debug_set;
++  begin
++    u0.wb_read(1, XGATE_XGMCTL, q);
++    while(~|(q & XGMCTL_XGDBG))
++      u0.wb_read(1, XGATE_XGMCTL, q); // poll it until it is set
++    $display("DEBUG Flag set detected at vector =%d", vector);
++  end
++endtask
+ 
+ 
+ task system_reset;  // reset system
+
+ParseResult:
+UPD HdlFunctionDef@@test_debug_mode to test_debug_mode
+    INS HdlValueId@@void to test_debug_mode
+    INS list@@params to test_debug_mode
+    INS list@@body to test_debug_mode
+    INS HdlStmBlock@@SEQ to body
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: test_num
+                HdlOp: ADD
+                    list: ops
+                        HdlValueId: test_num
+                        HdlValueInt: 1
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: test_num
+                HdlValueId: vector
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $readmemh
+                str
+                HdlValueId: ram_8
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: data_xgmctl
+                HdlOp: OR
+                    list: ops
+                        HdlValueId: XGMCTL_XGBRKIEM
+                        HdlValueId: XGMCTL_XGBRKIE
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: activate_thread_sw
+                HdlValueInt: 1
+        INS HdlValueId@@wait_debug_set to body
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGPC
+                HdlValueInt: 203a
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGR3
+                HdlValueInt: 0001
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: data_xgmctl
+                HdlOp: OR
+                    list: ops
+                        HdlValueId: XGMCTL_XGSSM
+                        HdlValueId: XGMCTL_XGSS
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGPC
+                HdlValueInt: 203c
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGR3
+                HdlValueInt: 0002
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGCCR
+                HdlValueInt: 0000
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGPC
+                HdlValueInt: 203e
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGPC
+                HdlValueInt: 203e
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGPC
+                HdlValueInt: 2040
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGPC
+                HdlValueInt: 2064
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGPC
+                HdlValueInt: 2066
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGR3
+                HdlValueInt: 0003
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGPC
+                HdlValueInt: 2068
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGR7
+                HdlValueInt: 00c3
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGPC
+                HdlValueInt: 2048
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGPC
+                HdlValueInt: 204a
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGR3
+                HdlValueInt: 0003
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_cmp
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGPC
+                HdlValueInt: 204c
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: data_xgmctl
+                HdlOp: OR
+                    list: ops
+                        HdlValueId: XGMCTL_XGDBGM
+                        HdlValueId: XGMCTL_XGDBG
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: data_xgmctl
+                HdlValueId: XGMCTL_XGDBGM
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: wait_irq_set
+                HdlValueInt: 1
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 1
+                HdlValueId: XGATE_XGIF_0
+                HdlValueInt: 0002
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: data_xgmctl
+                HdlOp: OR
+                    list: ops
+                        HdlOp: OR
+                            list: ops
+                                HdlValueId: XGMCTL_XGSWEIFM
+                                HdlValueId: XGMCTL_XGSWEIF
+                        HdlValueId: XGMCTL_XGBRKIEM
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlOp: DOT
+                    list: ops
+                        HdlValueId: u0
+                        HdlValueId: wb_write
+                HdlValueInt: 0
+                HdlValueId: XGATE_XGMCTL
+                HdlValueId: data_xgmctl
+
+
+CommitId: c54bc9c6b2c14955e2865f97dc35d0f3467634a3
+Update with Single Step debuging test
+--- a/bench/verilog/tst_bench_top.v
++++ b/bench/verilog/tst_bench_top.v
+@@ -573,7 +733,8 @@ task activate_thread_sw;
+   begin
+       $display("Activating Sofrware Thread - Channel #%d", chan_val);
+ 
+-      u0.wb_write(0, XGATE_XGMCTL,   16'h8080);   // Enable XGATE
++      data_xgmctl = XGMCTL_XGEM | XGMCTL_XGE;
++      u0.wb_write(0, XGATE_XGMCTL, data_xgmctl);   // Enable XGATE
+ 
+       channel_req[chan_val] = 1'b1; // 
+       repeat(1) @(posedge mstr_test_clk);
+ParseResult:
+UPD HdlFunctionDef@@test_inst_set to test_inst_set
+    INS HdlValueId@@void to test_inst_set
+    INS list@@params to test_inst_set
+    INS list@@body to test_inst_set
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@CALL to body
+        HdlOp: CALL
+            list: ops
+                HdlValueId: $display
+                str
+                HdlValueId: test_num
+                HdlValueId: vector
+
+
 CommitId: 05c0add9d9fb55907cff7a92068952852f462fbe
 Additions for XGCHID debug commands
 --- a/rtl/verilog/xgate_wbs_bus.v
@@ -668,63 +2076,6 @@ UPD HdlStmProcess@@ to
             list: ops
                 HdlValueId: write_xgchid
                 HdlValueInt: 0
-
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@write_reserv to write_reserv1
-
-UPD HdlStmCase@@wbs_adr_i to wbs_adr_i
-    INS tuple@@ to cases
-    tuple
-        HdlValueInt: 00001
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: write_xgchid
-                HdlValueInt: 1
-
-UPD HdlStmCase@@wbs_adr_i to wbs_adr_i
-    UPD HdlOp@@ASSIGN to ASSIGN
-        UPD HdlValueId@@write_reserv to write_reserv1
-    UPD HdlOp@@ASSIGN to ASSIGN
-        UPD HdlValueId@@write_reserv to write_reserv2
-
-
-CommitId: 05c0add9d9fb55907cff7a92068952852f462fbe
-Additions for XGCHID debug commands
---- a/rtl/verilog/xgate_wbs_bus.v
-+++ b/rtl/verilog/xgate_wbs_bus.v
-@@ -206,10 +210,10 @@ module xgate_wbs_bus #(parameter ARST_LVL = 1'b0,    // asynchronous reset level
- 	   5'b0_1100 : write_xgif_0  = 1'b1;
- 	   5'b0_1101 : write_xgswt   = 1'b1;
- 	   5'b0_1110 : write_xgsem   = 1'b1;
--	   5'b0_1111 : write_reserv  = 1'b1;
-+	   5'b0_1111 : write_reserv1 = 1'b1;
- 	   5'b1_0000 : write_xgccr   = 1'b1;
- 	   5'b1_0001 : write_xgpc    = 1'b1;
--	   5'b1_0010 : write_reserv  = 1'b1;
-+	   5'b1_0010 : write_reserv2 = 1'b1;
- 	   5'b1_0011 : write_xgr1    = 1'b1;
- 	   5'b1_0100 : write_xgr2    = 1'b1;
- 	   5'b1_0101 : write_xgr3    = 1'b1;
-ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: write_reserv2
-                HdlValueInt: 0
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: write_xgchid
-                HdlValueInt: 0
-
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueId@@write_reserv to write_reserv1
 
 UPD HdlStmCase@@wbs_adr_i to wbs_adr_i
     INS tuple@@ to cases
@@ -1385,84 +2736,6 @@ CommitId: 3ed4ed9a8d305e6a377cacf813c5f4cf1896613a
 Fix lint problems, change lowest interrupt vector from 0 to 1.\nDetect program counter underflow/overflow as a software error.
 --- a/rtl/verilog/xgate_risc.v
 +++ b/rtl/verilog/xgate_risc.v
-@@ -251,7 +258,6 @@ module xgate_risc #(parameter MAX_CHANNEL = 127)    // Max XGATE Interrupt Chann
-         3'b111 : rd_data = xgr7;
-         default : rd_data = 16'h0;  // XGR0 is always Zero
-       endcase
--    end
- 
-   assign wrt_reg_sel = (cpu_state == BOOT_3) ? 3'b001 :
-                        (sel_rd_field ? op_code[10:8] : op_code[4:2]);
-
-ParseResult:
-MOV HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['op_code',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '10'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '8'}]}]}  to body
-HdlStmCase: {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops':}]} 
-    HdlStmCaseType: CASE
-    HdlOp: INDEX
-        list: ops
-            HdlValueId: op_code
-            HdlOp: DOWNTO
-                list: ops
-                    HdlValueInt: 10
-                    HdlValueInt: 8
-    list: cases
-        tuple
-            HdlValueInt: 001
-            HdlOp: ASSIGN
-                list: ops
-                    HdlValueId: rd_data
-                    HdlValueId: xgr1
-        tuple
-            HdlValueInt: 010
-            HdlOp: ASSIGN
-                list: ops
-                    HdlValueId: rd_data
-                    HdlValueId: xgr2
-        tuple
-            HdlValueInt: 011
-            HdlOp: ASSIGN
-                list: ops
-                    HdlValueId: rd_data
-                    HdlValueId: xgr3
-        tuple
-            HdlValueInt: 100
-            HdlOp: ASSIGN
-                list: ops
-                    HdlValueId: rd_data
-                    HdlValueId: xgr4
-        tuple
-            HdlValueInt: 101
-            HdlOp: ASSIGN
-                list: ops
-                    HdlValueId: rd_data
-                    HdlValueId: xgr5
-        tuple
-            HdlValueInt: 110
-            HdlOp: ASSIGN
-                list: ops
-                    HdlValueId: rd_data
-                    HdlValueId: xgr6
-        tuple
-            HdlValueInt: 111
-            HdlOp: ASSIGN
-                list: ops
-                    HdlValueId: rd_data
-                    HdlValueId: xgr7
-    HdlOp: ASSIGN
-        list: ops
-            HdlValueId: rd_data
-            HdlValueInt: 0
-
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        DEL list@@body from SEQ
-    DEL HdlStmBlock@@SEQ from 
-
-
-CommitId: 3ed4ed9a8d305e6a377cacf813c5f4cf1896613a
-Fix lint problems, change lowest interrupt vector from 0 to 1.\nDetect program counter underflow/overflow as a software error.
---- a/rtl/verilog/xgate_risc.v
-+++ b/rtl/verilog/xgate_risc.v
 @@ -312,7 +318,7 @@ module xgate_risc #(parameter MAX_CHANNEL = 127)    // Max XGATE Interrupt Chann
      if ( !async_rst_b )
        software_error <= 1'b0;
@@ -1686,277 +2959,6 @@ HdlStmProcess
         HdlStmAssign: if_false
             HdlValueId: next_semap_state
             HdlValueId: semap_state
-
-MOV HdlStmProcess@@ to objs
-HdlStmProcess
-    list: sensitivity
-        HdlAll
-    HdlStmBlock: SEQ
-        list: body
-            HdlStmCase: semap_state
-                HdlStmCaseType: CASE
-                HdlValueId: semap_state
-                list: cases
-                    tuple
-                        HdlValueId: NO_LOCK
-                        HdlStmBlock: SEQ
-                            list: body
-                                HdlStmIf
-                                    HdlOp: AND_LOG
-                                        list: ops
-                                            HdlOp: AND_LOG
-                                                list: ops
-                                                    HdlValueId: host_wrt
-                                                    HdlValueId: host_bit_mask
-                                            HdlValueId: host_bit
-                                    HdlOp: ASSIGN
-                                        list: ops
-                                            HdlValueId: next_semap_state
-                                            HdlValueId: HOST_LOCK
-                                    list: elifs
-                                        tuple
-                                            HdlOp: AND_LOG
-                                                list: ops
-                                                    HdlValueId: ssem
-                                                    HdlValueId: risc_bit_sel
-                                            HdlOp: ASSIGN
-                                                list: ops
-                                                    HdlValueId: next_semap_state
-                                                    HdlValueId: RISC_LOCK
-                                    HdlOp: ASSIGN
-                                        list: ops
-                                            HdlValueId: next_semap_state
-                                            HdlValueId: NO_LOCK
-                    tuple
-                        HdlValueId: RISC_LOCK
-                        HdlStmBlock: SEQ
-                            list: body
-                                HdlStmIf
-                                    HdlOp: AND_LOG
-                                        list: ops
-                                            HdlValueId: csem
-                                            HdlValueId: risc_bit_sel
-                                    HdlOp: ASSIGN
-                                        list: ops
-                                            HdlValueId: next_semap_state
-                                            HdlValueId: NO_LOCK
-                                    list: elifs
-                                    HdlOp: ASSIGN
-                                        list: ops
-                                            HdlValueId: next_semap_state
-                                            HdlValueId: RISC_LOCK
-                    tuple
-                        HdlValueId: HOST_LOCK
-                        HdlStmBlock: SEQ
-                            list: body
-                                HdlStmIf
-                                    HdlOp: AND_LOG
-                                        list: ops
-                                            HdlOp: AND_LOG
-                                                list: ops
-                                                    HdlValueId: host_wrt
-                                                    HdlValueId: host_bit_mask
-                                            HdlOp: NEG_LOG
-                                                list: ops
-                                                    HdlValueId: host_bit
-                                    HdlOp: ASSIGN
-                                        list: ops
-                                            HdlValueId: next_semap_state
-                                            HdlValueId: NO_LOCK
-                                    list: elifs
-                                    HdlOp: ASSIGN
-                                        list: ops
-                                            HdlValueId: next_semap_state
-                                            HdlValueId: HOST_LOCK
-                HdlOp: ASSIGN
-                    list: ops
-                        HdlValueId: next_semap_state
-                        HdlValueId: NO_LOCK
-
-MOV HdlStmCase@@semap_state to body
-HdlStmCase: semap_state
-    HdlStmCaseType: CASE
-    HdlValueId: semap_state
-    list: cases
-        tuple
-            HdlValueId: NO_LOCK
-            HdlStmBlock: SEQ
-                list: body
-                    HdlStmIf
-                        HdlOp: AND_LOG
-                            list: ops
-                                HdlOp: AND_LOG
-                                    list: ops
-                                        HdlValueId: host_wrt
-                                        HdlValueId: host_bit_mask
-                                HdlValueId: host_bit
-                        HdlOp: ASSIGN
-                            list: ops
-                                HdlValueId: next_semap_state
-                                HdlValueId: HOST_LOCK
-                        list: elifs
-                            tuple
-                                HdlOp: AND_LOG
-                                    list: ops
-                                        HdlValueId: ssem
-                                        HdlValueId: risc_bit_sel
-                                HdlOp: ASSIGN
-                                    list: ops
-                                        HdlValueId: next_semap_state
-                                        HdlValueId: RISC_LOCK
-                        HdlOp: ASSIGN
-                            list: ops
-                                HdlValueId: next_semap_state
-                                HdlValueId: NO_LOCK
-        tuple
-            HdlValueId: RISC_LOCK
-            HdlStmBlock: SEQ
-                list: body
-                    HdlStmIf
-                        HdlOp: AND_LOG
-                            list: ops
-                                HdlValueId: csem
-                                HdlValueId: risc_bit_sel
-                        HdlOp: ASSIGN
-                            list: ops
-                                HdlValueId: next_semap_state
-                                HdlValueId: NO_LOCK
-                        list: elifs
-                        HdlOp: ASSIGN
-                            list: ops
-                                HdlValueId: next_semap_state
-                                HdlValueId: RISC_LOCK
-        tuple
-            HdlValueId: HOST_LOCK
-            HdlStmBlock: SEQ
-                list: body
-                    HdlStmIf
-                        HdlOp: AND_LOG
-                            list: ops
-                                HdlOp: AND_LOG
-                                    list: ops
-                                        HdlValueId: host_wrt
-                                        HdlValueId: host_bit_mask
-                                HdlOp: NEG_LOG
-                                    list: ops
-                                        HdlValueId: host_bit
-                        HdlOp: ASSIGN
-                            list: ops
-                                HdlValueId: next_semap_state
-                                HdlValueId: NO_LOCK
-                        list: elifs
-                        HdlOp: ASSIGN
-                            list: ops
-                                HdlValueId: next_semap_state
-                                HdlValueId: HOST_LOCK
-    HdlOp: ASSIGN
-        list: ops
-            HdlValueId: next_semap_state
-            HdlValueId: NO_LOCK
-
-UPD HdlModuleDef@@semaphore_bit to semaphore_bit
-    DEL list@@objs from semaphore_bit
-
-
-CommitId: 3ed4ed9a8d305e6a377cacf813c5f4cf1896613a
-Fix lint problems, change lowest interrupt vector from 0 to 1.\nDetect program counter underflow/overflow as a software error.
---- a/rtl/verilog/xgate_risc.v
-+++ b/rtl/verilog/xgate_risc.v
-@@ -2421,8 +2426,6 @@ module semaphore_bit #(parameter NO_LOCK   = 2'b00,
-         default:
-           next_semap_state = NO_LOCK;
-       endcase
--    end
- 
- endmodule  // semaphore_bit
- 
--
-ParseResult:
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD list@@body to objs
-        MOV list@@body to SEQ
-        list: body
-            HdlStmCase: semap_state
-                HdlStmCaseType: CASE
-                HdlValueId: semap_state
-                list: cases
-                    tuple
-                        HdlValueId: NO_LOCK
-                        HdlStmBlock: SEQ
-                            list: body
-                                HdlStmIf
-                                    HdlOp: AND_LOG
-                                        list: ops
-                                            HdlOp: AND_LOG
-                                                list: ops
-                                                    HdlValueId: host_wrt
-                                                    HdlValueId: host_bit_mask
-                                            HdlValueId: host_bit
-                                    HdlOp: ASSIGN
-                                        list: ops
-                                            HdlValueId: next_semap_state
-                                            HdlValueId: HOST_LOCK
-                                    list: elifs
-                                        tuple
-                                            HdlOp: AND_LOG
-                                                list: ops
-                                                    HdlValueId: ssem
-                                                    HdlValueId: risc_bit_sel
-                                            HdlOp: ASSIGN
-                                                list: ops
-                                                    HdlValueId: next_semap_state
-                                                    HdlValueId: RISC_LOCK
-                                    HdlOp: ASSIGN
-                                        list: ops
-                                            HdlValueId: next_semap_state
-                                            HdlValueId: NO_LOCK
-                    tuple
-                        HdlValueId: RISC_LOCK
-                        HdlStmBlock: SEQ
-                            list: body
-                                HdlStmIf
-                                    HdlOp: AND_LOG
-                                        list: ops
-                                            HdlValueId: csem
-                                            HdlValueId: risc_bit_sel
-                                    HdlOp: ASSIGN
-                                        list: ops
-                                            HdlValueId: next_semap_state
-                                            HdlValueId: NO_LOCK
-                                    list: elifs
-                                    HdlOp: ASSIGN
-                                        list: ops
-                                            HdlValueId: next_semap_state
-                                            HdlValueId: RISC_LOCK
-                    tuple
-                        HdlValueId: HOST_LOCK
-                        HdlStmBlock: SEQ
-                            list: body
-                                HdlStmIf
-                                    HdlOp: AND_LOG
-                                        list: ops
-                                            HdlOp: AND_LOG
-                                                list: ops
-                                                    HdlValueId: host_wrt
-                                                    HdlValueId: host_bit_mask
-                                            HdlOp: NEG_LOG
-                                                list: ops
-                                                    HdlValueId: host_bit
-                                    HdlOp: ASSIGN
-                                        list: ops
-                                            HdlValueId: next_semap_state
-                                            HdlValueId: NO_LOCK
-                                    list: elifs
-                                    HdlOp: ASSIGN
-                                        list: ops
-                                            HdlValueId: next_semap_state
-                                            HdlValueId: HOST_LOCK
-                HdlOp: ASSIGN
-                    list: ops
-                        HdlValueId: next_semap_state
-                        HdlValueId: NO_LOCK
-    DEL HdlStmBlock@@SEQ from 
 
 MOV HdlStmProcess@@ to objs
 HdlStmProcess
@@ -2720,15 +3722,6 @@ UPD HdlStmProcess@@ to
         INS HdlValueId@@test_debug_bit to body
         INS HdlValueId@@test_chid_debug to body
 
-UPD HdlStmProcess@@ to 
-    UPD HdlStmBlock@@SEQ to SEQ
-        MOV HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlValueId: $readmemh
-                str
-                HdlValueId: ram_8
-
 
 CommitId: 2629cfb5d1cf9bb07a45908c517299d371bbb827
 Added timeout, total error count, and XGCHN test
@@ -3163,37 +4156,6 @@ UPD HdlFunctionDef@@test_debug_bit to test_debug_bit
                 HdlValueId: data_xgmctl
                 HdlValueId: XGMCTL_XGDBGM
 
-UPD HdlFunctionDef@@test_debug_mode to test_debug_mode
-    UPD HdlStmBlock@@SEQ to SEQ
-        MOV HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlOp: DOT
-                    list: ops
-                        HdlValueId: u0
-                        HdlValueId: wb_cmp
-                HdlValueInt: 0
-                HdlValueId: XGATE_XGPC
-                HdlValueInt: 204c
-        MOV HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlOp: DOT
-                    list: ops
-                        HdlValueId: u0
-                        HdlValueId: wb_write
-                HdlValueInt: 0
-                HdlValueId: XGATE_XGMCTL
-                HdlValueId: data_xgmctl
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: data_xgmctl
-                HdlOp: OR
-                    list: ops
-                        HdlValueId: XGMCTL_XGDBGM
-                        HdlValueId: XGMCTL_XGDBG
-
 
 CommitId: 2629cfb5d1cf9bb07a45908c517299d371bbb827
 Added timeout, total error count, and XGCHN test
@@ -3238,131 +4200,6 @@ Added timeout, total error count, and XGCHN test
      u0.wb_write(1, XGATE_XGIF_0, 16'h0004);
 
 ParseResult:
-UPD HdlFunctionDef@@test_debug_bit to test_debug_bit
-    INS HdlValueId@@void to test_debug_bit
-    INS list@@params to test_debug_bit
-    INS list@@body to test_debug_bit
-    INS HdlStmBlock@@SEQ to body
-    UPD HdlStmBlock@@SEQ to SEQ
-        INS list@@body to SEQ
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlOp: DOT
-                    list: ops
-                        HdlValueId: u0
-                        HdlValueId: wb_write
-                HdlValueInt: 0
-                HdlValueId: XGATE_XGMCTL
-                HdlValueId: data_xgmctl
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlOp: DOT
-                    list: ops
-                        HdlValueId: u0
-                        HdlValueId: wb_read
-                HdlValueInt: 1
-                HdlValueId: XGATE_XGR3
-                HdlValueId: q
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: data_xgmctl
-                HdlOp: OR
-                    list: ops
-                        HdlValueId: XGMCTL_XGSSM
-                        HdlValueId: XGMCTL_XGSS
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: qq
-                HdlValueId: q
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlOp: DOT
-                    list: ops
-                        HdlValueId: u0
-                        HdlValueId: wb_write
-                HdlValueInt: 1
-                HdlValueId: XGATE_XGPC
-                HdlValueInt: 2094
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: data_xgmctl
-                HdlOp: OR
-                    list: ops
-                        HdlValueId: XGMCTL_XGSSM
-                        HdlValueId: XGMCTL_XGSS
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlOp: DOT
-                    list: ops
-                        HdlValueId: u0
-                        HdlValueId: wb_cmp
-                HdlValueInt: 0
-                HdlValueId: XGATE_XGR4
-                HdlValueInt: 0002
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlOp: DOT
-                    list: ops
-                        HdlValueId: u0
-                        HdlValueId: wb_write
-                HdlValueInt: 0
-                HdlValueId: XGATE_XGMCTL
-                HdlValueId: data_xgmctl
-        INS HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlOp: DOT
-                    list: ops
-                        HdlValueId: u0
-                        HdlValueId: wb_cmp
-                HdlValueInt: 0
-                HdlValueId: XGATE_XGR4
-                HdlValueInt: 0003
-        INS HdlOp@@ASSIGN to body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: data_xgmctl
-                HdlValueId: XGMCTL_XGDBGM
-
-UPD HdlFunctionDef@@test_debug_mode to test_debug_mode
-    UPD HdlStmBlock@@SEQ to SEQ
-        MOV HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlOp: DOT
-                    list: ops
-                        HdlValueId: u0
-                        HdlValueId: wb_cmp
-                HdlValueInt: 0
-                HdlValueId: XGATE_XGPC
-                HdlValueInt: 204c
-        MOV HdlOp@@CALL to body
-        HdlOp: CALL
-            list: ops
-                HdlOp: DOT
-                    list: ops
-                        HdlValueId: u0
-                        HdlValueId: wb_write
-                HdlValueInt: 0
-                HdlValueId: XGATE_XGMCTL
-                HdlValueId: data_xgmctl
-        DEL HdlOp@@ASSIGN from body
-        HdlOp: ASSIGN
-            list: ops
-                HdlValueId: data_xgmctl
-                HdlOp: OR
-                    list: ops
-                        HdlValueId: XGMCTL_XGDBGM
-                        HdlValueId: XGMCTL_XGDBG
-
 INS HdlStmRepeat@@ to body
 HdlStmRepeat
     HdlValueInt: 1

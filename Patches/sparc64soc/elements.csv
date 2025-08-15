@@ -1,4 +1,4 @@
-,HdlOp-MemberAccessing,HdlOp-InfixExpression
+,HdlOp-MemberAccessing_HdlStmAssign,HdlOp-InfixExpression_HdlStmAssign
 move,8,
 delete,5,6.0
 update,5,5.0

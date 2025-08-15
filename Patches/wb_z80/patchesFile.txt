@@ -293,235 +293,6 @@ UPD HdlModuleDec@@memstate2 to memstate2
     DEL list@@objs from memstate2
 
 
-CommitId: babe1d1475e3edcaacb10c47b11e773f6894ee1b
-fixed some lint problems  --
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -138,7 +141,7 @@
- //
- //
- //-------1---------2---------3--------Module Name and Port List------7---------8---------9--------0
--module memstate2(wb_adr, wb_we, wb_cyc, wb_stb, wb_lock, wb_tga_io, wb_dat_o,  add_out,
-+module memstate2(wb_adr, wb_we, wb_cyc, wb_stb, wb_lock, wb_tga_io, wb_dat_o,
-                 exec_ir2, ir1, ir2, ir1dd, ir1fd, ir2dd, ir2fd, nn, sp,
-                 
-                 upd_ar, upd_br, upd_cr, upd_dr, upd_er, upd_hr, upd_lr,upd_fr,
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: babe1d1475e3edcaacb10c47b11e773f6894ee1b
-fixed some lint problems  --
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -164,7 +167,7 @@ output         wb_stb;
- output         wb_lock;     // bit set and clear insts should be atomic - could matter sometime
- output [1:0]   wb_tga_io;
- output [7:0]   wb_dat_o;   // from nn
--output [15:0]  add_out;     // output of adder  (may not wb_adr)
-+//output [15:0]  add_out;  (may not wb_adr) 4/18/2004??  why?
- 
- output         exec_ir2;
- output [9:0]   ir1, ir2;
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: babe1d1475e3edcaacb10c47b11e773f6894ee1b
-fixed some lint problems  --
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -195,9 +198,9 @@ input [15:0]    add16;         //  ir2 execution engine output for sp updates
- parameter   TAG_IO    = 2'b01,   // need to review general wb usage to undrstand how best to 
-             TAG_INT   = 2'b10;   // document this.
-             //                  12na
--parameter   IPIPE_NOP       = 4'b0000,
--            IPIPE_A2        = 4'b0001,
--            IPIPE_ENN       = 4'b0010,
-+parameter   IPIPE_NOP       = 4'b0000,   //  guess I could define single bits and add them up
-+            IPIPE_A2        = 4'b0001,   //  would keep from getting lint bitching -- but heck
-+            IPIPE_ENN       = 4'b0010,   //  I'm married -> an expert at ignoring such stuff :-)
-             IPIPE_ENNA2     = 4'b0011,
-             IPIPE_EN2       = 4'b0100,
-             IPIPE_EN2A2     = 4'b0101,
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: babe1d1475e3edcaacb10c47b11e773f6894ee1b
-fixed some lint problems  --
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -347,18 +350,18 @@ parameter       MEM_NOP      = 5'h00,
- //-------1---------2---------3--------Wires----------------6---------7---------8---------9--------0
- 
- 
--wire        use_sp;   
--wire        use_pc; 
--wire        use_hl; 
--wire        use_de; 
--wire        use_bc; 
--wire        use_flags;
-+//wire        use_sp;  //  old names probably from first go-around 
-+//wire        use_pc; 
-+//wire        use_hl; 
-+//wire        use_de; 
-+//wire        use_bc; 
-+//wire        use_flags;
- wire        cb_mem;
--wire        br_test8t;  // branch test true  (8 test field)
--wire        br_test4t;  // branch test true  (4 test field)
-+//wire        br_test8t;  // branch test true  (8 test field)
-+//wire        br_test4t;  // branch test true  (4 test field)
-                     
--wire        ofos; 
--wire        any_os;   // most terms above only valid on mem_exec  this includes all stores
-+//wire        ofos; 
-+//wire        any_os;   // most terms above only valid on mem_exec  this includes all stores
- wire        wb_rdy_nhz;        
- wire        dec_blk_inc;        
- wire        we_next;
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: babe1d1475e3edcaacb10c47b11e773f6894ee1b
-fixed some lint problems  --
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -390,8 +393,8 @@ reg [15:0]   wb_adr;
- reg          wb_we; 
- reg          wb_cyc; 
- reg          wb_stb; 
--reg          wb_lock; 
--reg          wb_tga_io;
-+//reg          wb_lock; Not used (yet  -- don't delete) 
-+reg [1:0]    wb_tga_io;
- 
- reg          blk_inc_flg;
- reg [9:0]    ir1, ir2;
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: babe1d1475e3edcaacb10c47b11e773f6894ee1b
-fixed some lint problems  --
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -1093,8 +1096,8 @@ wire reln    =    next_mem_state ==  MEM_IFREL_N   |
- 
- wire   src2    = {16{ inc    }}  & 16'h0001           |
-                  {16{ dec    }}  & 16'hffff           |                 
--                 {16{ rel    }}  & {{8{nn[15]}},nn[15:8]}|
--                 {16{~(rel   |inc   |dec   )}} & 16'h0   ;
-+                 {16{ reln    }}  & {{8{nn[15]}},nn[15:8]}|
-+                 {16{~(reln   |inc   |dec   )}} & 16'h0   ;
- 
- wire   adr_alu     = src2 + src_mux;                 
-                   
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: babe1d1475e3edcaacb10c47b11e773f6894ee1b
-fixed some lint problems  --
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -1202,7 +1205,7 @@ begin
-         DEC_EDNN1:                next_state = {DEC_EDNN2, MEM_NOP,     IPIPE_ENN}; // address to nn
-         DEC_EDNN2: 
-             if (ed_dbl_rd)      next_state = {DEC_EDRD1, MEM_OFNN,    IPIPE_NOP};    
--            else                next_state = {DEC_EDWR,  MEM_OSNN,    IPIPE_NOP};// OSNN selects data ok?                  
-+            else                next_state = {DEC_EDWR,  MEM_OSNN,    IPIPE_NOP};// OSNN selects data ok?
-         DEC_EDRD1:              next_state = {DEC_EDRD2, MEM_OFADRP1,  IPIPE_ENN};  // 1st byte 2n         
-         DEC_EDRD2:              next_state = {DEC_IF2,   MEM_IFPP1,   IPIPE_ENNA2}; // 2nd byte 2nn
-         DEC_EDWR:               next_state = {DEC_IF1,   MEM_OSADRP1,  IPIPE_NOP};
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: babe1d1475e3edcaacb10c47b11e773f6894ee1b
-fixed some lint problems  --
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -1251,9 +1254,9 @@ begin
-         //   For CALL  Use MEM_CALL to transfer pc<=nn, nn<=pc, adr<=sp then MEM_OSSP then IFPP1
-         //   For  LDsSP_NN  yes  update from ir2 decode.                    
-         DEC_NN:
--            if      (callnn_true)     next_state = {DEC_NNCALL1, MEM_NOP, IPIPE_ENN}; // this gets new adr in nn
--                                                                                         // if we store from nn we can't do
--                                                                                         // a mem op now
-+            if      (callnn_true)     next_state = {DEC_NNCALL1, MEM_NOP, IPIPE_ENN};// this gets new adr in nn
-+                                                                                     //if we store from nn we can't do
-+                                                                                     // a mem op now
-             
-             else if (jmpnn_true)      next_state = {DEC_NNJMP,  MEM_NOP,  IPIPE_ENN};    // gotta get nn before we can 
-                                                                                          // transfer to adr.
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: babe1d1475e3edcaacb10c47b11e773f6894ee1b
-fixed some lint problems  --
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -1359,7 +1362,7 @@ always @(posedge clk)
- //  are keyed off exec_ir2 - and always happen immediately.  ( exec_ir2 always is 
- //  immediately reset - unless of course a new instruction is transferred and executed.
- //
--// 
-+//
- //
- always @(posedge clk or posedge rst)
-     if (rst) ir2 <= 10'h0;
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
 CommitId: 8aa76892f3829f4f7878cccbd9377de81f46920b
 added fix for IN bug found by howard
 --- a/rtl/z80_memstate2.v
@@ -602,222 +373,6 @@ CommitId: d07120de6745370fbd46a80df7fea0840406b77e
 real lint problems pretty much fixed   --  need another look - but need to get on to other things first
 --- a/rtl/memstate2.v
 +++ b/rtl/memstate2.v
-@@ -164,7 +167,7 @@ output [15:0]  wb_adr;
- output         wb_we; 
- output         wb_cyc; 
- output         wb_stb; 
--output         wb_lock;     // bit set and clear insts should be atomic - could matter sometime
-+//output         wb_lock;     // bit set and clear insts should be atomic - could matter sometime
- output [1:0]   wb_tga_io;
- output [7:0]   wb_dat_o;   // from nn
- //output [15:0]  add_out;  (may not wb_adr) 4/18/2004??  why?
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: d07120de6745370fbd46a80df7fea0840406b77e
-real lint problems pretty much fixed   --  need another look - but need to get on to other things first
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -197,7 +200,7 @@ input [15:0]    add16;         //  ir2 execution engine output for sp updates
-                      
- parameter   TAG_IO    = 2'b01,   // need to review general wb usage to undrstand how best to 
-             TAG_INT   = 2'b10;   // document this.
--            //                  12na
-+            //                   12na // 1 is ir1 2 is ir2 n is nn gets memory a is activate ir2
- parameter   IPIPE_NOP       = 4'b0000,   //  guess I could define single bits and add them up
-             IPIPE_A2        = 4'b0001,   //  would keep from getting lint bitching -- but heck
-             IPIPE_ENN       = 4'b0010,   //  I'm married -> an expert at ignoring such stuff :-)
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: d07120de6745370fbd46a80df7fea0840406b77e
-real lint problems pretty much fixed   --  need another look - but need to get on to other things first
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -350,7 +353,7 @@ parameter       MEM_NOP      = 5'h00,
- //-------1---------2---------3--------Wires----------------6---------7---------8---------9--------0
- 
- 
--//wire        use_sp;  //  old names probably from first go-around 
-+//wire        use_sp;  //  old names  probably from first go-around 
- //wire        use_pc; 
- //wire        use_hl; 
- //wire        use_de; 
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: d07120de6745370fbd46a80df7fea0840406b77e
-real lint problems pretty much fixed   --  need another look - but need to get on to other things first
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -370,13 +373,13 @@ wire        wb_int;
- wire [15:0] hl, de, bc;
- wire [3:0]  mem_exec_dec;
- 
--wire  use_a  ;
--wire  use_b  ;
--wire  use_c  ;
--wire  use_d  ;
--wire  use_e  ;
--wire  use_h  ;
--wire  use_l  ;
-+//wire  use_a  ;old names for hazard dect.  remove
-+//wire  use_b  ;
-+//wire  use_c  ;
-+//wire  use_d  ;
-+//wire  use_e  ;
-+//wire  use_h  ;
-+//wire  use_l  ;
- // don't forget that as 1r1 is executed it is transferred to ir2.  Anything I need to know
- // about subsequent operations must be stored.
- //               6              5              4                15
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: d07120de6745370fbd46a80df7fea0840406b77e
-real lint problems pretty much fixed   --  need another look - but need to get on to other things first
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -406,9 +409,9 @@ reg   [14:0]       next_state;      // a wire assigned in an alowys loop.
- 
- reg   [5:0]  dec_state;    // the register set each clock from next_dec_state;
- 
--reg          of16_reg,  os16_reg, rmw8_reg, call_reg, ret_reg, ioi;
--reg          push_reg;
--reg          pop_reg;
-+//reg          of16_reg,  os16_reg, rmw8_reg, call_reg, ret_reg, ioi;
-+//reg          push_reg;
-+//reg          pop_reg;
- reg          inst_haz;
- reg          exec_ir2; 
- reg          blk_rpt_flg;
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: d07120de6745370fbd46a80df7fea0840406b77e
-real lint problems pretty much fixed   --  need another look - but need to get on to other things first
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -424,7 +427,7 @@ reg          wb_irq_sync;
- assign wb_dat_o = nn[15:8];
- 
- wire   sf, zf, f5f, hf, f3f, pvf, nf, cf;
--assign { sf, zf, f5f, hf, f3f, pvf, nf, cf} = fr;
-+assign { sf, zf, f5f, hf, f3f, pvf, nf, cf} = fr;  //  no load on f5f, f3f  ok  hf nf used in inst_exec.v
- 
- 
- assign hl = {hr, lr};
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: d07120de6745370fbd46a80df7fea0840406b77e
-real lint problems pretty much fixed   --  need another look - but need to get on to other things first
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -838,7 +841,7 @@ wire os_a  =  LDs6BC7_A    == ir1 |  //      LD (BC),A    ; 02
-               LDs6NN7_A    == ir1 |  //      LD (NN),A    ; 32 XX XX
-               PUSHsAF      == ir1 |
-               OUTs6N7_A    == ir1 |
--              ED_OUTs6C7_REG ==  {ir1[9:6],ir1[2:0] && REG8_A == ir1[5:3]} ;
-+              (ED_OUTs6C7_REG ==  {ir1[9:6],ir1[2:0]}) & REG8_A == ir1[5:3] ;
- 
- wire os_b = LDs6HL7_B      == ir1                                       |  // LD (HL),B    ; 70
-             ED_LDs6NN7_REG == {ir1[9:6],ir1[3:0]} & DBL_REG_BC == ir1[5:4] |
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: d07120de6745370fbd46a80df7fea0840406b77e
-real lint problems pretty much fixed   --  need another look - but need to get on to other things first
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -866,7 +869,7 @@ wire os_l = LDs6HL7_L    == ir1                                     |  //      L
-             PUSHsHL      == ir1                                     |  
-             ED_OUTs6C7_REG ==  {ir1[9:6],ir1[2:0]} & REG8_L == ir1[5:3] ;
- 
--wire os_sp = ED_LDs6NN7_REG == {ir1[9:6],ir1[3:0]} & DBL_REG_SP == ir1[5:4];
-+// wire os_sp = ED_LDs6NN7_REG == {ir1[9:6],ir1[3:0]} & DBL_REG_SP == ir1[5:4]; not used ?
- 
- wire os_f  =  PUSHsAF     == ir1 ;                                        
- 
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: d07120de6745370fbd46a80df7fea0840406b77e
-real lint problems pretty much fixed   --  need another look - but need to get on to other things first
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -971,8 +974,8 @@ assign  use_l = os_l  | opadr_hl;
- 
- 
- 
--wire bc_eq0 = beq0 & ceq0;
--//  ???  not used ?  why defined ?
-+//wire bc_eq0 = beq0 & ceq0;
-+//  ???  not used ?  why defined ?  I simply re-wrote the test   re-name 
- //assign rpt_blk_mv = (blk_mv_reg )  & !bc_eq0     |
- //                    (blk_cmp_reg) & !bc_eq0 & (nn[7:0] != 8'h0)  |
- //                    (blk_in_reg | blk_out_reg) & !b_eq0 ;
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: d07120de6745370fbd46a80df7fea0840406b77e
-real lint problems pretty much fixed   --  need another look - but need to get on to other things first
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
 @@ -1058,17 +1061,17 @@ wire src_int = next_mem_state == MEM_IOF_N  |
                 
                                   
@@ -849,9 +404,6 @@ real lint problems pretty much fixed   --  need another look - but need to get o
  
 
 ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
 UPD HdlIdDef@@src_mux to src_mux
     INS HdlOp@@PARAMETRIZATION to src_mux
     HdlOp: PARAMETRIZATION
@@ -861,42 +413,6 @@ UPD HdlIdDef@@src_mux to src_mux
                 list: ops
                     HdlValueInt: 15
                     HdlValueInt: 0
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: d07120de6745370fbd46a80df7fea0840406b77e
-real lint problems pretty much fixed   --  need another look - but need to get on to other things first
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -1094,12 +1097,14 @@ wire reln    =    next_mem_state ==  MEM_IFREL_N   |
-                   next_mem_state ==  MEM_OFIXpD    |
-                    next_mem_state ==  MEM_OSIXpD    ;
- 
--wire   src2    = {16{ inc    }}  & 16'h0001           |
--                 {16{ dec    }}  & 16'hffff           |                 
--                 {16{ reln    }}  & {{8{nn[15]}},nn[15:8]}|
--                 {16{~(reln   |inc   |dec   )}} & 16'h0   ;
-+wire  [15:0] src2    = {16{ inc    }}  & 16'h0001               |
-+                       {16{ dec    }}  & 16'hffff               |                 
-+                       {16{ reln    }}  & {{8{nn[15]}},nn[15:8]}|
-+                       {16{~(reln | inc | dec)}} & 16'h0    ;// lint complains that this signal
-+                                                             // has no load  -YES it is not needed -
-+                                                             // more for information --  amazing complaint though
- 
--wire   adr_alu     = src2 + src_mux;                 
-+wire [15:0]  adr_alu     = src2 + src_mux;                 
-                   
- 
- wire  pre_inc_dec =    next_mem_state ==  MEM_CALL    | 
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
 
 
 CommitId: d07120de6745370fbd46a80df7fea0840406b77e
@@ -914,9 +430,6 @@ real lint problems pretty much fixed   --  need another look - but need to get o
  wire   wb_rdy     = !wb_cyc | wb_ack;
 
 ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
 INS HdlIdDef@@adr_alu to objs
 
 UPD HdlIdDef@@src2 to src2
@@ -928,9 +441,6 @@ UPD HdlIdDef@@src2 to src2
                 list: ops
                     HdlValueInt: 15
                     HdlValueInt: 0
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
 
 
 CommitId: d07120de6745370fbd46a80df7fea0840406b77e
@@ -948,9 +458,6 @@ real lint problems pretty much fixed   --  need another look - but need to get o
           
 
 ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
 UPD HdlIdDef@@mux21 to mux21
     INS HdlOp@@PARAMETRIZATION to mux21
     HdlOp: PARAMETRIZATION
@@ -960,41 +467,6 @@ UPD HdlIdDef@@mux21 to mux21
                 list: ops
                     HdlValueInt: 15
                     HdlValueInt: 0
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: d07120de6745370fbd46a80df7fea0840406b77e
-real lint problems pretty much fixed   --  need another look - but need to get on to other things first
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -1320,12 +1325,12 @@ begin
-         //   if there's anyone who knows is there anyone who cares.   
-         //   guess I'll do it fast  --   just a 16 bit subtractor.  heck silicon is 
-         //   cheap.  
--        DEC_INT1:       next_state <= {DEC_INT2, MEM_OSSP_PCM2, IPIPE_NOP};   //must derement PC
--        DEC_INT2:       next_state <= {DEC_INT3, MEM_OSSP_P,   IPIPE_NOP};    //must dec sp and PC  2 ops?
--        DEC_INT3:       next_state <= {DEC_INT4, MEM_INTA,     IPIPE_NOP};
--        DEC_INT4:       next_state <= {DEC_INT5, MEM_NOP,      IPIPE_ENN};
--        DEC_INT5:       next_state <= {DEC_IF2,  MEM_IFINT,    IPIPE_NOP};
--        default:        next_state <= {DEC_IDLE, MEM_NOP,      IPIPE_NOP};
-+        DEC_INT1:       next_state = {DEC_INT2, MEM_OSSP_PCM2, IPIPE_NOP};   //must derement PC
-+        DEC_INT2:       next_state = {DEC_INT3, MEM_OSSP_P,   IPIPE_NOP};    //must dec sp and PC  2 ops?
-+        DEC_INT3:       next_state = {DEC_INT4, MEM_INTA,     IPIPE_NOP};
-+        DEC_INT4:       next_state = {DEC_INT5, MEM_NOP,      IPIPE_ENN};
-+        DEC_INT5:       next_state = {DEC_IF2,  MEM_IFINT,    IPIPE_NOP};
-+        default:        next_state = {DEC_IDLE, MEM_NOP,      IPIPE_NOP};
-     endcase
- end
- 
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
 
 
 CommitId: d07120de6745370fbd46a80df7fea0840406b77e
@@ -1013,9 +485,6 @@ real lint problems pretty much fixed   --  need another look - but need to get o
            
  
 ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
 UPD HdlStmIf@@ to 
     INS tuple@@ to elifs
     INS HdlOp@@INDEX to 
@@ -1023,9 +492,6 @@ UPD HdlStmIf@@ to
         list: ops
             HdlValueId: next_pipe_state
             HdlValueInt: 1
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
 
 
 CommitId: 404fe38ada20807a70e432323bf84af0beb53dad
@@ -1079,142 +545,6 @@ CommitId: 404fe38ada20807a70e432323bf84af0beb53dad
 fixed some lint problems  --
 --- a/rtl/memstate2.v
 +++ b/rtl/memstate2.v
-@@ -139,7 +143,7 @@ module memstate2(wb_adr, wb_we, wb_cyc, wb_stb, wb_lock, wb_tga_io, wb_dat_o,  a
-                 
-                 upd_ar, upd_br, upd_cr, upd_dr, upd_er, upd_hr, upd_lr,upd_fr,
-                 beq0, ceq0,
--                ar, fr, br, cr, dr, er, hr, lr, 
-+                ar, fr, br, cr, dr, er, hr, lr, intr, 
-                 ixr, iyr, 
-                 wb_dat_i, wb_ack, clk, rst,
-                 wb_int_rq,
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: 404fe38ada20807a70e432323bf84af0beb53dad
-fixed some lint problems  --
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -158,8 +162,8 @@ output         wb_we;
- output         wb_cyc; 
- output         wb_stb; 
- output         wb_lock;     // bit set and clear insts should be atomic - could matter sometime
--output         wb_tga_io;
--output         wb_dat_o;   // from nn
-+output [1:0]   wb_tga_io;
-+output [7:0]   wb_dat_o;   // from nn
- output [15:0]  add_out;     // output of adder  (may not wb_adr)
- 
- output         exec_ir2;
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: 404fe38ada20807a70e432323bf84af0beb53dad
-fixed some lint problems  --
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -176,7 +180,7 @@ output [15:0]   sp;
- input           upd_ar, upd_br, upd_cr, upd_dr, upd_er, upd_hr, upd_lr,upd_fr;
- 
- input           beq0, ceq0;
--input [7:0]     ar, fr, br, cr, dr, er, hr, lr;
-+input [7:0]     ar, fr, br, cr, dr, er, hr, lr, intr;
- input [15:0]    ixr, iyr;
- input [7:0]     wb_dat_i;
- input           wb_ack, clk, rst;
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: 404fe38ada20807a70e432323bf84af0beb53dad
-fixed some lint problems  --
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -361,7 +365,7 @@ wire        we_next;
- wire        hazard;
- wire        wb_int;
- wire [15:0] hl, de, bc;
--wire        mem_exec_dec;
-+wire [3:0]  mem_exec_dec;
- 
- wire  use_a  ;
- wire  use_b  ;
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: 404fe38ada20807a70e432323bf84af0beb53dad
-fixed some lint problems  --
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -395,7 +399,7 @@ reg          ir1dd, ir2dd;
- reg          ir1fd, ir2fd;
- reg [15:0]   nn;
- 
--reg   [15:0]       next_state;      // a wire assigned in an alowys loop.
-+reg   [14:0]       next_state;      // a wire assigned in an alowys loop.
- 
- reg   [5:0]  dec_state;    // the register set each clock from next_dec_state;
- 
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: 404fe38ada20807a70e432323bf84af0beb53dad
-fixed some lint problems  --
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -959,8 +963,8 @@ assign  use_h = os_h  | opadr_hl;
- assign  use_l = os_l  | opadr_hl;
- 
- 
--
--assign   use_flags = c_jmp8 | c_jmp4 | c_call | c_ret;
-+// old logic not used
-+//assign   use_flags = c_jmp8 | c_jmp4 | c_call | c_ret;
- 
- 
- 
-
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: 404fe38ada20807a70e432323bf84af0beb53dad
-fixed some lint problems  --
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
 @@ -1067,7 +1071,7 @@ wire block_mv_inc = (dec_state == DEC_ED) ? dec_blk_inc : blk_inc_flg; // flag s
  
  
@@ -1226,13 +556,7 @@ fixed some lint problems  --
                    next_mem_state ==MEM_OSHL_PM & block_mv_inc |
 
 ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
 UPD HdlIdDef@@inc_s2 to inc
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
 
 
 CommitId: 404fe38ada20807a70e432323bf84af0beb53dad
@@ -1268,17 +592,9 @@ fixed some lint problems  --
                    
 
 ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlIdDef@@inc_s2 to inc
-
 UPD HdlIdDef@@dec_s2 to dec
 
 UPD HdlIdDef@@reln_s2 to reln
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
 
 
 CommitId: 404fe38ada20807a70e432323bf84af0beb53dad
@@ -1303,9 +619,6 @@ fixed some lint problems  --
                   next_mem_state == MEM_OSSP_PCM2  |
 
 ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
 UPD HdlIdDef@@src2 to src2
     UPD HdlOp@@OR to OR
         UPD HdlOp@@AND to AND
@@ -1314,32 +627,6 @@ UPD HdlIdDef@@src2 to src2
                     UPD HdlOp@@OR to OR
                         UPD HdlOp@@OR to OR
                             UPD HdlValueId@@rel_jmp to rel
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
-
-
-CommitId: 404fe38ada20807a70e432323bf84af0beb53dad
-fixed some lint problems  --
---- a/rtl/memstate2.v
-+++ b/rtl/memstate2.v
-@@ -1408,8 +1412,8 @@ always @(posedge clk or posedge rst)
-     
-     
- // --  wb_cyc
--
--wire no_wb_start = mem_idle | mem_halt | mem_op3 & blk_cmp_reg | mem_op1 & rmw_reg;
-+// below is old logic  -- appears not needed
-+//wire no_wb_start = mem_idle | mem_halt | mem_op3 & blk_cmp_reg | mem_op1 & rmw_reg;
- always @(posedge clk or posedge rst)
-     if (rst)         wb_cyc <= 1'b0;
-     else if (wb_rdy_nhz) wb_cyc <= next_mem_state != MEM_NOP ;
-ParseResult:
-UPD HdlModuleDec@@memstate2 to memstate2
-    INS list@@objs to memstate2
-
-UPD HdlModuleDec@@memstate2 to memstate2
-    DEL list@@objs from memstate2
 
 
 CommitId: 7c6eae71e750c5831d588cd307e5b3d3aead4e1a
@@ -1378,84 +665,8 @@ some fixes found in synthesis
  
 
 ParseResult:
-UPD HdlModuleDec@@z80_memstate2 to z80_memstate2
-    INS list@@objs to z80_memstate2
-
 DEL HdlIdDef@@wb_clk_i from ports
 HdlIdDef: wb_clk_i
     HdlDirection: INTERNAL
-
-UPD HdlModuleDec@@z80_memstate2 to z80_memstate2
-    DEL list@@objs from z80_memstate2
-
-
-CommitId: 7c6eae71e750c5831d588cd307e5b3d3aead4e1a
-some fixes found in synthesis
---- a/rtl/z80_memstate2.v
-+++ b/rtl/z80_memstate2.v
-@@ -356,7 +358,7 @@ parameter       MEM_NOP      = 5'h00,
-                 MEM_OFADRP1  = 5'h0c,     // used (at least) when double ops above
-                 MEM_OSADRP1  = 5'h0d,     //  ""              ""              ""
-                              
--                //spare      = 5'h0e,     // use  MEM_OSSP_PCM2
-+                MEM_RST     = 5'h0e,     // 
-                 MEM_REL2PC  = 5'h0f,     // special address transfer for jmp rel
-                 MEM_JMPHL    = 5'h10,     // another special jump transfer
-                 MEM_IFNN     = 5'h11,        //  used by call and return
-
-ParseResult:
-UPD HdlModuleDec@@z80_memstate2 to z80_memstate2
-    INS list@@objs to z80_memstate2
-
-UPD HdlModuleDec@@z80_memstate2 to z80_memstate2
-    DEL list@@objs from z80_memstate2
-
-
-CommitId: 7c6eae71e750c5831d588cd307e5b3d3aead4e1a
-some fixes found in synthesis
---- a/rtl/z80_memstate2.v
-+++ b/rtl/z80_memstate2.v
-@@ -1256,7 +1258,8 @@ assign {next_dec_state, next_mem_state, next_pipe_state} = next_state;
- 
- always @(ir1 or wb_int or inst_haz  or dec_state or mem_exec_dec or cb_mem or ed_nn or
-          ed_blk_cp  or ed_blk_in or ed_blk_out or ed_retn or ed_blk_mv or ed_dbl_rd or blk_done or 
--         fr or jmpr_true or callnn_true or jmpnn_true )
-+         fr or jmpr_true or callnn_true or jmpnn_true or 
-+         ed_rmw or ed_in_reg or blk_cpi_done or jmpr or ex_tos_hl)
-          
- begin
-     case (dec_state)
-
-ParseResult:
-UPD HdlModuleDec@@z80_memstate2 to z80_memstate2
-    INS list@@objs to z80_memstate2
-
-UPD HdlModuleDec@@z80_memstate2 to z80_memstate2
-    DEL list@@objs from z80_memstate2
-
-
-CommitId: 7c6eae71e750c5831d588cd307e5b3d3aead4e1a
-some fixes found in synthesis
---- a/rtl/z80_memstate2.v
-+++ b/rtl/z80_memstate2.v
-@@ -1467,10 +1470,10 @@ begin
-         DEC_INT2:       next_state = {DEC_INT3, MEM_OSSP,   IPIPE_NOP};      //was MEM_OSSP_P   why? comment out
-         DEC_INT3:       next_state = {DEC_INT4, MEM_INTA,     IPIPE_NOP};
-         DEC_INT4:       next_state = {DEC_INT5, MEM_NOP,      IPIPE_ENN};
--        DEC_INT5:       next_state = {DEC_INT6,  MEM_IFINT,    IPIPE_NOP}; // really a pointer fetch -  but treat a a jmpnn
-+        DEC_INT5:       next_state = {DEC_INT6,  MEM_IFINT,  IPIPE_NOP}; // really a pointer fetch -  but treat a a jmpnn
-         DEC_INT6:       next_state = {DEC_RET2, MEM_IFPP1,   IPIPE_ENN};
-         DEC_EXSPHL:     next_state = {DEC_PUSH, MEM_OSSP,     IPIPE_NOP};
--        DEC_RMWDD1:     next_state = {DEC_RMW,  MEM_OFIXpD,       IPIPE_EN1};
-+        DEC_RMWDD1:     next_state = {DEC_RMW,  MEM_OFIXpD,   IPIPE_EN1};
-         default:        next_state = {DEC_IDLE, MEM_NOP,      IPIPE_NOP};
-     endcase
- end
-ParseResult:
-UPD HdlModuleDec@@z80_memstate2 to z80_memstate2
-    INS list@@objs to z80_memstate2
-
-UPD HdlModuleDec@@z80_memstate2 to z80_memstate2
-    DEL list@@objs from z80_memstate2
 
 

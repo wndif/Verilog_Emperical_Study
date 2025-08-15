@@ -20,48 +20,6 @@ UPD HdlModuleDec@@altera_tse_altgx_civgx_gige_alt_c3gxb_b908 to altera_tse_altgx
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_altgx_civgx_gige.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_altgx_civgx_gige.v
-@@ -573,8 +573,8 @@ module  altera_tse_altgx_civgx_gige_alt_c3gxb_b908
- 	`endif
- 	);
- 	defparam
--		receive_pcs0.align_pattern = "0101111100",
--		receive_pcs0.align_pattern_length = 10,
-+		receive_pcs0.align_pattern = "1111100",
-+		receive_pcs0.align_pattern_length = 7,
- 		receive_pcs0.allow_align_polarity_inversion = "false",
- 		receive_pcs0.allow_pipe_polarity_inversion = "false",
- 		receive_pcs0.auto_spd_deassert_ph_fifo_rst_count = 8,
-
-ParseResult:
-UPD HdlModuleDef@@altera_tse_altgx_civgx_gige_alt_c3gxb_b908 to altera_tse_altgx_civgx_gige_alt_c3gxb_g308
-
-UPD HdlModuleDec@@altera_tse_altgx_civgx_gige_alt_c3gxb_b908 to altera_tse_altgx_civgx_gige_alt_c3gxb_g308
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_altgx_civgx_gige.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_altgx_civgx_gige.v
-@@ -957,7 +957,7 @@ module  altera_tse_altgx_civgx_gige_alt_c3gxb_b908
- 		txdataout = {wire_transmit_pma0_dataout},
- 		txdetectrxout = {wire_transmit_pcs0_txdetectrx},
- 		w_cent_unit_dpriodisableout1w = {wire_cent_unit0_dpriodisableout};
--endmodule //altera_tse_altgx_civgx_gige_alt_c3gxb_b908
-+endmodule //altera_tse_altgx_civgx_gige_alt_c3gxb_g308
- //VALID FILE
- 
- 
-
-ParseResult:
-UPD HdlModuleDef@@altera_tse_altgx_civgx_gige_alt_c3gxb_b908 to altera_tse_altgx_civgx_gige_alt_c3gxb_g308
-
-UPD HdlModuleDec@@altera_tse_altgx_civgx_gige_alt_c3gxb_b908 to altera_tse_altgx_civgx_gige_alt_c3gxb_g308
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
 --- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
 +++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
 @@ -73,6 +73,11 @@ parameter DEVICE_FAMILY         = "ARRIAGX",            //  The device family th
@@ -114,15 +72,9 @@ Fix simulation script
      input wire   rx_afull_clk,                             //  Almost full clk
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@pcs_phase_measure_clk to ports
 HdlIdDef: pcs_phase_measure_clk
     HdlDirection: IN
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
 
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
@@ -150,9 +102,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_0 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_0
     HdlDirection: IN
@@ -256,9 +205,6 @@ HdlIdDef: rx_time_of_day_data_0
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -285,9 +231,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_1 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_1
     HdlDirection: IN
@@ -391,9 +334,6 @@ HdlIdDef: rx_time_of_day_data_1
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -420,9 +360,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_2 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_2
     HdlDirection: IN
@@ -526,9 +463,6 @@ HdlIdDef: rx_time_of_day_data_2
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -555,9 +489,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_3 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_3
     HdlDirection: IN
@@ -661,9 +592,6 @@ HdlIdDef: rx_time_of_day_data_3
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -690,9 +618,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_4 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_4
     HdlDirection: IN
@@ -796,9 +721,6 @@ HdlIdDef: rx_time_of_day_data_4
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -825,9 +747,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_5 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_5
     HdlDirection: IN
@@ -931,9 +850,6 @@ HdlIdDef: rx_time_of_day_data_5
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -960,9 +876,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_6 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_6
     HdlDirection: IN
@@ -1066,9 +979,6 @@ HdlIdDef: rx_time_of_day_data_6
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -1095,9 +1005,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_7 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_7
     HdlDirection: IN
@@ -1201,9 +1108,6 @@ HdlIdDef: rx_time_of_day_data_7
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -1230,9 +1134,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_8 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_8
     HdlDirection: IN
@@ -1336,9 +1237,6 @@ HdlIdDef: rx_time_of_day_data_8
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -1365,9 +1263,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_9 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_9
     HdlDirection: IN
@@ -1471,9 +1366,6 @@ HdlIdDef: rx_time_of_day_data_9
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -1500,9 +1392,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_10 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_10
     HdlDirection: IN
@@ -1606,9 +1495,6 @@ HdlIdDef: rx_time_of_day_data_10
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -1635,9 +1521,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_11 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_11
     HdlDirection: IN
@@ -1741,9 +1624,6 @@ HdlIdDef: rx_time_of_day_data_11
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -1770,9 +1650,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_12 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_12
     HdlDirection: IN
@@ -1876,9 +1753,6 @@ HdlIdDef: rx_time_of_day_data_12
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -1905,9 +1779,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_13 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_13
     HdlDirection: IN
@@ -2011,9 +1882,6 @@ HdlIdDef: rx_time_of_day_data_13
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -2040,9 +1908,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_14 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_14
     HdlDirection: IN
@@ -2146,9 +2011,6 @@ HdlIdDef: rx_time_of_day_data_14
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -2175,9 +2037,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_15 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_15
     HdlDirection: IN
@@ -2281,9 +2140,6 @@ HdlIdDef: rx_time_of_day_data_15
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -2310,9 +2166,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_16 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_16
     HdlDirection: IN
@@ -2416,9 +2269,6 @@ HdlIdDef: rx_time_of_day_data_16
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -2445,9 +2295,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_17 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_17
     HdlDirection: IN
@@ -2551,9 +2398,6 @@ HdlIdDef: rx_time_of_day_data_17
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -2580,9 +2424,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_18 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_18
     HdlDirection: IN
@@ -2686,9 +2527,6 @@ HdlIdDef: rx_time_of_day_data_18
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -2715,9 +2553,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_19 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_19
     HdlDirection: IN
@@ -2821,9 +2656,6 @@ HdlIdDef: rx_time_of_day_data_19
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -2850,9 +2682,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_20 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_20
     HdlDirection: IN
@@ -2956,9 +2785,6 @@ HdlIdDef: rx_time_of_day_data_20
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -2985,9 +2811,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_21 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_21
     HdlDirection: IN
@@ -3091,9 +2914,6 @@ HdlIdDef: rx_time_of_day_data_21
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -3120,9 +2940,6 @@ Fix simulation script
  
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_22 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_22
     HdlDirection: IN
@@ -3226,9 +3043,6 @@ HdlIdDef: rx_time_of_day_data_22
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -3257,9 +3071,6 @@ Fix simulation script
  wire    MAC_PCS_reset;
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@tx_egress_timestamp_request_valid_23 to ports
 HdlIdDef: tx_egress_timestamp_request_valid_23
     HdlDirection: IN
@@ -3363,9 +3174,6 @@ HdlIdDef: rx_time_of_day_data_23
                     HdlValueInt: 0
     HdlDirection: IN
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
@@ -3392,9 +3200,6 @@ Fix simulation script
      // Instantiation of the MAC_PCS core that connects to a PMA
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
 INS HdlIdDef@@pcs_phase_measure_clk_w to objs
 HdlIdDef: pcs_phase_measure_clk_w
     HdlDirection: INTERNAL
@@ -3417,1888 +3222,535 @@ HdlStmIf
                 HdlValueId: pcs_phase_measure_clk
                 HdlValueId: pcs_phase_measure_clk_w
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -1650,10 +1956,11 @@ wire    reset_rx_pcs_clk_c23_int;
-         .mdio_oen(mdio_oen),                      //OUTPUT : MDIO Output Enable
-         .mac_rx_clk(mac_rx_clk),                  //OUTPUT : Av-ST Rx Clock
-         .mac_tx_clk(mac_tx_clk),                  //OUTPUT : Av-ST Tx Clock
--	    .rx_afull_clk(rx_afull_clk),              //INPUT  : AFull Status Clock
--	    .rx_afull_data(rx_afull_data),            //INPUT  : AFull Status Data
--	    .rx_afull_valid(rx_afull_valid),          //INPUT  : AFull Status Valid
--	    .rx_afull_channel(rx_afull_channel),      //INPUT  : AFull Status Channel
-+	.rx_afull_clk(rx_afull_clk),              //INPUT  : AFull Status Clock
-+	.rx_afull_data(rx_afull_data),            //INPUT  : AFull Status Data
-+	.rx_afull_valid(rx_afull_valid),          //INPUT  : AFull Status Valid
-+	.rx_afull_channel(rx_afull_channel),      //INPUT  : AFull Status Channel
-+	.pcs_phase_measure_clk(pcs_phase_measure_clk_w),
- 
-          // Channel 0 
-             
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -1698,6 +2005,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_0(magic_sleep_n_0),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_0(magic_wakeup_0),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_0(tx_egress_timestamp_request_valid_0),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_0(tx_egress_timestamp_request_data_0),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_0(tx_egress_timestamp_valid_0),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_0(tx_egress_timestamp_data_0),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_0(tx_time_of_day_data_0),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_0(tx_ingress_timestamp_valid_0),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_0(tx_ingress_timestamp_data_0),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_0(rx_ingress_timestamp_valid_0),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_0(rx_ingress_timestamp_data_0),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_0(rx_time_of_day_data_0),								//INPUT:	Time of Day
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -71,14 +72,19 @@ parameter EXPORT_PWRDN          = 1'b0,                 //  Option to export the
+ parameter DEVICE_FAMILY         = "ARRIAGX",            //  The device family the the core is targetted for.
+ parameter TRANSCEIVER_OPTION    = 1'b0,                 //  Option to select transceiver block for MAC PCS PMA Instantiation. Valid Values are 0 and 1:  0 - GXB (GIGE Mode) 1 - LVDS IO
+ parameter ENABLE_ALT_RECONFIG   = 0,                    //  Option to expose the altreconfig ports
+-parameter SYNCHRONIZER_DEPTH 	= 3,	  	        //  Number of synchronizer
++parameter SYNCHRONIZER_DEPTH    = 3,                    //  Number of synchronizer
+ // Internal parameters
+ parameter STARTING_CHANNEL_NUMBER = 0,
+ parameter ADDR_WIDTH = (MAX_CHANNELS > 16)? 13 :
+                        (MAX_CHANNELS > 8)? 12 : 
+                        (MAX_CHANNELS > 4)? 11 : 
+                        (MAX_CHANNELS > 2)? 10 :  
+-                       (MAX_CHANNELS > 1)? 9 : 8
++                       (MAX_CHANNELS > 1)? 9 : 8,
++//IEEE1588 code
++parameter ENABLE_TIMESTAMPING               = 0,                //      To enable time stamping logic
++parameter ENABLE_PTP_1STEP                      = 0,            //      To enable time 1 step clock PTP
++parameter TSTAMP_FP_WIDTH                   = 4         //      Finger print width associated to the timestamp request
 +
-          // Channel 1 
-             
+ )
  
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -1741,6 +2060,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_1(magic_sleep_n_1),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_1(magic_wakeup_1),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_1(tx_egress_timestamp_request_valid_1),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_1(tx_egress_timestamp_request_data_1),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_1(tx_egress_timestamp_valid_1),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_1(tx_egress_timestamp_data_1),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_1(tx_time_of_day_data_1),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_1(tx_ingress_timestamp_valid_1),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_1(tx_ingress_timestamp_data_1),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_1(rx_ingress_timestamp_valid_1),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_1(rx_ingress_timestamp_data_1),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_1(rx_time_of_day_data_1),								//INPUT:	Time of Day
-+
-          // Channel 2 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -1784,6 +2115,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_2(magic_sleep_n_2),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_2(magic_wakeup_2),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_2(tx_egress_timestamp_request_valid_2),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_2(tx_egress_timestamp_request_data_2),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_2(tx_egress_timestamp_valid_2),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_2(tx_egress_timestamp_data_2),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_2(tx_time_of_day_data_2),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_2(tx_ingress_timestamp_valid_2),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_2(tx_ingress_timestamp_data_2),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_2(rx_ingress_timestamp_valid_2),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_2(rx_ingress_timestamp_data_2),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_2(rx_time_of_day_data_2),								//INPUT:	Time of Day
-+
-          // Channel 3 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -1827,6 +2170,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_3(magic_sleep_n_3),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_3(magic_wakeup_3),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_3(tx_egress_timestamp_request_valid_3),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_3(tx_egress_timestamp_request_data_3),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_3(tx_egress_timestamp_valid_3),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_3(tx_egress_timestamp_data_3),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_3(tx_time_of_day_data_3),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_3(tx_ingress_timestamp_valid_3),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_3(tx_ingress_timestamp_data_3),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_3(rx_ingress_timestamp_valid_3),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_3(rx_ingress_timestamp_data_3),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_3(rx_time_of_day_data_3),								//INPUT:	Time of Day
-+
-          // Channel 4 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -1870,6 +2225,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_4(magic_sleep_n_4),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_4(magic_wakeup_4),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_4(tx_egress_timestamp_request_valid_4),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_4(tx_egress_timestamp_request_data_4),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_4(tx_egress_timestamp_valid_4),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_4(tx_egress_timestamp_data_4),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_4(tx_time_of_day_data_4),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_4(tx_ingress_timestamp_valid_4),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_4(tx_ingress_timestamp_data_4),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_4(rx_ingress_timestamp_valid_4),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_4(rx_ingress_timestamp_data_4),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_4(rx_time_of_day_data_4),								//INPUT:	Time of Day
-+
-          // Channel 5 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -1913,6 +2280,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_5(magic_sleep_n_5),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_5(magic_wakeup_5),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_5(tx_egress_timestamp_request_valid_5),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_5(tx_egress_timestamp_request_data_5),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_5(tx_egress_timestamp_valid_5),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_5(tx_egress_timestamp_data_5),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_5(tx_time_of_day_data_5),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_5(tx_ingress_timestamp_valid_5),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_5(tx_ingress_timestamp_data_5),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_5(rx_ingress_timestamp_valid_5),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_5(rx_ingress_timestamp_data_5),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_5(rx_time_of_day_data_5),								//INPUT:	Time of Day
-+
-          // Channel 6 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -1956,6 +2335,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_6(magic_sleep_n_6),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_6(magic_wakeup_6),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_6(tx_egress_timestamp_request_valid_6),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_6(tx_egress_timestamp_request_data_6),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_6(tx_egress_timestamp_valid_6),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_6(tx_egress_timestamp_data_6),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_6(tx_time_of_day_data_6),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_6(tx_ingress_timestamp_valid_6),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_6(tx_ingress_timestamp_data_6),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_6(rx_ingress_timestamp_valid_6),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_6(rx_ingress_timestamp_data_6),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_6(rx_time_of_day_data_6),								//INPUT:	Time of Day
-+
-          // Channel 7 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -1999,6 +2390,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_7(magic_sleep_n_7),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_7(magic_wakeup_7),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_7(tx_egress_timestamp_request_valid_7),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_7(tx_egress_timestamp_request_data_7),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_7(tx_egress_timestamp_valid_7),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_7(tx_egress_timestamp_data_7),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_7(tx_time_of_day_data_7),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_7(tx_ingress_timestamp_valid_7),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_7(tx_ingress_timestamp_data_7),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_7(rx_ingress_timestamp_valid_7),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_7(rx_ingress_timestamp_data_7),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_7(rx_time_of_day_data_7),								//INPUT:	Time of Day
-+
-          // Channel 8 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2042,6 +2445,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_8(magic_sleep_n_8),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_8(magic_wakeup_8),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_8(tx_egress_timestamp_request_valid_8),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_8(tx_egress_timestamp_request_data_8),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_8(tx_egress_timestamp_valid_8),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_8(tx_egress_timestamp_data_8),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_8(tx_time_of_day_data_8),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_8(tx_ingress_timestamp_valid_8),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_8(tx_ingress_timestamp_data_8),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_8(rx_ingress_timestamp_valid_8),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_8(rx_ingress_timestamp_data_8),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_8(rx_time_of_day_data_8),								//INPUT:	Time of Day
-+
-          // Channel 9 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2085,6 +2500,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_9(magic_sleep_n_9),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_9(magic_wakeup_9),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_9(tx_egress_timestamp_request_valid_9),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_9(tx_egress_timestamp_request_data_9),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_9(tx_egress_timestamp_valid_9),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_9(tx_egress_timestamp_data_9),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_9(tx_time_of_day_data_9),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_9(tx_ingress_timestamp_valid_9),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_9(tx_ingress_timestamp_data_9),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_9(rx_ingress_timestamp_valid_9),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_9(rx_ingress_timestamp_data_9),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_9(rx_time_of_day_data_9),								//INPUT:	Time of Day
-+
-          // Channel 10 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2128,6 +2555,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_10(magic_sleep_n_10),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_10(magic_wakeup_10),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_10(tx_egress_timestamp_request_valid_10),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_10(tx_egress_timestamp_request_data_10),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_10(tx_egress_timestamp_valid_10),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_10(tx_egress_timestamp_data_10),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_10(tx_time_of_day_data_10),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_10(tx_ingress_timestamp_valid_10),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_10(tx_ingress_timestamp_data_10),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_10(rx_ingress_timestamp_valid_10),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_10(rx_ingress_timestamp_data_10),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_10(rx_time_of_day_data_10),								//INPUT:	Time of Day
-+
-          // Channel 11 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2171,6 +2610,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_11(magic_sleep_n_11),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_11(magic_wakeup_11),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_11(tx_egress_timestamp_request_valid_11),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_11(tx_egress_timestamp_request_data_11),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_11(tx_egress_timestamp_valid_11),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_11(tx_egress_timestamp_data_11),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_11(tx_time_of_day_data_11),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_11(tx_ingress_timestamp_valid_11),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_11(tx_ingress_timestamp_data_11),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_11(rx_ingress_timestamp_valid_11),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_11(rx_ingress_timestamp_data_11),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_11(rx_time_of_day_data_11),								//INPUT:	Time of Day
-+
-          // Channel 12 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2214,6 +2665,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_12(magic_sleep_n_12),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_12(magic_wakeup_12),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_12(tx_egress_timestamp_request_valid_12),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_12(tx_egress_timestamp_request_data_12),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_12(tx_egress_timestamp_valid_12),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_12(tx_egress_timestamp_data_12),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_12(tx_time_of_day_data_12),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_12(tx_ingress_timestamp_valid_12),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_12(tx_ingress_timestamp_data_12),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_12(rx_ingress_timestamp_valid_12),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_12(rx_ingress_timestamp_data_12),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_12(rx_time_of_day_data_12),								//INPUT:	Time of Day
-+
-          // Channel 13 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2257,6 +2720,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_13(magic_sleep_n_13),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_13(magic_wakeup_13),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_13(tx_egress_timestamp_request_valid_13),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_13(tx_egress_timestamp_request_data_13),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_13(tx_egress_timestamp_valid_13),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_13(tx_egress_timestamp_data_13),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_13(tx_time_of_day_data_13),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_13(tx_ingress_timestamp_valid_13),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_13(tx_ingress_timestamp_data_13),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_13(rx_ingress_timestamp_valid_13),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_13(rx_ingress_timestamp_data_13),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_13(rx_time_of_day_data_13),								//INPUT:	Time of Day
-+
-          // Channel 14 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2300,6 +2775,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_14(magic_sleep_n_14),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_14(magic_wakeup_14),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_14(tx_egress_timestamp_request_valid_14),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_14(tx_egress_timestamp_request_data_14),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_14(tx_egress_timestamp_valid_14),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_14(tx_egress_timestamp_data_14),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_14(tx_time_of_day_data_14),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_14(tx_ingress_timestamp_valid_14),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_14(tx_ingress_timestamp_data_14),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_14(rx_ingress_timestamp_valid_14),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_14(rx_ingress_timestamp_data_14),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_14(rx_time_of_day_data_14),								//INPUT:	Time of Day
-+
-          // Channel 15 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2343,6 +2830,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_15(magic_sleep_n_15),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_15(magic_wakeup_15),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_15(tx_egress_timestamp_request_valid_15),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_15(tx_egress_timestamp_request_data_15),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_15(tx_egress_timestamp_valid_15),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_15(tx_egress_timestamp_data_15),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_15(tx_time_of_day_data_15),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_15(tx_ingress_timestamp_valid_15),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_15(tx_ingress_timestamp_data_15),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_15(rx_ingress_timestamp_valid_15),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_15(rx_ingress_timestamp_data_15),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_15(rx_time_of_day_data_15),								//INPUT:	Time of Day
-+
-          // Channel 16 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2386,6 +2885,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_16(magic_sleep_n_16),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_16(magic_wakeup_16),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_16(tx_egress_timestamp_request_valid_16),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_16(tx_egress_timestamp_request_data_16),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_16(tx_egress_timestamp_valid_16),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_16(tx_egress_timestamp_data_16),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_16(tx_time_of_day_data_16),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_16(tx_ingress_timestamp_valid_16),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_16(tx_ingress_timestamp_data_16),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_16(rx_ingress_timestamp_valid_16),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_16(rx_ingress_timestamp_data_16),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_16(rx_time_of_day_data_16),								//INPUT:	Time of Day
-+
-          // Channel 17 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2429,6 +2940,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_17(magic_sleep_n_17),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_17(magic_wakeup_17),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_17(tx_egress_timestamp_request_valid_17),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_17(tx_egress_timestamp_request_data_17),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_17(tx_egress_timestamp_valid_17),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_17(tx_egress_timestamp_data_17),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_17(tx_time_of_day_data_17),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_17(tx_ingress_timestamp_valid_17),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_17(tx_ingress_timestamp_data_17),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_17(rx_ingress_timestamp_valid_17),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_17(rx_ingress_timestamp_data_17),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_17(rx_time_of_day_data_17),								//INPUT:	Time of Day
-+
-          // Channel 18 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2472,6 +2995,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_18(magic_sleep_n_18),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_18(magic_wakeup_18),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_18(tx_egress_timestamp_request_valid_18),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_18(tx_egress_timestamp_request_data_18),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_18(tx_egress_timestamp_valid_18),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_18(tx_egress_timestamp_data_18),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_18(tx_time_of_day_data_18),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_18(tx_ingress_timestamp_valid_18),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_18(tx_ingress_timestamp_data_18),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_18(rx_ingress_timestamp_valid_18),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_18(rx_ingress_timestamp_data_18),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_18(rx_time_of_day_data_18),								//INPUT:	Time of Day
-+
-          // Channel 19 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2515,6 +3050,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_19(magic_sleep_n_19),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_19(magic_wakeup_19),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_19(tx_egress_timestamp_request_valid_19),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_19(tx_egress_timestamp_request_data_19),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_19(tx_egress_timestamp_valid_19),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_19(tx_egress_timestamp_data_19),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_19(tx_time_of_day_data_19),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_19(tx_ingress_timestamp_valid_19),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_19(tx_ingress_timestamp_data_19),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_19(rx_ingress_timestamp_valid_19),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_19(rx_ingress_timestamp_data_19),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_19(rx_time_of_day_data_19),								//INPUT:	Time of Day
-+
-          // Channel 20 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2558,6 +3105,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_20(magic_sleep_n_20),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_20(magic_wakeup_20),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_20(tx_egress_timestamp_request_valid_20),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_20(tx_egress_timestamp_request_data_20),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_20(tx_egress_timestamp_valid_20),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_20(tx_egress_timestamp_data_20),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_20(tx_time_of_day_data_20),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_20(tx_ingress_timestamp_valid_20),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_20(tx_ingress_timestamp_data_20),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_20(rx_ingress_timestamp_valid_20),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_20(rx_ingress_timestamp_data_20),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_20(rx_time_of_day_data_20),								//INPUT:	Time of Day
-+
-          // Channel 21 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2601,6 +3160,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_21(magic_sleep_n_21),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_21(magic_wakeup_21),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_21(tx_egress_timestamp_request_valid_21),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_21(tx_egress_timestamp_request_data_21),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_21(tx_egress_timestamp_valid_21),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_21(tx_egress_timestamp_data_21),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_21(tx_time_of_day_data_21),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_21(tx_ingress_timestamp_valid_21),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_21(tx_ingress_timestamp_data_21),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_21(rx_ingress_timestamp_valid_21),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_21(rx_ingress_timestamp_data_21),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_21(rx_time_of_day_data_21),								//INPUT:	Time of Day
-+
-          // Channel 22 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2644,6 +3215,18 @@ wire    reset_rx_pcs_clk_c23_int;
-         .magic_sleep_n_22(magic_sleep_n_22),        //INPUT  : MAC SLEEP MODE CONTROL
-         .magic_wakeup_22(magic_wakeup_22),          //OUTPUT : MAC WAKE-UP INDICATION
- 
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_22(tx_egress_timestamp_request_valid_22),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_22(tx_egress_timestamp_request_data_22),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_22(tx_egress_timestamp_valid_22),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_22(tx_egress_timestamp_data_22),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_22(tx_time_of_day_data_22),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_22(tx_ingress_timestamp_valid_22),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_22(tx_ingress_timestamp_data_22),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_22(rx_ingress_timestamp_valid_22),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_22(rx_ingress_timestamp_data_22),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_22(rx_time_of_day_data_22),								//INPUT:	Time of Day
-+
-          // Channel 23 
-             
- 
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2685,7 +3268,19 @@ wire    reset_rx_pcs_clk_c23_int;
-         .xoff_gen_23(xoff_gen_23),                  //INPUT  : XOFF PAUSE FRAME GENERATE
-         .xon_gen_23(xon_gen_23),                    //INPUT  : XON PAUSE FRAME GENERATE
-         .magic_sleep_n_23(magic_sleep_n_23),        //INPUT  : MAC SLEEP MODE CONTROL
--        .magic_wakeup_23(magic_wakeup_23));         //OUTPUT : MAC WAKE-UP INDICATION
-+        .magic_wakeup_23(magic_wakeup_23),          //OUTPUT : MAC WAKE-UP INDICATION
-+
-+        //IEEE1588's code
-+        .tx_egress_timestamp_request_valid_23(tx_egress_timestamp_request_valid_23),	//INPUT:	Timestamp request valid from user
-+        .tx_egress_timestamp_request_data_23(tx_egress_timestamp_request_data_23),		//INPUT:	Fingerprint associated to the timestamp request
-+        .tx_egress_timestamp_valid_23(tx_egress_timestamp_valid_23),					//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_egress_timestamp_data_23(tx_egress_timestamp_data_23),						//OUTPUT:	Timestamp + Fingerprint from TSU
-+        .tx_time_of_day_data_23(tx_time_of_day_data_23),								//INPUT:	Time of Day
-+        .tx_ingress_timestamp_valid_23(tx_ingress_timestamp_valid_23),					//INPUT:	Timestamp to TSU
-+        .tx_ingress_timestamp_data_23(tx_ingress_timestamp_data_23),					//INPUT:	Timestamp to TSU
-+        .rx_ingress_timestamp_valid_23(rx_ingress_timestamp_valid_23),					//OUTPUT: 	RX timestamp valid
-+        .rx_ingress_timestamp_data_23(rx_ingress_timestamp_data_23),					//OUTPUT: 	RX timestamp data
-+        .rx_time_of_day_data_23(rx_time_of_day_data_23));								//INPUT:	Time of Day
  
-     defparam
-         U_MULTI_MAC_PCS.USE_SYNC_RESET = USE_SYNC_RESET, 
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
+UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige to altera_tse_multi_mac_pcs_pma_gige
+    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
+INS HdlIdDef@@ENABLE_TIMESTAMPING to params
+HdlIdDef: ENABLE_TIMESTAMPING
+    HdlValueInt: 0
+    HdlDirection: INTERNAL
 
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2723,7 +3318,10 @@ wire    reset_rx_pcs_clk_c23_int;
-         U_MULTI_MAC_PCS.ENABLE_RX_FIFO_STATUS = ENABLE_RX_FIFO_STATUS,
-         U_MULTI_MAC_PCS.ENABLE_EXTENDED_STAT_REG = ENABLE_EXTENDED_STAT_REG,
-         U_MULTI_MAC_PCS.ENABLE_CLK_SHARING = ENABLE_CLK_SHARING,    
--        U_MULTI_MAC_PCS.ENABLE_REG_SHARING = ENABLE_REG_SHARING;    
-+        U_MULTI_MAC_PCS.ENABLE_REG_SHARING = ENABLE_REG_SHARING,    
-+        U_MULTI_MAC_PCS.TSTAMP_FP_WIDTH = TSTAMP_FP_WIDTH,
-+        U_MULTI_MAC_PCS.ENABLE_TIMESTAMPING = ENABLE_TIMESTAMPING,
-+        U_MULTI_MAC_PCS.ENABLE_PTP_1STEP = ENABLE_PTP_1STEP;
- 
- 
- 
+INS HdlIdDef@@ENABLE_PTP_1STEP to params
+HdlIdDef: ENABLE_PTP_1STEP
+    HdlValueInt: 0
+    HdlDirection: INTERNAL
 
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
+INS HdlIdDef@@TSTAMP_FP_WIDTH to params
+HdlIdDef: TSTAMP_FP_WIDTH
+    HdlValueInt: 4
+    HdlDirection: INTERNAL
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
+UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige to altera_tse_multi_mac_pcs_pma_gige
+    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige
 
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2773,7 +3371,8 @@ generate if (MAX_CHANNELS > 0)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[0])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_0.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_0.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_0.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -2865,7 +3474,6 @@ else
+     assign link_status[0] = 1'b0;
+     assign led_disp_err_0 = 1'b0;
+     assign txp_0 = 1'b0;
+-	assign pcs_clk_c0 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2814,6 +3413,7 @@ generate if (MAX_CHANNELS > 0)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_0.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_0.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_0.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_0.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c0
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
 
-
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2877,7 +3477,8 @@ generate if (MAX_CHANNELS > 1)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[1])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_1.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_1.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_1.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -3020,7 +3627,6 @@ else
+     assign link_status[1] = 1'b0;
+     assign led_disp_err_1 = 1'b0;
+     assign txp_1 = 1'b0;
+-	assign pcs_clk_c1 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2918,6 +3519,7 @@ generate if (MAX_CHANNELS > 1)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_1.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_1.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_1.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_1.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c1
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
 
-
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -2981,7 +3583,8 @@ generate if (MAX_CHANNELS > 2)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[2])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_2.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_2.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_2.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -3176,7 +3780,6 @@ else
+     assign link_status[2] = 1'b0;
+     assign led_disp_err_2 = 1'b0;
+     assign txp_2 = 1'b0;
+-	assign pcs_clk_c2 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -3022,6 +3625,7 @@ generate if (MAX_CHANNELS > 2)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_2.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_2.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_2.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_2.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
-
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c2
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
 
-
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -3085,7 +3689,8 @@ generate if (MAX_CHANNELS > 3)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[3])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_3.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_3.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_3.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -3330,7 +3933,6 @@ else
+     assign link_status[3] = 1'b0;
+     assign led_disp_err_3 = 1'b0;
+     assign txp_3 = 1'b0;
+-	assign pcs_clk_c3 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -3126,6 +3731,7 @@ generate if (MAX_CHANNELS > 3)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_3.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_3.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_3.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_3.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
-
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c3
 
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -3189,7 +3795,8 @@ generate if (MAX_CHANNELS > 4)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[4])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_4.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_4.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_4.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -3484,7 +4086,6 @@ else
+     assign link_status[4] = 1'b0;
+     assign led_disp_err_4 = 1'b0;
+     assign txp_4 = 1'b0;
+-	assign pcs_clk_c4 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -3230,6 +3837,7 @@ generate if (MAX_CHANNELS > 4)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_4.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_4.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_4.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_4.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c4
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
 
-
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -3293,7 +3901,8 @@ generate if (MAX_CHANNELS > 5)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[5])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_5.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_5.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_5.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -3639,7 +4239,6 @@ else
+     assign link_status[5] = 1'b0;
+     assign led_disp_err_5 = 1'b0;
+     assign txp_5 = 1'b0;
+-	assign pcs_clk_c5 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -3334,6 +3943,7 @@ generate if (MAX_CHANNELS > 5)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_5.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_5.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_5.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_5.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c5
 
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -3397,7 +4007,8 @@ generate if (MAX_CHANNELS > 6)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[6])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_6.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_6.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_6.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -3793,7 +4392,6 @@ else
+     assign link_status[6] = 1'b0;
+     assign led_disp_err_6 = 1'b0;
+     assign txp_6 = 1'b0;
+-	assign pcs_clk_c6 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
 
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -3438,6 +4049,7 @@ generate if (MAX_CHANNELS > 6)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_6.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_6.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_6.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_6.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
-
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c6
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
 
-
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -3501,7 +4113,8 @@ generate if (MAX_CHANNELS > 7)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[7])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_7.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_7.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_7.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -3948,7 +4545,6 @@ else
+     assign link_status[7] = 1'b0;
+     assign led_disp_err_7 = 1'b0;
+     assign txp_7 = 1'b0;
+-	assign pcs_clk_c7 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -3542,6 +4155,7 @@ generate if (MAX_CHANNELS > 7)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_7.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_7.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_7.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_7.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
-
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c7
 
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -3605,7 +4219,8 @@ generate if (MAX_CHANNELS > 8)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[8])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_8.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_8.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_8.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -4102,7 +4698,6 @@ else
+     assign link_status[8] = 1'b0;
+     assign led_disp_err_8 = 1'b0;
+     assign txp_8 = 1'b0;
+-	assign pcs_clk_c8 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c8
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
 
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -3646,6 +4261,7 @@ generate if (MAX_CHANNELS > 8)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_8.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_8.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_8.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_8.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -3709,7 +4325,8 @@ generate if (MAX_CHANNELS > 9)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[9])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_9.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_9.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_9.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -4257,7 +4851,6 @@ else
+     assign link_status[9] = 1'b0;
+     assign led_disp_err_9 = 1'b0;
+     assign txp_9 = 1'b0;
+-	assign pcs_clk_c9 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -3750,6 +4367,7 @@ generate if (MAX_CHANNELS > 9)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_9.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_9.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_9.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_9.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c9
 
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -3813,7 +4431,8 @@ generate if (MAX_CHANNELS > 10)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[10])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_10.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_10.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_10.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -4411,7 +5004,6 @@ else
+     assign link_status[10] = 1'b0;
+     assign led_disp_err_10 = 1'b0;
+     assign txp_10 = 1'b0;
+-	assign pcs_clk_c10 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
 
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -3854,6 +4473,7 @@ generate if (MAX_CHANNELS > 10)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_10.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_10.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_10.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_10.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
-
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c10
 
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -3917,7 +4537,8 @@ generate if (MAX_CHANNELS > 11)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[11])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_11.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_11.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_11.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -4566,7 +5157,6 @@ else
+     assign link_status[11] = 1'b0;
+     assign led_disp_err_11 = 1'b0;
+     assign txp_11 = 1'b0;
+-	assign pcs_clk_c11 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -3958,6 +4579,7 @@ generate if (MAX_CHANNELS > 11)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_11.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_11.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_11.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_11.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
-
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c11
 
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -4021,7 +4643,8 @@ generate if (MAX_CHANNELS > 12)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[12])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_12.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_12.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_12.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -4721,7 +5310,6 @@ else
+     assign link_status[12] = 1'b0;
+     assign led_disp_err_12 = 1'b0;
+     assign txp_12 = 1'b0;
+-	assign pcs_clk_c12 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -4062,6 +4685,7 @@ generate if (MAX_CHANNELS > 12)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_12.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_12.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_12.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_12.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c12
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
 
-
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -4125,7 +4749,8 @@ generate if (MAX_CHANNELS > 13)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[13])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_13.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_13.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_13.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -4875,7 +5463,6 @@ else
+     assign link_status[13] = 1'b0;
+     assign led_disp_err_13 = 1'b0;
+     assign txp_13 = 1'b0;
+-	assign pcs_clk_c13 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -4166,6 +4791,7 @@ generate if (MAX_CHANNELS > 13)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_13.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_13.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_13.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_13.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
-
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c13
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
 
-
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -4229,7 +4855,8 @@ generate if (MAX_CHANNELS > 14)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[14])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_14.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_14.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_14.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -5029,7 +5616,6 @@ else
+     assign link_status[14] = 1'b0;
+     assign led_disp_err_14 = 1'b0;
+     assign txp_14 = 1'b0;
+-	assign pcs_clk_c14 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
 
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -4270,6 +4897,7 @@ generate if (MAX_CHANNELS > 14)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_14.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_14.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_14.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_14.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
-
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c14
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
 
-
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -4333,7 +4961,8 @@ generate if (MAX_CHANNELS > 15)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[15])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_15.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_15.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_15.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -5183,7 +5769,6 @@ else
+     assign link_status[15] = 1'b0;
+     assign led_disp_err_15 = 1'b0;
+     assign txp_15 = 1'b0;
+-	assign pcs_clk_c15 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -4374,6 +5003,7 @@ generate if (MAX_CHANNELS > 15)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_15.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_15.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_15.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_15.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c15
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
 
-
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -4437,7 +5067,8 @@ generate if (MAX_CHANNELS > 16)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[16])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_16.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_16.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_16.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -5337,7 +5922,6 @@ else
+     assign link_status[16] = 1'b0;
+     assign led_disp_err_16 = 1'b0;
+     assign txp_16 = 1'b0;
+-	assign pcs_clk_c16 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -4478,6 +5109,7 @@ generate if (MAX_CHANNELS > 16)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_16.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_16.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_16.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_16.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c16
 
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -4541,7 +5173,8 @@ generate if (MAX_CHANNELS > 17)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[17])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_17.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_17.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_17.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -5491,7 +6075,6 @@ else
+     assign link_status[17] = 1'b0;
+     assign led_disp_err_17 = 1'b0;
+     assign txp_17 = 1'b0;
+-	assign pcs_clk_c17 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
 
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -4582,6 +5215,7 @@ generate if (MAX_CHANNELS > 17)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_17.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_17.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_17.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_17.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
-
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c17
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
 
-
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -4645,7 +5279,8 @@ generate if (MAX_CHANNELS > 18)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[18])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_18.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_18.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_18.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -5645,7 +6228,6 @@ else
+     assign link_status[18] = 1'b0;
+     assign led_disp_err_18 = 1'b0;
+     assign txp_18 = 1'b0;
+-	assign pcs_clk_c18 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -4686,6 +5321,7 @@ generate if (MAX_CHANNELS > 18)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_18.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_18.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_18.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_18.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
-
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c18
 
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -4749,7 +5385,8 @@ generate if (MAX_CHANNELS > 19)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[19])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_19.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_19.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_19.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -5799,7 +6381,6 @@ else
+     assign link_status[19] = 1'b0;
+     assign led_disp_err_19 = 1'b0;
+     assign txp_19 = 1'b0;
+-	assign pcs_clk_c19 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c19
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
 
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -4790,6 +5427,7 @@ generate if (MAX_CHANNELS > 19)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_19.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_19.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_19.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_19.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -4853,7 +5491,8 @@ generate if (MAX_CHANNELS > 20)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[20])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_20.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_20.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_20.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -5953,7 +6534,6 @@ else
+     assign link_status[20] = 1'b0;
+     assign led_disp_err_20 = 1'b0;
+     assign txp_20 = 1'b0;
+-	assign pcs_clk_c20 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -4894,6 +5533,7 @@ generate if (MAX_CHANNELS > 20)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_20.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_20.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_20.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_20.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c20
 
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -4957,7 +5597,8 @@ generate if (MAX_CHANNELS > 21)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[21])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_21.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_21.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_21.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -6107,7 +6687,6 @@ else
+     assign link_status[21] = 1'b0;
+     assign led_disp_err_21 = 1'b0;
+     assign txp_21 = 1'b0;
+-	assign pcs_clk_c21 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
 
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -4998,6 +5639,7 @@ generate if (MAX_CHANNELS > 21)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_21.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_21.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_21.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_21.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
-
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c21
 
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -5061,7 +5703,8 @@ generate if (MAX_CHANNELS > 22)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[22])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_22.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_22.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_22.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -6261,7 +6840,6 @@ else
+     assign link_status[22] = 1'b0;
+     assign led_disp_err_22 = 1'b0;
+     assign txp_22 = 1'b0;
+-	assign pcs_clk_c22 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
 
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -5102,6 +5745,7 @@ generate if (MAX_CHANNELS > 22)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_22.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_22.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_22.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_22.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
-
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c22
 
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -5165,7 +5809,8 @@ generate if (MAX_CHANNELS > 23)
-             .altpcs_carrierdetect(pcs_rx_carrierdetected[23])
-            ) ;
- 		defparam
--		the_altera_tse_gxb_aligned_rxsync_23.DEVICE_FAMILY = DEVICE_FAMILY;    
-+		the_altera_tse_gxb_aligned_rxsync_23.DEVICE_FAMILY = DEVICE_FAMILY,    
-+		the_altera_tse_gxb_aligned_rxsync_23.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING;    
+--- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
++++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige.v
+@@ -6415,7 +6993,6 @@ else
+     assign link_status[23] = 1'b0;
+     assign led_disp_err_23 = 1'b0;
+     assign txp_23 = 1'b0;
+-	assign pcs_clk_c23 = 1'b0;
+     end      
+ endgenerate
  
-         // Altgxb in GIGE mode
-         // --------------------
-
-ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_multi_mac_pcs_pma_gige_phyip.v
-@@ -5206,6 +5851,7 @@ generate if (MAX_CHANNELS > 23)
-    defparam
-         the_altera_tse_gxb_gige_phyip_inst_23.ENABLE_ALT_RECONFIG = ENABLE_ALT_RECONFIG,
-         the_altera_tse_gxb_gige_phyip_inst_23.ENABLE_SGMII = ENABLE_SGMII,
-+        the_altera_tse_gxb_gige_phyip_inst_23.ENABLE_DET_LATENCY = ENABLE_TIMESTAMPING,
-         the_altera_tse_gxb_gige_phyip_inst_23.DEVICE_FAMILY = DEVICE_FAMILY; 
-     end
- else
 
 ParseResult:
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    INS list@@objs to altera_tse_multi_mac_pcs_pma_gige_phyip
-
-UPD HdlModuleDec@@altera_tse_multi_mac_pcs_pma_gige_phyip to altera_tse_multi_mac_pcs_pma_gige_phyip
-    DEL list@@objs from altera_tse_multi_mac_pcs_pma_gige_phyip
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 0
+    HdlValueId: pcs_clk_c23
 
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
@@ -5314,48 +3766,6 @@ Fix simulation script
  	( 
  	cal_blk_clk,
  	fixedclk,
-
-ParseResult:
-UPD HdlModuleDef@@altera_tse_alt4gxb_gige_wo_rmfifo_alt4gxb_nmca to altera_tse_alt4gxb_gige_wo_rmfifo_alt4gxb_sgca
-
-UPD HdlModuleDec@@altera_tse_alt4gxb_gige_wo_rmfifo_alt4gxb_nmca to altera_tse_alt4gxb_gige_wo_rmfifo_alt4gxb_sgca
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_alt4gxb_gige_wo_rmfifo.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_alt4gxb_gige_wo_rmfifo.v
-@@ -836,8 +836,8 @@ module  altera_tse_alt4gxb_gige_wo_rmfifo_alt4gxb_nmca
- 	`endif
- 	);
- 	defparam
--		receive_pcs0.align_pattern = "0101111100",
--		receive_pcs0.align_pattern_length = 10,
-+		receive_pcs0.align_pattern = "1111100",
-+		receive_pcs0.align_pattern_length = 7,
- 		receive_pcs0.align_to_deskew_pattern_pos_disp_only = "false",
- 		receive_pcs0.allow_align_polarity_inversion = "false",
- 		receive_pcs0.allow_pipe_polarity_inversion = "false",
-
-ParseResult:
-UPD HdlModuleDef@@altera_tse_alt4gxb_gige_wo_rmfifo_alt4gxb_nmca to altera_tse_alt4gxb_gige_wo_rmfifo_alt4gxb_sgca
-
-UPD HdlModuleDec@@altera_tse_alt4gxb_gige_wo_rmfifo_alt4gxb_nmca to altera_tse_alt4gxb_gige_wo_rmfifo_alt4gxb_sgca
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_alt4gxb_gige_wo_rmfifo.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_alt4gxb_gige_wo_rmfifo.v
-@@ -1336,7 +1336,7 @@ module  altera_tse_alt4gxb_gige_wo_rmfifo_alt4gxb_nmca
- 		tx_txdprioout = {{450{1'b0}}, wire_transmit_pcs0_dprioout},
- 		txdetectrxout = {wire_transmit_pcs0_txdetectrx},
- 		w_cent_unit_dpriodisableout1w = {wire_cent_unit0_dpriodisableout};
--endmodule //altera_tse_alt4gxb_gige_wo_rmfifo_alt4gxb_nmca
-+endmodule //altera_tse_alt4gxb_gige_wo_rmfifo_alt4gxb_sgca
- //VALID FILE
- 
- 
 
 ParseResult:
 UPD HdlModuleDef@@altera_tse_alt4gxb_gige_wo_rmfifo_alt4gxb_nmca to altera_tse_alt4gxb_gige_wo_rmfifo_alt4gxb_sgca
@@ -5789,48 +4199,6 @@ UPD HdlModuleDec@@altera_tse_alt4gxb_gige_alt4gxb_gtca to altera_tse_alt4gxb_gig
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_alt4gxb_gige.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_alt4gxb_gige.v
-@@ -837,8 +837,8 @@ module  altera_tse_alt4gxb_gige_alt4gxb_gtca
- 	`endif
- 	);
- 	defparam
--		receive_pcs0.align_pattern = "0101111100",
--		receive_pcs0.align_pattern_length = 10,
-+		receive_pcs0.align_pattern = "1111100",
-+		receive_pcs0.align_pattern_length = 7,
- 		receive_pcs0.align_to_deskew_pattern_pos_disp_only = "false",
- 		receive_pcs0.allow_align_polarity_inversion = "false",
- 		receive_pcs0.allow_pipe_polarity_inversion = "false",
-
-ParseResult:
-UPD HdlModuleDef@@altera_tse_alt4gxb_gige_alt4gxb_gtca to altera_tse_alt4gxb_gige_alt4gxb_lnca
-
-UPD HdlModuleDec@@altera_tse_alt4gxb_gige_alt4gxb_gtca to altera_tse_alt4gxb_gige_alt4gxb_lnca
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_alt4gxb_gige.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_alt4gxb_gige.v
-@@ -1338,7 +1338,7 @@ module  altera_tse_alt4gxb_gige_alt4gxb_gtca
- 		tx_txdprioout = {{450{1'b0}}, wire_transmit_pcs0_dprioout},
- 		txdetectrxout = {wire_transmit_pcs0_txdetectrx},
- 		w_cent_unit_dpriodisableout1w = {wire_cent_unit0_dpriodisableout};
--endmodule //altera_tse_alt4gxb_gige_alt4gxb_gtca
-+endmodule //altera_tse_alt4gxb_gige_alt4gxb_lnca
- //VALID FILE
- 
- 
-
-ParseResult:
-UPD HdlModuleDef@@altera_tse_alt4gxb_gige_alt4gxb_gtca to altera_tse_alt4gxb_gige_alt4gxb_lnca
-
-UPD HdlModuleDec@@altera_tse_alt4gxb_gige_alt4gxb_gtca to altera_tse_alt4gxb_gige_alt4gxb_lnca
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
 --- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_reset_sequencer.sv
 +++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_reset_sequencer.sv
 @@ -72,12 +72,8 @@ altera_tse_xcvr_resync #(
@@ -6166,112 +4534,6 @@ UPD HdlStmIf@@ to
 
 CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
 Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_gxb_aligned_rxsync.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_gxb_aligned_rxsync.v
-@@ -140,7 +141,7 @@ begin
- 		end
- 		assign altpcs_sync              = alt_sync_reg1;	      
- end
--else if ( DEVICE_FAMILY == "STRATIXIV" || DEVICE_FAMILY == "ARRIAIIGX" || DEVICE_FAMILY == "CYCLONEIVGX" || DEVICE_FAMILY == "HARDCOPYIV" || DEVICE_FAMILY == "ARRIAIIGZ")
-+else if ( DEVICE_FAMILY == "STRATIXIV" || DEVICE_FAMILY == "ARRIAIIGX" || DEVICE_FAMILY == "CYCLONEIVGX" || DEVICE_FAMILY == "HARDCOPYIV" || DEVICE_FAMILY == "ARRIAIIGZ"   || DEVICE_FAMILY == "STRATIXV" || DEVICE_FAMILY == "ARRIAV" || DEVICE_FAMILY == "CYCLONEV")
- begin
- 	always @ (posedge reset or posedge clk)
-     begin
-
-ParseResult:
-UPD HdlStmIf@@ to 
-    UPD HdlOp@@OR_LOG to OR_LOG
-        MOV HdlOp@@OR_LOG to ops
-        HdlOp: OR_LOG
-            list: ops
-                HdlOp: OR_LOG
-                    list: ops
-                        HdlOp: EQ
-                            list: ops
-                                HdlValueId: DEVICE_FAMILY
-                                str
-                        HdlOp: EQ
-                            list: ops
-                                HdlValueId: DEVICE_FAMILY
-                                str
-                HdlOp: EQ
-                    list: ops
-                        HdlValueId: DEVICE_FAMILY
-                        str
-        MOV HdlOp@@EQ to ops
-        HdlOp: EQ
-            list: ops
-                HdlValueId: DEVICE_FAMILY
-                str
-        UPD HdlOp@@OR_LOG to OR_LOG
-            MOV HdlOp@@EQ to ops
-            HdlOp: EQ
-                list: ops
-                    HdlValueId: DEVICE_FAMILY
-                    str
-        DEL list@@ops from OR_LOG
-    MOV HdlOp@@OR_LOG to 
-    HdlOp: OR_LOG
-        list: ops
-            HdlOp: OR_LOG
-                list: ops
-                    HdlOp: OR_LOG
-                        list: ops
-                            HdlOp: OR_LOG
-                                list: ops
-                                    HdlOp: EQ
-                                        list: ops
-                                            HdlValueId: DEVICE_FAMILY
-                                            str
-                                    HdlOp: EQ
-                                        list: ops
-                                            HdlValueId: DEVICE_FAMILY
-                                            str
-                            HdlOp: EQ
-                                list: ops
-                                    HdlValueId: DEVICE_FAMILY
-                                    str
-                    HdlOp: EQ
-                        list: ops
-                            HdlValueId: DEVICE_FAMILY
-                            str
-            HdlOp: EQ
-                list: ops
-                    HdlValueId: DEVICE_FAMILY
-                    str
-    DEL HdlOp@@OR_LOG from 
-
-UPD HdlStmIf@@ to 
-    UPD HdlOp@@OR_LOG to OR_LOG
-        INS HdlOp@@AND_LOG to ops
-        HdlOp: AND_LOG
-            list: ops
-                HdlOp: EQ
-                    list: ops
-                        HdlValueId: DEVICE_FAMILY
-                        str
-                HdlOp: EQ
-                    list: ops
-                        HdlValueId: ENABLE_DET_LATENCY
-                        HdlValueInt: 1
-    INS HdlOp@@OR_LOG to 
-    UPD HdlOp@@OR_LOG to OR_LOG
-        INS list@@ops to OR_LOG
-        INS HdlOp@@OR_LOG to ops
-        UPD HdlOp@@OR_LOG to OR_LOG
-            INS list@@ops to OR_LOG
-            INS HdlOp@@OR_LOG to ops
-            UPD HdlOp@@OR_LOG to OR_LOG
-                INS list@@ops to OR_LOG
-                INS HdlOp@@EQ to ops
-                HdlOp: EQ
-                    list: ops
-                        HdlValueId: DEVICE_FAMILY
-                        str
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
 --- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_reset_ctrl_lego.sv
 +++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_reset_ctrl_lego.sv
 @@ -87,7 +87,7 @@ module	altera_tse_reset_ctrl_lego
@@ -6352,48 +4614,6 @@ Fix simulation script
  	( 
  	cal_blk_clk,
  	fixedclk,
-
-ParseResult:
-UPD HdlModuleDef@@altera_tse_altgx_civgx_gige_wo_rmfifo_alt_c3gxb_p318 to altera_tse_altgx_civgx_gige_wo_rmfifo_alt_c3gxb_ut08
-
-UPD HdlModuleDec@@altera_tse_altgx_civgx_gige_wo_rmfifo_alt_c3gxb_p318 to altera_tse_altgx_civgx_gige_wo_rmfifo_alt_c3gxb_ut08
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_altgx_civgx_gige_wo_rmfifo.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_altgx_civgx_gige_wo_rmfifo.v
-@@ -572,8 +572,8 @@ module  altera_tse_altgx_civgx_gige_wo_rmfifo_alt_c3gxb_p318
- 	`endif
- 	);
- 	defparam
--		receive_pcs0.align_pattern = "0101111100",
--		receive_pcs0.align_pattern_length = 10,
-+		receive_pcs0.align_pattern = "1111100",
-+		receive_pcs0.align_pattern_length = 7,
- 		receive_pcs0.allow_align_polarity_inversion = "false",
- 		receive_pcs0.allow_pipe_polarity_inversion = "false",
- 		receive_pcs0.auto_spd_deassert_ph_fifo_rst_count = 8,
-
-ParseResult:
-UPD HdlModuleDef@@altera_tse_altgx_civgx_gige_wo_rmfifo_alt_c3gxb_p318 to altera_tse_altgx_civgx_gige_wo_rmfifo_alt_c3gxb_ut08
-
-UPD HdlModuleDec@@altera_tse_altgx_civgx_gige_wo_rmfifo_alt_c3gxb_p318 to altera_tse_altgx_civgx_gige_wo_rmfifo_alt_c3gxb_ut08
-
-
-CommitId: 7eafd21781ce5a1b7f757ea829053f210d03ccf1
-Fix simulation script
---- a/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_altgx_civgx_gige_wo_rmfifo.v
-+++ b/sim/BFMs/SGMII_altera/triple_speed_ethernet-library/altera_tse_altgx_civgx_gige_wo_rmfifo.v
-@@ -955,7 +955,7 @@ module  altera_tse_altgx_civgx_gige_wo_rmfifo_alt_c3gxb_p318
- 		txdataout = {wire_transmit_pma0_dataout},
- 		txdetectrxout = {wire_transmit_pcs0_txdetectrx},
- 		w_cent_unit_dpriodisableout1w = {wire_cent_unit0_dpriodisableout};
--endmodule //altera_tse_altgx_civgx_gige_wo_rmfifo_alt_c3gxb_p318
-+endmodule //altera_tse_altgx_civgx_gige_wo_rmfifo_alt_c3gxb_ut08
- //VALID FILE
- 
- 
 
 ParseResult:
 UPD HdlModuleDef@@altera_tse_altgx_civgx_gige_wo_rmfifo_alt_c3gxb_p318 to altera_tse_altgx_civgx_gige_wo_rmfifo_alt_c3gxb_ut08

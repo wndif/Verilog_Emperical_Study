@@ -1,0 +1,35 @@
+CommitId: 06f409832875b52d2978e87765ecc519b8c5e8de
+Fixed SCK_O generation bug.
+--- a/rtl/verilog/simple_spi_top.v
++++ b/rtl/verilog/simple_spi_top.v
+@@ -282,7 +259,7 @@ module simple_spi_top(
+           treg  <= #1 8'h00;
+           wfre  <= #1 1'b0;
+           rfwe  <= #1 1'b0;
+-          sck   <= #1 1'b0;
++          sck_o <= #1 1'b0;
+       end
+     else
+       begin
+
+ParseResult:
+UPD HdlStmCase@@espr to espr
+    MOV tuple@@ to cases
+    tuple
+        HdlValueInt: 0011
+        HdlStmAssign
+            HdlValueInt: f
+            HdlValueId: clkcnt
+            HdlValueInt: 1
+    MOV tuple@@ to cases
+    tuple
+        HdlValueInt: 0010
+        HdlStmAssign
+            HdlValueInt: 7
+            HdlValueId: clkcnt
+            HdlValueInt: 1
+    UPD HdlValueInt@@0100 to 0010
+    UPD HdlValueInt@@0101 to 0100
+    UPD HdlValueInt@@0010 to 0101
+
+

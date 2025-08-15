@@ -70,31 +70,6 @@ CommitId: 8fab829e8ea3673c42cfbbb577119cb6c49d4f8e
 Fix: clear I and R at reset
 --- a/NextZ80CPU.v
 +++ b/NextZ80CPU.v
-@@ -1404,7 +1404,7 @@ module NextZ80
- 					WE 		= 6'bx1xx11;			// PC, hi, lo
- 					ALU8OP	= 29;						// pass D1
- 					ALU16OP	= 4;						// NOP
--					REG_WSEL	= 4'b010x;				// IR
-+					REG_WSEL	= 4'b1001;				// IR, write r
- 					REG_RSEL	= 4'b110x;				// const
- 					M1 		= 0;
- 					MREQ		= 0;
-
-ParseResult:
-UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
-    INS HdlStmCaseType@@CASE to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
-
-UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueInt@@010x to 1001
-    DEL HdlStmCaseType@@CASE from {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
-
-
-CommitId: 8fab829e8ea3673c42cfbbb577119cb6c49d4f8e
-Fix: clear I and R at reset
---- a/NextZ80CPU.v
-+++ b/NextZ80CPU.v
 @@ -1458,7 +1458,7 @@ module NextZ80
  								WE 		= 6'b010x01;		// PC, lo
  								ALU16OP	= intop;				// DEC/DEC2 (if block instruction interrupted)
@@ -106,15 +81,6 @@ Fix: clear I and R at reset
  								status[11]	= 1'b1;
 
 ParseResult:
-UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
-    INS HdlStmCaseType@@CASE to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
-
-UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
-    UPD HdlStmBlock@@SEQ to SEQ
-        UPD HdlOp@@ASSIGN to ASSIGN
-            UPD HdlValueInt@@010x to 1001
-    DEL HdlStmCaseType@@CASE from {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['FETCH',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '9'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '6'}]}]} 
-
 UPD HdlStmCase@@{'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '2'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]}  to {'__class__': 'HdlOp',  'fn': 'INDEX',  'ops': ['STAGE',          {'__class__': 'HdlOp',           'fn': 'DOWNTO',           'ops': [{'__class__': 'HdlValueInt', 'base': 10, 'val': '2'},                   {'__class__': 'HdlValueInt', 'base': 10, 'val': '0'}]}]} 
     UPD HdlStmBlock@@SEQ to SEQ
         UPD HdlOp@@ASSIGN to ASSIGN

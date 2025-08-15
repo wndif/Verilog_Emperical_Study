@@ -1614,6 +1614,1333 @@ UPD HdlStmIf@@body to body
             DEL HdlOp@@AND from ops
 
 
+CommitId: 6e11b89f0a1e1d903e79cc345a1e316a4ed018c6
+fix bugs in instruction interface
+--- a/rtl/verilog/oc8051_decoder.v
++++ b/rtl/verilog/oc8051_decoder.v
+@@ -61,7 +64,7 @@
+ module oc8051_decoder (clk, rst, op_in, eq, ram_rd_sel, ram_wr_sel, bit_addr,
+ wr, src_sel1, src_sel2, src_sel3, alu_op, psw_set, cy_sel, imm_sel, pc_wr,
+ pc_sel, comp_sel, rom_addr_sel, ext_addr_sel, wad2, rd, we_o, reti,
+-rmw, stb_o, ack_i, wr_xaddr, istb, ea, iack);
++rmw, stb_o, ack_i, wr_xaddr, istb, ea, iack, pc_wait, nop);
+ 
+ //
+ // clk          (in)  clock
+
+ParseResult:
+UPD HdlStmCase@@op_cur to op_cur
+    INS HdlStmCaseType@@CASEX to op_cur
+    INS HdlValueId@@op_cur to op_cur
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+
+
+CommitId: 6e11b89f0a1e1d903e79cc345a1e316a4ed018c6
+fix bugs in instruction interface
+--- a/rtl/verilog/oc8051_decoder.v
++++ b/rtl/verilog/oc8051_decoder.v
+@@ -92,17 +95,19 @@ rmw, stb_o, ack_i, wr_xaddr, istb, ea, iack);
+ // istb         (out) strobe to instruction rom
+ // ea           (in)  extrnal access
+ // iack         (in)  scknowlage from external rom
++// pc_wait      (out)
++// nop          (out) insert nops
+ //
+ 
+ input clk, rst, eq, ack_i, iack, ea;
+ input [7:0] op_in;
+ 
+ output wr, reti, we_o, bit_addr, src_sel3, rom_addr_sel, ext_addr_sel,
+-pc_wr, wad2, rmw, stb_o, wr_xaddr, istb;
++pc_wr, wad2, rmw, stb_o, wr_xaddr, istb, pc_wait;
+ output [1:0] ram_rd_sel, src_sel1, src_sel2, psw_set, cy_sel, pc_sel, comp_sel;
+ output [2:0] ram_wr_sel, imm_sel;
+ output [3:0] alu_op;
+-output rd;
++output rd, nop;
+ 
+ reg reti, write_x, rmw, stb_buff, we_buff, istb_t;
+ reg wr,  bit_addr, src_sel3, rom_addr_sel, ext_addr_sel, pc_wr, wad2, stb, stbw, wr_xaddr;
+
+ParseResult:
+UPD HdlStmCase@@op to op_cur
+
+UPD HdlStmCase@@op to op
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: src_sel1
+                HdlValueInt: 00
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: imm_sel
+                HdlValueInt: 000
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: rom_addr_sel
+                HdlValueInt: 1
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: ram_wr_sel
+                HdlValueInt: 000
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: wr
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: src_sel1
+                HdlValueInt: 00
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: imm_sel
+                HdlValueInt: 000
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: rom_addr_sel
+                HdlValueInt: 1
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: ram_wr_sel
+                HdlValueInt: 000
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: wr
+                HdlValueInt: 0
+    DEL HdlStmCaseType@@CASEX from op
+    DEL HdlValueId@@op from op
+
+
+CommitId: 6e11b89f0a1e1d903e79cc345a1e316a4ed018c6
+fix bugs in instruction interface
+--- a/rtl/verilog/oc8051_decoder.v
++++ b/rtl/verilog/oc8051_decoder.v
+@@ -334,6 +316,7 @@ begin
+           src_sel3 = `OC8051_AS3_DC;
+           comp_sel = `OC8051_CSS_DES;
+           rmw = `OC8051_RMW_N;        bit_addr = 1'b0;
++          stb_i = 1'b1;
+           wad2 = `OC8051_WAD_N;
+           rom_addr_sel = `OC8051_RAS_PC;
+           
+
+ParseResult:
+INS HdlIdDef@@pc_wait to ports
+HdlIdDef: pc_wait
+    HdlDirection: OUT
+
+INS HdlIdDef@@nop to ports
+HdlIdDef: nop
+    HdlDirection: OUT
+
+
+CommitId: 6e11b89f0a1e1d903e79cc345a1e316a4ed018c6
+fix bugs in instruction interface
+--- a/rtl/verilog/oc8051_decoder.v
++++ b/rtl/verilog/oc8051_decoder.v
+@@ -374,6 +358,7 @@ begin
+           src_sel3 = `OC8051_AS3_DC;
+           comp_sel = `OC8051_CSS_DES;
+           rmw = `OC8051_RMW_N;        bit_addr = 1'b0;
++          stb_i = 1'b1;
+           wad2 = `OC8051_WAD_N;
+           rom_addr_sel = `OC8051_RAS_PC;
+           
+
+ParseResult:
+UPD HdlStmAssign@@ to 
+    UPD HdlValueId@@istb to nop
+
+
+CommitId: 6e11b89f0a1e1d903e79cc345a1e316a4ed018c6
+fix bugs in instruction interface
+--- a/rtl/verilog/oc8051_decoder.v
++++ b/rtl/verilog/oc8051_decoder.v
+@@ -394,6 +379,7 @@ begin
+           src_sel3 = `OC8051_AS3_DC;
+           comp_sel = `OC8051_CSS_DES;
+           rmw = `OC8051_RMW_N;        bit_addr = 1'b0;
++          stb_i = 1'b1;
+           wad2 = `OC8051_WAD_N;
+           rom_addr_sel = `OC8051_RAS_PC;
+           
+
+ParseResult:
+INS HdlIdDef@@stb_i to objs
+HdlIdDef: stb_i
+    HdlOp: PARAMETRIZATION
+        list: ops
+            HdlValueId: reg
+    HdlDirection: INTERNAL
+
+UPD HdlStmProcess@@ to 
+    INS list@@sensitivity to 
+    list: sensitivity
+        HdlValueId: op_cur
+        HdlValueId: eq
+        HdlValueId: state
+        HdlValueId: op
+        HdlValueId: stb_o
+        HdlValueId: istb_t
+
+UPD HdlStmIf@@ to 
+    INS HdlValueId@@stb_o to 
+    INS list@@elifs to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+
+UPD HdlStmProcess@@ to 
+    DEL list@@sensitivity from 
+    list: sensitivity
+        HdlValueId: op_in
+        HdlValueId: eq
+        HdlValueId: state
+        HdlValueId: op
+        HdlValueId: stb_o
+        HdlValueId: istb_t
+
+UPD HdlStmIf@@ to 
+    DEL HdlValueId@@stb_o from 
+    DEL list@@elifs from 
+
+UPD HdlStmCase@@state to state
+    DEL HdlStmCaseType@@CASE from state
+    DEL HdlValueId@@state from state
+    DEL HdlValueInt@@10 from 
+
+
+CommitId: 6e11b89f0a1e1d903e79cc345a1e316a4ed018c6
+fix bugs in instruction interface
+--- a/rtl/verilog/oc8051_decoder.v
++++ b/rtl/verilog/oc8051_decoder.v
+@@ -414,6 +400,7 @@ begin
+           src_sel3 = `OC8051_AS3_DC;
+           comp_sel = `OC8051_CSS_DES;
+           rmw = `OC8051_RMW_N;        bit_addr = 1'b0;
++          stb_i = 1'b1;
+           wad2 = `OC8051_WAD_N;
+           rom_addr_sel = `OC8051_RAS_PC;
+           
+
+ParseResult:
+INS HdlStmAssign@@ to objs
+HdlStmAssign
+    HdlOp: AND_LOG
+        list: ops
+            HdlOp: NEG_LOG
+                list: ops
+                    HdlValueId: istb_t
+            HdlValueId: rd
+    HdlValueId: pc_wait
+
+UPD HdlStmCase@@state to state
+    INS HdlStmCaseType@@CASE to state
+    INS HdlValueId@@state to state
+    INS HdlValueInt@@10 to 
+
+
+CommitId: 6e11b89f0a1e1d903e79cc345a1e316a4ed018c6
+fix bugs in instruction interface
+--- a/rtl/verilog/oc8051_decoder.v
++++ b/rtl/verilog/oc8051_decoder.v
+@@ -534,6 +526,7 @@ begin
+           src_sel3 = `OC8051_AS3_DC;
+           comp_sel = `OC8051_CSS_BIT;
+           rmw = `OC8051_RMW_N;        bit_addr = 1'b0;
++          stb_i = 1'b1;
+           wad2 = `OC8051_WAD_N;
+           rom_addr_sel = `OC8051_RAS_PC;
+           
+
+ParseResult:
+UPD HdlStmCase@@op to op_cur
+
+UPD HdlStmCase@@op to op
+    UPD HdlValueId@@op to op_cur
+    UPD HdlValueInt@@10111xxx to 10010011
+    UPD HdlValueInt@@1011011x to 10000011
+    UPD HdlValueInt@@10110101 to 10111xxx
+    UPD HdlValueInt@@10110100 to 10110101
+    UPD HdlValueInt@@11011xxx to 10110100
+    UPD HdlValueInt@@11010101 to 11011xxx
+    UPD HdlValueInt@@00100010 to 11010101
+    UPD HdlValueInt@@00110010 to 00100010
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: src_sel1
+                HdlValueInt: 11
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: src_sel2
+                HdlValueInt: 11
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: alu_op
+                HdlValueInt: 1110
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: imm_sel
+                HdlValueInt: 100
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: rom_addr_sel
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: src_sel3
+                HdlValueInt: 1
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: src_sel1
+                HdlValueInt: 11
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: src_sel2
+                HdlValueInt: 11
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: alu_op
+                HdlValueInt: 1110
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: imm_sel
+                HdlValueInt: 100
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: rom_addr_sel
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: imm_sel
+                HdlValueInt: 100
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: imm_sel
+                HdlValueInt: 110
+    UPD HdlStmBlock@@SEQ to SEQ
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: ram_rd_sel
+                HdlValueInt: 11
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: src_sel1
+                HdlValueInt: 00
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: src_sel2
+                HdlValueInt: 00
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: alu_op
+                HdlValueInt: 0000
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: pc_wr
+                HdlValueInt: 1
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: imm_sel
+                HdlValueInt: 000
+        MOV HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: src_sel3
+                HdlValueInt: 0
+
+UPD HdlStmCase@@op_cur to op_cur
+    INS tuple@@ to cases
+    INS HdlValueInt@@00110010 to 
+    INS HdlStmBlock@@SEQ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS list@@body to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+
+
+CommitId: 6e11b89f0a1e1d903e79cc345a1e316a4ed018c6
+fix bugs in instruction interface
+--- a/rtl/verilog/oc8051_decoder.v
++++ b/rtl/verilog/oc8051_decoder.v
+@@ -790,6 +836,7 @@ begin
+           src_sel3 = `OC8051_AS3_PC;
+           comp_sel = `OC8051_CSS_DC;
+           rmw = `OC8051_RMW_N;        bit_addr = 1'b0;
++          stb_i = 1'b1;
+           wad2 = `OC8051_WAD_N;
+           rom_addr_sel = `OC8051_RAS_PC;
+           
+
+ParseResult:
+UPD HdlStmCase@@op_in to op_cur
+
+UPD HdlStmCase@@op_in to op_in
+    DEL HdlStmCaseType@@CASEX from op_in
+    DEL HdlValueId@@op_in from op_in
+
+
+CommitId: 6e11b89f0a1e1d903e79cc345a1e316a4ed018c6
+fix bugs in instruction interface
+--- a/rtl/verilog/oc8051_decoder.v
++++ b/rtl/verilog/oc8051_decoder.v
+@@ -828,6 +876,7 @@ begin
+           src_sel3 = `OC8051_AS3_PC;
+           comp_sel = `OC8051_CSS_DC;
+           rmw = `OC8051_RMW_N;        bit_addr = 1'b0;
++          stb_i = 1'b1;
+           wad2 = `OC8051_WAD_N;
+           rom_addr_sel = `OC8051_RAS_PC;
+           
+
+ParseResult:
+UPD HdlStmCase@@op_cur to op_cur
+    INS HdlStmCaseType@@CASEX to op_cur
+    INS HdlValueId@@op_cur to op_cur
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 0
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: stb_i
+                HdlValueInt: 1
+
+
+CommitId: 6e11b89f0a1e1d903e79cc345a1e316a4ed018c6
+fix bugs in instruction interface
+--- a/rtl/verilog/oc8051_decoder.v
++++ b/rtl/verilog/oc8051_decoder.v
+@@ -2885,6 +3041,7 @@ begin
+           src_sel3 = `OC8051_AS3_DC;
+           comp_sel = `OC8051_CSS_DC;
+           rmw = `OC8051_RMW_N;        bit_addr = 1'b0;
++          stb_i = 1'b1;
+           wad2 = `OC8051_WAD_N;
+           rom_addr_sel = `OC8051_RAS_PC;
+           
+
+ParseResult:
+DEL HdlStmAssign@@ from body
+HdlStmAssign
+    HdlValueInt: 01
+    HdlValueId: state
+    HdlValueInt: 1
+
+
+CommitId: 6e11b89f0a1e1d903e79cc345a1e316a4ed018c6
+fix bugs in instruction interface
+--- a/rtl/verilog/oc8051_decoder.v
++++ b/rtl/verilog/oc8051_decoder.v
+@@ -2904,6 +3061,7 @@ begin
+           src_sel3 = `OC8051_AS3_DC;
+           comp_sel = `OC8051_CSS_DC;
+           rmw = `OC8051_RMW_N;        bit_addr = 1'b0;
++          stb_i = 1'b1;
+           wad2 = `OC8051_WAD_N;
+           rom_addr_sel = `OC8051_RAS_PC;
+           
+
+ParseResult:
+MOV HdlStmAssign@@ to 
+HdlStmAssign
+    HdlValueInt: 10
+    HdlValueId: state
+    HdlValueInt: 1
+
+UPD HdlStmAssign@@ to 
+    UPD HdlValueInt@@10 to 11
+
+
 CommitId: 0d5bea54d89c3beb77a721333cb431788d202fb2
 mul bug fixed
 --- a/rtl/verilog/oc8051_multiply.v
@@ -1846,66 +3173,6 @@ Code repaired to satisfy the linter; testbech fails
  assign int_l1 = ip[4:0] & ie[4:0] & {uart, tcon_tf1, tcon_ie1, tcon_tf0, tcon_ie0};
 
 ParseResult:
-INS HdlStmProcess@@ to objs
-
-INS HdlStmIf@@body to 
-HdlStmIf: body
-    HdlValueId: rst
-    HdlStmBlock: SEQ
-        list: body
-            HdlStmAssign
-                HdlValueInt: 0
-                HdlValueId: tf0_buff
-                HdlValueInt: 1
-            HdlStmAssign
-                HdlValueInt: 0
-                HdlValueId: tf1_buff
-                HdlValueInt: 1
-            HdlStmAssign
-                HdlValueInt: 0
-                HdlValueId: ie0_buff
-                HdlValueInt: 1
-            HdlStmAssign
-                HdlValueInt: 0
-                HdlValueId: ie1_buff
-                HdlValueInt: 1
-    list: elifs
-    HdlStmBlock: SEQ
-        list: body
-            HdlStmAssign
-                HdlValueId: tf0
-                HdlValueId: tf0_buff
-                HdlValueInt: 1
-            HdlStmAssign
-                HdlValueId: tf1
-                HdlValueId: tf1_buff
-                HdlValueInt: 1
-            HdlStmAssign
-                HdlValueId: ie0
-                HdlValueId: ie0_buff
-                HdlValueInt: 1
-            HdlStmAssign
-                HdlValueId: ie1
-                HdlValueId: ie1_buff
-                HdlValueInt: 1
-
-UPD HdlStmProcess@@ to 
-    INS HdlOp@@RISING to sensitivity
-    HdlOp: RISING
-        list: ops
-            HdlValueId: rst
-
-DEL HdlStmProcess@@ from objs
-HdlStmProcess
-    list: sensitivity
-        HdlOp: RISING
-            list: ops
-                HdlValueId: clk
-    HdlStmAssign: body
-        HdlValueId: tf0
-        HdlValueId: tf0_buff
-        HdlValueInt: 1
-
 DEL HdlStmProcess@@ from objs
 HdlStmProcess
     list: sensitivity
@@ -2078,51 +3345,6 @@ fix bug in case of sequence of inc dptr instrucitons.
        ) & !wait_data) begin
      wait_data <= #1 1'b1;
  
-
-ParseResult:
-UPD HdlStmIf@@ to 
-    UPD HdlOp@@AND to AND
-        UPD HdlOp@@OR to OR
-            UPD HdlOp@@OR to OR
-                UPD HdlOp@@OR to OR
-                    MOV HdlOp@@AND to ops
-                    HdlOp: AND
-                        list: ops
-                            HdlOp: EQ
-                                list: ops
-                                    HdlValueId: wr_sfr
-                                    HdlValueInt: 01
-                            HdlOp: EQ
-                                list: ops
-                                    HdlValueId: adr0
-                                    HdlValueInt: e0
-                    DEL HdlOp@@AND from ops
-                    HdlOp: AND
-                        list: ops
-                            HdlOp: EQ
-                                list: ops
-                                    HdlValueId: wr_sfr
-                                    HdlValueInt: 11
-                            HdlOp: EQ
-                                list: ops
-                                    HdlValueId: adr0
-                                    HdlValueInt: 82
-                    DEL list@@ops from OR
-                DEL HdlOp@@OR from ops
-
-
-CommitId: 54f2c083808ae0940ea2fede25a5980534dd89e2
-fix bug in case of sequence of inc dptr instrucitons.
---- a/rtl/verilog/oc8051_sfr.v
-+++ b/rtl/verilog/oc8051_sfr.v
-@@ -645,6 +649,7 @@ end
- 
- //
- //set output in case of address (bit)
-+
- always @(posedge clk or posedge rst)
- begin
-   if (rst)
 
 ParseResult:
 UPD HdlStmIf@@ to 

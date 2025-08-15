@@ -1,5 +1,5 @@
-,HdlOp-FunctionCall,HdlOp-RISING,HdlOp-InfixExpression,HdlDirection,HdlOp-Assignment,HdlOp-MemberAccessing,HdlOp-PrefixExpression,HdlOp-PARAMETRIZATION,HdlOp-TERNARY,HdlOp-DOWNTO
-delete,5.0,,,,1.0,,,,,
-update,3.0,1.0,13.0,1.0,5.0,5.0,1.0,3.0,2.0,2.0
-insert,,,10.0,,,,1.0,,,
-move,,,4.0,,,,1.0,,,
+,HdlOp-FunctionCall_HdlStmCase,HdlOp-RISING_HdlStmProcess,HdlOp-InfixExpression_HdlStmIf,HdlOp-InfixExpression_HdlStmAssign,HdlDirection,HdlOp-Assignment_HdlStmIf,HdlOp-MemberAccessing_HdlStmIf,HdlOp-MemberAccessing_HdlStmAssign,HdlOp-PrefixExpression_HdlStmAssign,HdlOp-PARAMETRIZATION_HdlIdDef,HdlOp-Assignment_HdlStmCase,HdlOp-DOWNTO_HdlIdDef,HdlOp-FunctionCall_HdlStmIf
+delete,2.0,,,,,1.0,,,,,,,1.0
+update,,1.0,4.0,4.0,1.0,1.0,2.0,2.0,1.0,1.0,4.0,2.0,
+insert,,,6.0,4.0,,,,,1.0,,,,
+move,,,1.0,3.0,,,,,1.0,,,,

@@ -1,4 +1,4 @@
-,HdlOp-InfixExpression,HdlOp-FunctionCall
+,HdlOp-InfixExpression_HdlIdDef,HdlOp-FunctionCall_HdlIdDef
 insert,10.0,
-update,10.0,14.0
+update,10.0,5.0
 move,,5.0

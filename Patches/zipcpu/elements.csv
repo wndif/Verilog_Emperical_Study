@@ -1,5 +1,5 @@
-,HdlOp-InfixExpression,HdlOp-PrefixExpression,HdlOp-PARAMETRIZATION,HdlOp-DOWNTO,HdlOp-Assignment,HdlOp-MemberAccessing,HdlOp-TERNARY,HdlOp-FunctionCall,HdlDirection
-update,919,73,46,106,69,271,37,10,4.0
-move,136,31,1,1,8,63,2,7,
-delete,124,23,5,10,32,50,6,2,2.0
-insert,214,45,2,6,33,50,5,2,5.0
+,HdlOp-InfixExpression_HdlStmAssign,HdlOp-PrefixExpression_HdlStmAssign,HdlOp-PrefixExpression_HdlStmIf,HdlOp-InfixExpression_HdlIdDef,HdlOp-DOWNTO_HdlIdDef,HdlOp-MemberAccessing_HdlStmProcess,HdlOp-DOWNTO_HdlStmProcess,HdlOp-Assignment_HdlStmProcess,HdlOp-InfixExpression_HdlStmProcess,HdlOp-InfixExpression_HdlStmIf,HdlOp-DOWNTO_HdlStmAssign,HdlOp-DOWNTO_HdlStmIf,HdlOp-TERNARY_HdlStmAssign,HdlOp-MemberAccessing_HdlStmAssign,HdlOp-FunctionCall_HdlStmIf,HdlOp-MemberAccessing_HdlStmIf,HdlDirection,HdlOp-MemberAccessing_HdlStmCase,HdlOp-PARAMETRIZATION_HdlIdDef,HdlOp-Assignment_HdlStmIf,HdlOp-Assignment_HdlStmCase,HdlOp-Assignment_HdlFunctionDef,HdlOp-MemberAccessing_HdlFunctionDef,HdlOp-MemberAccessing_HdlIdDef,HdlOp-InfixExpression_HdlStmFor,HdlOp-FunctionCall_HdlIdDef,HdlOp-TERNARY_HdlIdDef,HdlOp-PrefixExpression_HdlStmProcess,HdlOp-TERNARY_HdlStmIf,HdlOp-FunctionCall_HdlStmProcess
+move,45,11,17,,1,5.0,,6,1.0,78,,,2,35,6,10,,10,1,1,1,,,,,1.0,,1.0,,
+update,203,14,34,45.0,5,6.0,5.0,25,10.0,240,30.0,7.0,16,82,4,41,4.0,9,10,15,5,,2.0,6.0,6.0,1.0,2.0,3.0,,1.0
+delete,64,9,13,4.0,2,,,20,,50,8.0,,6,16,2,29,2.0,1,5,4,6,,,2.0,,,,,,
+insert,92,8,25,2.0,1,1.0,1.0,13,3.0,103,2.0,2.0,3,26,1,15,5.0,6,2,9,6,1.0,,2.0,3.0,1.0,,2.0,1.0,

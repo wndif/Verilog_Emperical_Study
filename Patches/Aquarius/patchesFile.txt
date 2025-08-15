@@ -1,0 +1,46 @@
+CommitId: e59f573a3f4ae8414ad4fde38c778a153e577baf
+Inconsistency in Synthesis is fixed
+--- a/verilog/decode.v
++++ b/verilog/decode.v
+@@ -993,7 +1001,7 @@ module decode(
+ 
+ 
+     always @(EX_RDREG_X  or EX_RDREG_Y or EX_WRREG_Z
+-          or EX_REGNUM_X or EX_REGNUM_Y 
++          or EX_REGNUM_X or EX_REGNUM_Y or EX_REGNUM_Z  // Thorn Aitch 2003/12/10
+           or WB1_WRREG_W or WB1_REGNUM_W
+           or EX_RDPR_X   or EX_RDPR_Y  or EX_WRPR_Z
+           or WB1_WRPR_W
+
+ParseResult:
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: EX_CMPCOM
+                HdlValueInt: 000
+        INS HdlOp@@ASSIGN to body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: EX_SFTFUNC
+                HdlValueInt: 0000
+
+UPD HdlStmProcess@@ to 
+    UPD HdlStmBlock@@SEQ to SEQ
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@xxxx to 0000
+        UPD HdlOp@@ASSIGN to ASSIGN
+            UPD HdlValueInt@@0xxxx to 00000
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: EX_CMPCOM
+                HdlValueInt: xxx
+        DEL HdlOp@@ASSIGN from body
+        HdlOp: ASSIGN
+            list: ops
+                HdlValueId: EX_SFTFUNC
+                HdlValueInt: xxxx
+
+
